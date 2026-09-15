@@ -1,0 +1,36 @@
+{
+  "profile_id": "prototype-v1",
+  "profile_version": 1,
+  "description": "Established Heroes of Teloria rules plus the provisional prototype defaults. Every value under 'provisional' is a temporary ruling recorded in PROVISIONAL_RULES.md and may be changed without touching engine code.",
+
+  "established": {
+    "hit_deck_size": 45,
+    "draw_to": 5,
+    "max_hand_size": 7,
+    "copy_limit_by_name": 3,
+    "named_character_limit": 1,
+    "unique_limit": 1,
+    "heroes_per_deck": 1,
+    "sideboard_size": 0
+  },
+
+  "provisional": {
+    "first_priority": "seeded_random_then_alternate",
+    "opening_mulligan": false,
+    "hand_overflow": "full_draw_then_choose_exhaust",
+    "companion_board_cap": 0,
+    "reaction_first_opportunity": "opponent_of_step_controller",
+    "reaction_consecutive_passes_to_close": 2,
+    "reaction_allow_reentry_after_single_pass": true,
+    "reaction_nesting": false,
+    "reaction_ordering": "before_in_commitment_order_then_action_then_after",
+    "simultaneous_defeat_result": "draw",
+    "taahma_replacement_destination": "exhaust",
+    "orphan_attachment_destination": "exhaust",
+    "companion_energy_on_entry": "max_only",
+    "unique_variety_cap": 0,
+    "control_stealing_cards": false,
+    "simulation_round_limit": 200,
+    "ai_think_budget_ms": 45
+  }
+}
