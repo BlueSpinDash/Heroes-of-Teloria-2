@@ -18,6 +18,7 @@ Usage (or just run tools/build_catalog.sh, which does all three passes):
     python3 tools/generate_catalog.py
 """
 
+import glob
 import json
 import os
 
@@ -31,6 +32,28 @@ try:
         CARD_TEXT = json.load(_fh)
 except (IOError, ValueError):
     CARD_TEXT = {}
+
+
+def _load_existing():
+    """The catalog as it stands on disk, so regeneration never destroys
+    hand-authored work.
+
+    A definition marked "authored": true is a real card rather than a proxy and
+    is carried across untouched. For every other definition, a real art file is
+    still preserved, because art is supplied separately from mechanics.
+    """
+    existing = {}
+    for path in sorted(glob.glob(os.path.join(OUT_DIR, "*.json"))):
+        try:
+            with open(path) as fh:
+                for card in json.load(fh):
+                    existing[card["id"]] = card
+        except (IOError, ValueError, KeyError, TypeError):
+            continue
+    return existing
+
+
+EXISTING = _load_existing()
 
 AFFINITIES = [
     # (key, code, display, hue, ai role)
@@ -1029,6 +1052,14 @@ def stable_seed(text):
 def finish(body, *, code, key, display, hue, role, kind, index, rarity,
            named=False, unique=None):
     cid = "%s_%s_%02d" % (code, kind, index)
+
+    # A card that has been authored for real is not regenerated. This is what
+    # lets proxies be replaced one at a time without the next regeneration
+    # undoing the work.
+    prior = EXISTING.get(cid)
+    if prior is not None and prior.get("authored"):
+        return prior
+
     name = "%s Proxy %s %02d" % (display, TYPE_WORD[kind], index)
     is_neutral = key == "neutral"
 
@@ -1078,6 +1109,11 @@ def finish(body, *, code, key, display, hue, role, kind, index, rarity,
         "hue": hue,
         "saturation": 0.0 if is_neutral else 0.45,
     }
+    # Real art survives regeneration even on a card that is still a proxy.
+    if prior is not None and isinstance(prior.get("art"), dict):
+        for field in ("image", "fit"):
+            if prior["art"].get(field):
+                d["art"][field] = prior["art"][field]
     d["patterns"] = sorted(set(body.get("patterns", []) or ["misc"]))
     d["ai_hints"] = {
         "role": role,
@@ -1159,6 +1195,9 @@ def main():
     # --- self-checks: the blueprint's required catalog totals ---------------
     assert len(everything) == 300, "expected 300 definitions, got %d" % len(everything)
 
+    authored = [c for c in everything if c.get("authored")]
+    with_art = [c for c in everything if isinstance(c.get("art"), dict) and c["art"].get("image")]
+
     ids = [c["id"] for c in everything]
     assert len(set(ids)) == 300, "card ids are not unique"
     names = [c["name"] for c in everything]
@@ -1210,6 +1249,11 @@ def main():
             fh.write("\n")
         print("wrote %-22s %3d cards" % (fname, len(files[fname])))
 
+    if authored:
+        print("\npreserved %d authored definition(s): %s" % (
+            len(authored), ", ".join(c["id"] for c in authored[:12])))
+    if with_art:
+        print("preserved art references on %d definition(s)" % len(with_art))
     print("\n%d definitions; types %s" % (len(everything), expected_types))
     print("rarities %s" % rarities)
     print("%d Reaction Skills; %d behaviour patterns" % (len(reactions), len(patterns)))

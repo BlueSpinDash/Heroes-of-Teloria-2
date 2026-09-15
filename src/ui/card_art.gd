@@ -1,17 +1,19 @@
 class_name CardArt
 extends Control
 
-## Deterministic abstract placeholder art.
+## The card portrait: a supplied image when the definition names one, and a
+## deterministic abstract sigil when it does not.
 ##
-## The art is generated from the definition's art block, so replacing it later
-## with real illustration changes nothing about the card's mechanics or
-## identity. Cost, stats and rules text are never drawn here — they always live
-## in real controls outside the art, per the template direction.
+## Either way this draws decoration only. Cost, stats and rules text always
+## live in real controls outside the art, per the template direction, so the
+## art can be replaced freely without changing what a card does or says.
 
 var art_seed: int = 0
 var hue: float = 210.0
 var saturation: float = 0.45
 var sigil_points: int = 6
+var texture: Texture2D = null
+var fit: String = "cover"
 
 
 func setup(art: Dictionary) -> void:
@@ -19,12 +21,18 @@ func setup(art: Dictionary) -> void:
     hue = float(art.get("hue", 210))
     saturation = float(art.get("saturation", 0.45))
     sigil_points = 4 + (art_seed % 5)
+    fit = String(art.get("fit", "cover"))
+    texture = ArtLibrary.texture_for(art)
+    clip_contents = true
     queue_redraw()
 
 
 func _draw() -> void:
     var r := Rect2(Vector2.ZERO, size)
     if size.x <= 2.0 or size.y <= 2.0:
+        return
+    if texture != null:
+        _draw_supplied_art()
         return
     var base := Color.from_hsv(hue / 360.0, saturation * 0.7, 0.20)
     var mid := Color.from_hsv(hue / 360.0, saturation * 0.55, 0.32)
@@ -65,7 +73,26 @@ func _draw() -> void:
     draw_line(Vector2(centre.x - radius * 1.35, centre.y),
         Vector2(centre.x + radius * 1.35, centre.y), glow.darkened(0.45), 1.0, true)
 
-    # Vignette edges.
+    _draw_vignette()
+
+
+## Fit a supplied image to the portrait window. "cover" fills the window and
+## crops the overflow; "contain" shows the whole image on a dark ground.
+func _draw_supplied_art() -> void:
+    var tw := float(texture.get_width())
+    var th := float(texture.get_height())
+    if tw <= 0.0 or th <= 0.0:
+        return
+    draw_rect(Rect2(Vector2.ZERO, size), Color(0.05, 0.05, 0.06), true)
+    var scale_factor: float = max(size.x / tw, size.y / th) if fit != "contain" \
+        else min(size.x / tw, size.y / th)
+    var drawn := Vector2(tw * scale_factor, th * scale_factor)
+    var at := (size - drawn) * 0.5
+    draw_texture_rect(texture, Rect2(at, drawn), false)
+    _draw_vignette()
+
+
+func _draw_vignette() -> void:
     var edge := Color(0, 0, 0, 0.35)
     draw_rect(Rect2(0, 0, size.x, size.y * 0.06), edge, true)
     draw_rect(Rect2(0, size.y * 0.94, size.x, size.y * 0.06), edge, true)

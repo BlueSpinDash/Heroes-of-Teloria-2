@@ -19,7 +19,7 @@ establish no Teloria lore or final balance.
 | Progression | Gold, boosters, duplicate conversion, idempotent rewards, durable pack transactions. |
 | Persistence | Versioned save with atomic writes, backup rotation, export and import. |
 | Interface | Home, Collection, Deck builder, Opponent selection, Battle, Results, Shop, Card editor, Settings. |
-| Tests | 697 assertions across five suites, all passing. |
+| Tests | 723 assertions across five suites, all passing. |
 
 ## Requirements
 
@@ -104,6 +104,7 @@ export button hands you a download instead of a file path.
 ## Project layout
 
 ```
+assets/art/      Card art files, with a README on how a card points at one
 data/            Hand-editable game data
   catalog/       The 300 card definitions, split by Affinity
   decks/         Starter decks and AI decklists
@@ -127,6 +128,9 @@ docs/            Effect-schema guide and architecture notes
   and cannot be told to do without code changes.
 * `docs/ARCHITECTURE.md` — component responsibilities and the invariants the
   engine maintains.
+* `docs/ADDING_CARDS.md` — how to replace a proxy with a real card, what to
+  send for each one, and what a replacement does to saves and decks.
+* `assets/art/README.md` — where art files go and how a card points at one.
 * `docs/screens/` — screenshots of every screen, captured from a real run.
 
 ## Honest limitations
