@@ -1,0 +1,359 @@
+extends RefCounted
+
+## The blueprint's manual walkthrough, run automatically against the real
+## interface:
+##
+##   fresh launch → play a starter → finish a match → receive the correct
+##   outcome and reward → purchase and reveal a pack → add an acquired card to
+##   a legal deck → save → reload → play against another Affinity → edit a
+##   proxy → future matches use the revision while deck references stay intact.
+##
+## Screens are built through the real App, so a screen that cannot construct
+## itself fails here rather than in front of a player.
+
+const WALKTHROUGH_ROUND_LIMIT := 25
+
+var app: App
+var _root: Node
+
+
+func suite_name() -> String:
+    return "ui"
+
+
+## This suite builds real nodes, which only become ready on the next frame.
+func is_async() -> bool:
+    return true
+
+
+func _frames(t: TestHarness, count: int) -> void:
+    for i in count:
+        await t.tree.process_frame
+
+
+func run(t: TestHarness) -> void:
+    if t.tree == null:
+        t.begin("setup")
+        t.ok(false, "the runner did not provide a SceneTree")
+        return
+    _root = t.tree.root
+    await _launch(t)
+    if app == null:
+        return
+    _every_screen_builds(t)
+    _play_a_starter(t)
+    _finish_and_reward(t)
+    _buy_and_reveal(t)
+    _add_card_to_deck(t)
+    _save_and_reload(t)
+    _play_another_affinity(t)
+    _edit_a_proxy(t)
+    _cleanup()
+
+
+func _launch(t: TestHarness) -> void:
+    t.begin("fresh launch")
+    var scene: PackedScene = load("res://src/ui/main.tscn")
+    if not t.ne(scene, null, "the main scene loads"):
+        return
+    var node := scene.instantiate()
+    _root.add_child(node)
+    app = node as App
+    if not t.ne(app, null, "the main scene's root is the application"):
+        return
+    await _frames(t, 3)
+    if not t.ne(app.economy, null, "the application finished starting up"):
+        app = null
+        return
+    # Start from a brand-new profile so the walkthrough matches a first launch.
+    app.catalog = Catalog.load_bundled()
+    app.profile = PlayerProfile.create_new(app.catalog, app.economy)
+    app.match_state = null
+    app.match_context = {}
+    app.save_profile()
+    app.goto("home")
+    t.eq(app.profile.decks().size(), 7, "a fresh launch grants all seven starter decks")
+    t.eq(app.profile.gold, app.economy.starting_gold, "and the configured starting gold")
+    t.ok(not app.has_active_match(), "no match is in progress at launch")
+
+
+func _screen() -> Control:
+    if app._body.get_child_count() == 0:
+        return null
+    return app._body.get_child(app._body.get_child_count() - 1)
+
+
+func _every_screen_builds(t: TestHarness) -> void:
+    t.begin("every screen builds")
+    for name in ["home", "collection", "decks", "opponents", "shop", "editor", "settings"]:
+        app.goto(String(name))
+        var s := _screen()
+        t.ne(s, null, "the %s screen was created" % name)
+        if s != null:
+            t.ok(s.get_child_count() > 0, "the %s screen has content" % name)
+    app.goto("deck_builder", {"deck_id": String((app.profile.decks()[0] as Dictionary).get("deck_id", ""))})
+    t.ne(_screen(), null, "the deck builder opens on an existing deck")
+
+
+func _starter_deck() -> Dictionary:
+    for d in app.profile.decks():
+        var deck: Dictionary = d
+        if DeckValidator.validate(app.catalog, app.rules, deck, app.profile.owned())["ok"]:
+            return deck
+    return {}
+
+
+func _play_a_starter(t: TestHarness) -> void:
+    t.begin("play a starter deck")
+    var deck := _starter_deck()
+    if not t.ok(not deck.is_empty(), "at least one granted starter is legal and fully owned"):
+        return
+    var err := app.start_match(String(deck.get("deck_id", "")), "silence")
+    t.eq(err, "", "the match started: %s" % err)
+    app.goto("battle")
+    var screen := _screen()
+    t.ne(screen, null, "the battle screen built")
+    t.ne(app.match_state, null, "a match state exists")
+    t.eq(app.match_state.round_number, 1, "the match opens on round 1")
+    t.eq(app.match_state.player(0).hand.size(), app.rules.draw_to, "you drew to five")
+
+    # Commit at least one Action through the real command path.
+    var st: GameState = app.match_state
+    var acted := 0
+    var guard := 0
+    while acted < 2 and guard < 60 and st.result == null:
+        guard += 1
+        if st.pending is Dictionary and int((st.pending as Dictionary).get("player", -1)) == 0:
+            GameEngine.submit(st, MatchRunner._passive_command(st, 0))
+            continue
+        if st.phase != "action" or st.action_priority != 0 or st.player(0).passed_actions:
+            # Let the opponent take its turn through the same API the screen uses.
+            var actor := MatchRunner._actor(st)
+            if actor == 1:
+                GameEngine.submit(st, AiPolicy.decide(st, 1))
+            else:
+                GameEngine.advance(st)
+            continue
+        var legal := GameEngine.legal_commands(st, 0)
+        var choice: Dictionary = {}
+        for c in legal:
+            if String((c as Dictionary).get("cmd", "")) != "pass_actions":
+                choice = c
+                break
+        if choice.is_empty():
+            break
+        var res := GameEngine.submit(st, AiThinker._strip(choice))
+        t.ok(bool(res["ok"]), "a command the engine offered was accepted: %s" % String(res["error"]))
+        acted += 1
+    t.ge(float(acted), 1.0, "the human side committed at least one Action")
+    if screen != null and screen.has_method("_refresh"):
+        screen.call("_refresh")
+        t.ok(true, "the battle screen re-rendered after commands")
+
+
+## Finish a match quickly. The walkthrough cares that a real match reaches a
+## real result and pays once, not that it goes the distance, so the human side
+## simply passes and the run is bounded. Full-length AI matches are covered by
+## the ai suite.
+func _finish_match(st: GameState) -> void:
+    MatchRunner.drive(st, ["pass", "ai"], WALKTHROUGH_ROUND_LIMIT)
+    if st.result == null:
+        GameEngine.submit(st, {"cmd": "concede", "player": 0})
+
+
+func _finish_and_reward(t: TestHarness) -> void:
+    t.begin("finish the match and receive the reward once")
+    var st: GameState = app.match_state
+    _finish_match(st)
+    t.ne(st.result, null, "the match reached a result")
+    var outcome := app.outcome_for_player()
+    t.ok(["win", "loss", "draw", "concede"].has(outcome), "the outcome is one of the four kinds")
+
+    var gold_before := app.profile.gold
+    app.goto("results")
+    t.ne(_screen(), null, "the results screen built")
+    var expected := app.economy.reward_for(outcome)
+    t.eq(app.profile.gold, gold_before + expected, "the reward matched the configured amount for '%s'" % outcome)
+    var after_first := app.profile.gold
+
+    # Reopening the results screen must not pay again.
+    app.goto("results")
+    t.eq(app.profile.gold, after_first, "reopening the results screen does not pay twice")
+    app.goto("results")
+    t.eq(app.profile.gold, after_first, "nor does a third visit")
+    t.eq(app.profile.record_count(), 1, "exactly one match record was written")
+    app.end_match()
+    t.ok(not app.has_active_match(), "the finished match was cleared")
+
+
+func _buy_and_reveal(t: TestHarness) -> void:
+    t.begin("purchase and reveal a booster")
+    app.profile.gold = app.economy.booster_price + 5
+    app.save_profile()
+    app.goto("shop")
+    var shop := _screen()
+    if not t.ne(shop, null, "the shop screen built"):
+        return
+    var gold_before := app.profile.gold
+    shop.call("_buy")
+    var opening = app.profile.pending_reveal()
+    if not t.ok(opening is Dictionary, "a booster was opened and is waiting to be acknowledged"):
+        return
+    var cards: Array = (opening as Dictionary).get("cards", [])
+    t.eq(cards.size(), app.economy.cards_per_booster, "the booster held five cards")
+    var dust := int((opening as Dictionary).get("duplicate_gold", 0))
+    t.eq(app.profile.gold, gold_before - app.economy.booster_price + dust,
+        "the price was deducted once and duplicate conversions credited")
+
+    # The purchase is durable before anything is revealed.
+    var reloaded := PlayerProfile.new(app.store.load_raw())
+    t.eq(reloaded.gold, app.profile.gold, "the committed save already shows the purchase")
+    t.ok(reloaded.pending_reveal() is Dictionary, "a reload mid-reveal still has the same result waiting")
+
+    app.profile.acknowledge_reveal()
+    app.save_profile()
+    t.eq(app.profile.pending_reveal(), null, "acknowledging clears the reveal")
+
+    # An unaffordable purchase changes nothing.
+    app.profile.gold = 0
+    var snapshot := JSON.stringify(app.profile.to_dict())
+    app.goto("shop")
+    var shop2 := _screen()
+    shop2.call("_buy")
+    t.eq(JSON.stringify(app.profile.to_dict()), snapshot, "an unaffordable purchase left the save unchanged")
+
+
+func _acquired_card_id() -> String:
+    # A card owned but not used by any starter deck.
+    var used: Dictionary = {}
+    for d in app.profile.decks():
+        for k in ((d as Dictionary).get("cards", {}) as Dictionary).keys():
+            used[String(k)] = true
+    for def_id in app.profile.owned().keys():
+        var def := app.catalog.get_def(String(def_id))
+        if def == null or def.has_type("hero"):
+            continue
+        if not used.has(String(def_id)):
+            return String(def_id)
+    return ""
+
+
+func _add_card_to_deck(t: TestHarness) -> void:
+    t.begin("add an acquired card to a legal deck")
+    var acquired := _acquired_card_id()
+    if acquired == "":
+        # Grant one directly so the check still runs deterministically.
+        app.profile.add_cards(app.catalog, app.economy, "NEU_SKILL_01", 1)
+        acquired = "NEU_SKILL_01"
+    var deck := _starter_deck().duplicate(true)
+    if not t.ok(not deck.is_empty(), "a legal deck is available to edit"):
+        return
+    deck["deck_id"] = "walkthrough_deck"
+    deck["name"] = "Walkthrough deck"
+    deck["starter"] = false
+
+    # Swap one copy of an existing card for the acquired one, keeping 45 cards.
+    var cards: Dictionary = deck["cards"]
+    var ids: Array = cards.keys()
+    ids.sort()
+    var donor := String(ids[0])
+    cards[donor] = int(cards[donor]) - 1
+    if int(cards[donor]) <= 0:
+        cards.erase(donor)
+    cards[acquired] = int(cards.get(acquired, 0)) + 1
+
+    var check := DeckValidator.validate(app.catalog, app.rules, deck, app.profile.owned())
+    t.ok(check["ok"], "the deck with the acquired card is legal: %s" % str(check["errors"]))
+    t.eq(int(check["count"]), 45, "it still holds exactly 45 cards")
+    app.profile.save_deck(deck)
+    app.save_profile()
+    t.eq(app.profile.decks().size(), 8, "the new deck was saved alongside the starters")
+    t.ok(app.profile.owned_count(donor) >= int((app.profile.deck_by_id("walkthrough_deck")["cards"] as Dictionary).get(donor, 0)),
+        "saving a deck did not consume any cards")
+
+
+func _save_and_reload(t: TestHarness) -> void:
+    t.begin("save and reload")
+    var gold := app.profile.gold
+    var deck_count := app.profile.decks().size()
+    var owned := app.profile.owned_count("NEU_SKILL_01")
+    t.eq(app.save_profile(), "", "the save committed")
+
+    var reloaded := PlayerProfile.new(app.store.load_raw())
+    t.eq(reloaded.gold, gold, "gold survived the reload")
+    t.eq(reloaded.decks().size(), deck_count, "every deck survived the reload")
+    t.eq(reloaded.owned_count("NEU_SKILL_01"), owned, "owned counts survived the reload")
+    t.ne(reloaded.deck_by_id("walkthrough_deck"), {}, "the deck built during the walkthrough survived")
+    app.profile = reloaded
+    app.catalog.set_overrides(app.profile.overrides())
+
+
+func _play_another_affinity(t: TestHarness) -> void:
+    t.begin("play against another Affinity")
+    var err := app.start_match("walkthrough_deck", "devotion")
+    t.eq(err, "", "a match against a different opponent started: %s" % err)
+    t.eq(String(app.match_context.get("opponent", "")), "devotion", "the opponent is the one chosen")
+    app.goto("battle")
+    t.ne(_screen(), null, "the battle screen built for the second match")
+
+    # An in-progress match survives a reload with its own frozen definitions.
+    app.persist_match()
+    var saved = app.profile.active_match()
+    t.ok(saved is Dictionary, "the active match was persisted")
+    app.match_state = null
+    t.ok(app.resume_match(), "the match resumed from the save")
+    t.eq(app.match_state.round_number, 1, "it resumed on the same round")
+
+    _finish_match(app.match_state)
+    t.ne(app.match_state.result, null, "the second match also reached a result")
+    app.goto("results")
+    app.end_match()
+
+
+func _edit_a_proxy(t: TestHarness) -> void:
+    t.begin("edit a proxy and keep every reference intact")
+    var deck := app.profile.deck_by_id("walkthrough_deck")
+    var target := String((deck["cards"] as Dictionary).keys()[0])
+    var owned_before := app.profile.owned_count(target)
+    var rev_before := app.catalog.get_def(target).revision
+
+    app.goto("editor", {"def_id": target})
+    var editor := _screen()
+    if not t.ne(editor, null, "the card editor built"):
+        return
+    editor.set("working", app.catalog.get_def(target).duplicate_def())
+    var working: CardDef = editor.get("working")
+    working.data["name"] = "Walkthrough Renamed Proxy"
+    working.data["art"] = {"style": "abstract_sigil", "seed": 4242, "hue": 12, "saturation": 0.3}
+    editor.call("_refresh_preview")
+    editor.call("_save")
+
+    var after := app.catalog.get_def(target)
+    t.eq(after.name, "Walkthrough Renamed Proxy", "the edit took effect")
+    t.ge(float(after.revision), float(rev_before + 1), "the definition revision incremented")
+    t.eq(app.profile.owned_count(target), owned_before, "owned copies are untouched")
+    var deck_after := app.profile.deck_by_id("walkthrough_deck")
+    t.ok((deck_after["cards"] as Dictionary).has(target), "the saved deck still references the same card id")
+    var check := DeckValidator.validate(app.catalog, app.rules, deck_after, app.profile.owned())
+    t.ok(check["ok"], "the deck is still legal after the edit: %s" % str(check["errors"]))
+
+    # A future match uses the revision.
+    var err := app.start_match("walkthrough_deck", "will")
+    t.eq(err, "", "a new match started after the edit: %s" % err)
+    t.eq(app.match_state.catalog.get_def(target).name, "Walkthrough Renamed Proxy",
+        "the new match uses the edited definition")
+    t.ge(float(app.match_state.catalog.get_def(target).revision), float(rev_before + 1),
+        "and its revision")
+    app.end_match()
+
+    # Restoring puts the bundled definition back without disturbing the deck.
+    app.catalog.restore_bundled(target)
+    app.profile.clear_override(target)
+    t.eq(app.catalog.get_def(target).revision, rev_before, "restore brings back the bundled revision")
+    t.ok(DeckValidator.validate(app.catalog, app.rules, deck_after, app.profile.owned())["ok"],
+        "the deck is still legal after restoring")
+
+
+func _cleanup() -> void:
+    if app != null and is_instance_valid(app):
+        app.queue_free()

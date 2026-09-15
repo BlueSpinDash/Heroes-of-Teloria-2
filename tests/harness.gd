@@ -4,6 +4,8 @@ extends RefCounted
 ## Minimal assertion harness for the headless test runner.
 
 var suite: String = ""
+## The running SceneTree, for suites that need to build real interface nodes.
+var tree: SceneTree = null
 var passed: int = 0
 var failures: Array = []
 var current: String = ""

@@ -145,8 +145,9 @@ static func exec_one(state: GameState, e: Dictionary, ctx: Dictionary) -> void:
             var picked := state.rng.take_random("discard_p%d" % who3, p.hand, n3)
             for iid in picked:
                 var ci3 := state.inst(String(iid))
-                if ci3 != null:
-                    ci3.zone = "exhaust"
+                if ci3 == null:
+                    continue
+                ci3.zone = "exhaust"
                 state.player(ci3.owner).exhaust.append(iid)
             if n3 > 0:
                 state.emit("hand_exhausted_random", {
