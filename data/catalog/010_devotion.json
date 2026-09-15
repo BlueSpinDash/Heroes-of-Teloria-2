@@ -1,0 +1,2321 @@
+[
+  {
+    "id": "DEV_HERO_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Hero 01",
+    "types": [
+      "hero"
+    ],
+    "tags": [],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "legendary",
+    "unique": true,
+    "character_id": "devotion_hero_01",
+    "cost": {
+      "kind": "none"
+    },
+    "hero_max_energy": 4,
+    "attack": 2,
+    "defense": 3,
+    "attack_cost": 1,
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "own_companion_deployed"
+        },
+        "effects": [
+          {
+            "op": "energy_gain",
+            "who": "self",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "Whenever a Companion you control enters play, you gain 1 Energy.",
+    "flavor": "Placeholder flavour for Devotion Proxy Hero 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 28265,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "companion_deploy_trigger",
+      "energy_refund",
+      "hero"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.47,
+      "patterns": [
+        "companion_deploy_trigger",
+        "energy_refund",
+        "hero"
+      ]
+    }
+  },
+  {
+    "id": "DEV_HERO_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Hero 02",
+    "types": [
+      "hero"
+    ],
+    "tags": [],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "legendary",
+    "unique": true,
+    "character_id": "devotion_hero_02",
+    "cost": {
+      "kind": "none"
+    },
+    "hero_max_energy": 5,
+    "attack": 2,
+    "defense": 2,
+    "attack_cost": 1,
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "own_hero_damaged"
+        },
+        "effects": [
+          {
+            "op": "draw",
+            "who": "self",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "Whenever your Hero is damaged, you draw 1 card.",
+    "flavor": "Placeholder flavour for Devotion Proxy Hero 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 95408,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "draw",
+      "hero",
+      "hero_damage_trigger"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.47,
+      "patterns": [
+        "draw",
+        "hero",
+        "hero_damage_trigger"
+      ]
+    }
+  },
+  {
+    "id": "DEV_SKILL_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Skill 01",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial"
+    ],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "target": {
+      "kind": "own_character",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "prevent_damage",
+        "target": "chosen",
+        "amount": 2,
+        "duration": "round"
+      }
+    ],
+    "triggers": [],
+    "text": "Prevent the next 2 damage that would be dealt to target character you control for the round.",
+    "flavor": "Placeholder flavour for Devotion Proxy Skill 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 11212,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "protection"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.47,
+      "patterns": [
+        "protection"
+      ]
+    }
+  },
+  {
+    "id": "DEV_SKILL_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Skill 02",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial"
+    ],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "prevent_damage",
+        "target": "self_hero",
+        "amount": 2,
+        "duration": "round"
+      }
+    ],
+    "triggers": [],
+    "text": "Prevent the next 2 damage that would be dealt to your Hero for the round.",
+    "flavor": "Placeholder flavour for Devotion Proxy Skill 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 44069,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "protection"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.47,
+      "patterns": [
+        "protection"
+      ]
+    }
+  },
+  {
+    "id": "DEV_SKILL_03",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Skill 03",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial",
+      "melee"
+    ],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "target": {
+      "kind": "own_character",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "stat_mod",
+        "target": "chosen",
+        "duration": "round",
+        "defense": 2
+      }
+    ],
+    "triggers": [],
+    "text": "Target character you control gets +2 Defense for the round.",
+    "flavor": "Placeholder flavour for Devotion Proxy Skill 03. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 66450,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "temp_defense_buff"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.47,
+      "patterns": [
+        "temp_defense_buff"
+      ]
+    }
+  },
+  {
+    "id": "DEV_SKILL_04",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Skill 04",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial",
+      "melee"
+    ],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "target": {
+      "kind": "own_character",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "stat_mod",
+        "target": "chosen",
+        "duration": "round",
+        "attack": 1,
+        "defense": 1
+      }
+    ],
+    "triggers": [],
+    "text": "Target character you control gets +1 Attack and +1 Defense for the round.",
+    "flavor": "Placeholder flavour for Devotion Proxy Skill 04. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 78355,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "temp_attack_buff"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.47,
+      "patterns": [
+        "temp_attack_buff"
+      ]
+    }
+  },
+  {
+    "id": "DEV_SKILL_05",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Skill 05",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial"
+    ],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "stat_mod",
+        "target": "all_own_companions",
+        "duration": "round",
+        "defense": 1
+      }
+    ],
+    "triggers": [],
+    "text": "Each Companion you control gets +1 Defense for the round.",
+    "flavor": "Placeholder flavour for Devotion Proxy Skill 05. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 736,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "mass_buff"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.59,
+      "patterns": [
+        "mass_buff"
+      ]
+    }
+  },
+  {
+    "id": "DEV_SKILL_06",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Skill 06",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "draw",
+        "who": "self",
+        "amount": 1
+      }
+    ],
+    "triggers": [],
+    "text": "You draw 1 card.",
+    "flavor": "Placeholder flavour for Devotion Proxy Skill 06. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 33593,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "draw"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.47,
+      "patterns": [
+        "draw"
+      ]
+    }
+  },
+  {
+    "id": "DEV_SKILL_07",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Skill 07",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "energy_gain",
+        "who": "self",
+        "amount": 2
+      }
+    ],
+    "triggers": [],
+    "text": "You gain 2 Energy.",
+    "flavor": "Placeholder flavour for Devotion Proxy Skill 07. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 55974,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "energy_refund"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.47,
+      "patterns": [
+        "energy_refund"
+      ]
+    }
+  },
+  {
+    "id": "DEV_SKILL_08",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Skill 08",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial",
+      "reaction"
+    ],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "reaction"
+    ],
+    "reaction_window": "before",
+    "effects": [
+      {
+        "op": "prevent_damage",
+        "target": "current_target",
+        "amount": 2,
+        "duration": "round"
+      }
+    ],
+    "triggers": [],
+    "text": "Reaction (before the Action): Prevent the next 2 damage that would be dealt to the attack's target for the round.",
+    "flavor": "Placeholder flavour for Devotion Proxy Skill 08. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 42487,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "defensive_reaction",
+      "protection"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.47,
+      "patterns": [
+        "defensive_reaction",
+        "protection"
+      ]
+    }
+  },
+  {
+    "id": "DEV_SKILL_09",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Skill 09",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial",
+      "reaction"
+    ],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "reaction"
+    ],
+    "reaction_window": "before",
+    "effects": [
+      {
+        "op": "stat_mod",
+        "target": "current_target",
+        "defense": 2,
+        "duration": "round"
+      }
+    ],
+    "triggers": [],
+    "text": "Reaction (before the Action): The attack's target gets +2 Defense for the round.",
+    "flavor": "Placeholder flavour for Devotion Proxy Skill 09. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 64868,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "defensive_reaction",
+      "temp_defense_buff"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.47,
+      "patterns": [
+        "defensive_reaction",
+        "temp_defense_buff"
+      ]
+    }
+  },
+  {
+    "id": "DEV_SKILL_10",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Skill 10",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial",
+      "reaction"
+    ],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "reaction"
+    ],
+    "reaction_window": "before",
+    "effects": [
+      {
+        "op": "prevent_damage",
+        "target": "self_hero",
+        "amount": 3,
+        "duration": "round"
+      }
+    ],
+    "triggers": [],
+    "text": "Reaction (before the Action): Prevent the next 3 damage that would be dealt to your Hero for the round.",
+    "flavor": "Placeholder flavour for Devotion Proxy Skill 10. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 76022,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "defensive_reaction",
+      "protection"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.47,
+      "patterns": [
+        "defensive_reaction",
+        "protection"
+      ]
+    }
+  },
+  {
+    "id": "DEV_SKILL_11",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Skill 11",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic",
+      "reaction"
+    ],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "reaction"
+    ],
+    "reaction_window": "before",
+    "effects": [
+      {
+        "op": "bounce",
+        "target": "current_target"
+      }
+    ],
+    "triggers": [],
+    "text": "Reaction (before the Action): If the attack's target is a Companion, return it to its owner's hand.",
+    "flavor": "Placeholder flavour for Devotion Proxy Skill 11. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 53641,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "bounce",
+      "defensive_reaction"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.59,
+      "patterns": [
+        "bounce",
+        "defensive_reaction"
+      ]
+    }
+  },
+  {
+    "id": "DEV_SKILL_12",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Skill 12",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial",
+      "melee"
+    ],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "target": {
+      "kind": "own_character",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "stat_mod",
+        "target": "chosen",
+        "duration": "round",
+        "defense": 3
+      }
+    ],
+    "triggers": [],
+    "text": "Target character you control gets +3 Defense for the round.",
+    "flavor": "Placeholder flavour for Devotion Proxy Skill 12. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 20784,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "temp_defense_buff"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.59,
+      "patterns": [
+        "temp_defense_buff"
+      ]
+    }
+  },
+  {
+    "id": "DEV_SKILL_13",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Skill 13",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial"
+    ],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "stat_mod",
+        "target": "all_own_companions",
+        "duration": "round",
+        "attack": 1,
+        "defense": 2
+      }
+    ],
+    "triggers": [],
+    "text": "Each Companion you control gets +1 Attack and +2 Defense for the round.",
+    "flavor": "Placeholder flavour for Devotion Proxy Skill 13. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 98403,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "mass_buff"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.71,
+      "patterns": [
+        "mass_buff"
+      ]
+    }
+  },
+  {
+    "id": "DEV_SKILL_14",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Skill 14",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial"
+    ],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "target": {
+      "kind": "own_character",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "prevent_damage",
+        "target": "chosen",
+        "amount": 4,
+        "duration": "round"
+      }
+    ],
+    "triggers": [],
+    "text": "Prevent the next 4 damage that would be dealt to target character you control for the round.",
+    "flavor": "Placeholder flavour for Devotion Proxy Skill 14. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 86498,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "protection"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.59,
+      "patterns": [
+        "protection"
+      ]
+    }
+  },
+  {
+    "id": "DEV_SKILL_15",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Skill 15",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "recover_from_exhaust",
+        "who": "self",
+        "amount": 2
+      }
+    ],
+    "triggers": [],
+    "text": "Return up to 2 cards from your Exhaust Deck to your hand.",
+    "flavor": "Placeholder flavour for Devotion Proxy Skill 15. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 64117,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "recovery"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.59,
+      "patterns": [
+        "recovery"
+      ]
+    }
+  },
+  {
+    "id": "DEV_SKILL_16",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Skill 16",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial"
+    ],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "deploy_from_hand",
+        "who": "self"
+      }
+    ],
+    "triggers": [],
+    "text": "You may put a Companion from your hand into play.",
+    "flavor": "Placeholder flavour for Devotion Proxy Skill 16. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 31260,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "optional_deploy"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.59,
+      "patterns": [
+        "optional_deploy"
+      ]
+    }
+  },
+  {
+    "id": "DEV_SKILL_17",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Skill 17",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic",
+      "reaction"
+    ],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "reaction"
+    ],
+    "reaction_window": "before",
+    "effects": [
+      {
+        "op": "chain_reward",
+        "require": {
+          "min": 2,
+          "affinity": "devotion",
+          "scope": "either"
+        },
+        "then": [
+          {
+            "op": "energy_gain",
+            "who": "self",
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "triggers": [],
+    "text": "Reaction (before the Action): If the current chain contains at least 2 Devotion Actions, you gain 2 Energy.",
+    "flavor": "Placeholder flavour for Devotion Proxy Skill 17. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 8879,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "chain_payoff",
+      "energy_reaction"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.59,
+      "patterns": [
+        "chain_payoff",
+        "energy_reaction"
+      ]
+    }
+  },
+  {
+    "id": "DEV_SKILL_18",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Skill 18",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "conditional",
+        "cond": {
+          "kind": "controls_companions",
+          "who": "self",
+          "min": 2
+        },
+        "then": [
+          {
+            "op": "damage_hero",
+            "who": "opponent",
+            "amount": 3
+          }
+        ],
+        "otherwise": [
+          {
+            "op": "draw",
+            "who": "self",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "triggers": [],
+    "text": "If you control at least 2 Companions, deal 3 damage to the opposing Hero. Otherwise, you draw 1 card.",
+    "flavor": "Placeholder flavour for Devotion Proxy Skill 18. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 96974,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "conditional_bonus",
+      "hero_burn"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.59,
+      "patterns": [
+        "conditional_bonus",
+        "hero_burn"
+      ]
+    }
+  },
+  {
+    "id": "DEV_SKILL_19",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Skill 19",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial",
+      "melee"
+    ],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "rare",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "target": {
+      "kind": "own_character",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "stat_mod",
+        "target": "chosen",
+        "duration": "permanent",
+        "attack": 2,
+        "defense": 3
+      }
+    ],
+    "triggers": [],
+    "text": "Target character you control gets +2 Attack and +3 Defense permanently.",
+    "flavor": "Placeholder flavour for Devotion Proxy Skill 19. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 74593,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "permanent_buff"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.71,
+      "patterns": [
+        "permanent_buff"
+      ]
+    }
+  },
+  {
+    "id": "DEV_SKILL_20",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Skill 20",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "rare",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "energy_max_mod",
+        "who": "self",
+        "amount": 2,
+        "duration": "permanent"
+      }
+    ],
+    "triggers": [],
+    "text": "Your maximum Energy increases by 2 permanently.",
+    "flavor": "Placeholder flavour for Devotion Proxy Skill 20. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 11789,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "max_energy_boost"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.71,
+      "patterns": [
+        "max_energy_boost"
+      ]
+    }
+  },
+  {
+    "id": "DEV_COMP_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Companion 01",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 1,
+    "attack": 1,
+    "defense": 2,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [],
+    "text": "",
+    "flavor": "Placeholder flavour for Devotion Proxy Companion 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 24536,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "body",
+      "deploy"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.47,
+      "patterns": [
+        "body",
+        "deploy"
+      ]
+    }
+  },
+  {
+    "id": "DEV_COMP_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Companion 02",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 2,
+    "attack": 1,
+    "defense": 3,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [],
+    "text": "",
+    "flavor": "Placeholder flavour for Devotion Proxy Companion 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 57393,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "body",
+      "deploy"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.59,
+      "patterns": [
+        "body",
+        "deploy"
+      ]
+    }
+  },
+  {
+    "id": "DEV_COMP_03",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Companion 03",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 2,
+    "attack": 1,
+    "defense": 1,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "own_companions",
+        "defense": 1
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, each Companion you control gets +1 Defense.",
+    "flavor": "Placeholder flavour for Devotion Proxy Companion 03. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 79774,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "aura_buff",
+      "deploy"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.59,
+      "patterns": [
+        "aura_buff",
+        "deploy"
+      ]
+    }
+  },
+  {
+    "id": "DEV_COMP_04",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Companion 04",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 2,
+    "attack": 1,
+    "defense": 2,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "self_deployed"
+        },
+        "effects": [
+          {
+            "op": "prevent_damage",
+            "target": "self_hero",
+            "amount": 2,
+            "duration": "round"
+          }
+        ]
+      }
+    ],
+    "text": "When this Companion enters play, prevent the next 2 damage that would be dealt to your Hero for the round.",
+    "flavor": "Placeholder flavour for Devotion Proxy Companion 04. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 12631,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "deploy",
+      "etb_effect",
+      "protection"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.59,
+      "patterns": [
+        "deploy",
+        "etb_effect",
+        "protection"
+      ]
+    }
+  },
+  {
+    "id": "DEV_COMP_05",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Companion 05",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 3,
+    "attack": 2,
+    "defense": 3,
+    "attack_cost": 2,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [],
+    "text": "",
+    "flavor": "Placeholder flavour for Devotion Proxy Companion 05. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 35012,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "body",
+      "deploy"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.71,
+      "patterns": [
+        "body",
+        "deploy"
+      ]
+    }
+  },
+  {
+    "id": "DEV_COMP_06",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Companion 06",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 3,
+    "attack": 1,
+    "defense": 3,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "own_hero",
+        "defense": 2
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, your Hero gets +2 Defense.",
+    "flavor": "Placeholder flavour for Devotion Proxy Companion 06. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 67869,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "aura_buff",
+      "deploy"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.71,
+      "patterns": [
+        "aura_buff",
+        "deploy"
+      ]
+    }
+  },
+  {
+    "id": "DEV_COMP_07",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Companion 07",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 3,
+    "attack": 1,
+    "defense": 2,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "own_companion_deployed"
+        },
+        "effects": [
+          {
+            "op": "stat_mod",
+            "target": "all_own_companions",
+            "defense": 1,
+            "duration": "round"
+          }
+        ]
+      }
+    ],
+    "text": "Whenever a Companion you control enters play, each Companion you control gets +1 Defense for the round.",
+    "flavor": "Placeholder flavour for Devotion Proxy Companion 07. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 90250,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "companion_deploy_trigger",
+      "deploy"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.71,
+      "patterns": [
+        "companion_deploy_trigger",
+        "deploy"
+      ]
+    }
+  },
+  {
+    "id": "DEV_COMP_08",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Companion 08",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 3,
+    "attack": 2,
+    "defense": 2,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "own_hero_damaged"
+        },
+        "effects": [
+          {
+            "op": "draw",
+            "who": "self",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "Whenever your Hero is damaged, you draw 1 card.",
+    "flavor": "Placeholder flavour for Devotion Proxy Companion 08. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 81203,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "deploy",
+      "hero_damage_trigger"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.71,
+      "patterns": [
+        "deploy",
+        "hero_damage_trigger"
+      ]
+    }
+  },
+  {
+    "id": "DEV_COMP_09",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Companion 09",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "rare",
+    "unique": true,
+    "character_id": "devotion_char_09",
+    "cost": {
+      "kind": "fixed",
+      "amount": 4
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 4,
+    "attack": 2,
+    "defense": 4,
+    "attack_cost": 2,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "own_companions",
+        "attack": 1,
+        "defense": 1
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, each Companion you control gets +1 Attack and +1 Defense.",
+    "flavor": "Placeholder flavour for Devotion Proxy Companion 09. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 3584,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "aura_buff",
+      "deploy"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.83,
+      "patterns": [
+        "aura_buff",
+        "deploy"
+      ]
+    }
+  },
+  {
+    "id": "DEV_COMP_10",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Companion 10",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "rare",
+    "unique": true,
+    "character_id": "devotion_char_10",
+    "cost": {
+      "kind": "fixed",
+      "amount": 4
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 4,
+    "attack": 2,
+    "defense": 3,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "round_end"
+        },
+        "effects": [
+          {
+            "op": "energy_gain",
+            "who": "self",
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "text": "At Round End, you gain 2 Energy.",
+    "flavor": "Placeholder flavour for Devotion Proxy Companion 10. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 89346,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "deploy",
+      "energy_refund",
+      "round_end_trigger"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.83,
+      "patterns": [
+        "deploy",
+        "energy_refund",
+        "round_end_trigger"
+      ]
+    }
+  },
+  {
+    "id": "DEV_EQUIP_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Equipment 01",
+    "types": [
+      "equipment"
+    ],
+    "tags": [],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "defense": 2,
+    "persistent": {
+      "kind": "attachment",
+      "slot": "equipment"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "defense": 2
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, its host gets +2 Defense.",
+    "flavor": "Placeholder flavour for Devotion Proxy Equipment 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 20371,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "equipment_buff"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.47,
+      "patterns": [
+        "equipment_buff"
+      ]
+    }
+  },
+  {
+    "id": "DEV_EQUIP_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Equipment 02",
+    "types": [
+      "equipment"
+    ],
+    "tags": [],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "attack": 1,
+    "defense": 1,
+    "persistent": {
+      "kind": "attachment",
+      "slot": "equipment"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "attack": 1,
+        "defense": 1
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, its host gets +1 Attack and +1 Defense.",
+    "flavor": "Placeholder flavour for Devotion Proxy Equipment 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 97990,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "equipment_buff"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.59,
+      "patterns": [
+        "equipment_buff"
+      ]
+    }
+  },
+  {
+    "id": "DEV_EQUIP_03",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Equipment 03",
+    "types": [
+      "equipment"
+    ],
+    "tags": [],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "defense": 3,
+    "persistent": {
+      "kind": "attachment",
+      "slot": "equipment"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "defense": 3
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, its host gets +3 Defense.",
+    "flavor": "Placeholder flavour for Devotion Proxy Equipment 03. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 75609,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "equipment_buff"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.59,
+      "patterns": [
+        "equipment_buff"
+      ]
+    }
+  },
+  {
+    "id": "DEV_EQUIP_04",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Equipment 04",
+    "types": [
+      "equipment"
+    ],
+    "tags": [],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "rare",
+    "unique": true,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "attack": 1,
+    "defense": 3,
+    "persistent": {
+      "kind": "attachment",
+      "slot": "equipment"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "attack": 1,
+        "defense": 3
+      },
+      {
+        "op": "aura_energy_max",
+        "who": "self",
+        "amount": 1
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, its host gets +1 Attack and +3 Defense. While this card is in play, your maximum Energy is increased by 1.",
+    "flavor": "Placeholder flavour for Devotion Proxy Equipment 04. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 53228,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "energy_ramp",
+      "equipment_buff"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.71,
+      "patterns": [
+        "energy_ramp",
+        "equipment_buff"
+      ]
+    }
+  },
+  {
+    "id": "DEV_TAAHMA_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Ta'ahma 01",
+    "types": [
+      "taahma"
+    ],
+    "tags": [],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "persistent": {
+      "kind": "attachment",
+      "slot": "taahma"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "defense": 2
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, its host gets +2 Defense.",
+    "flavor": "Placeholder flavour for Devotion Proxy Ta'ahma 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 35117,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "taahma_buff"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.47,
+      "patterns": [
+        "taahma_buff"
+      ]
+    }
+  },
+  {
+    "id": "DEV_TAAHMA_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Ta'ahma 02",
+    "types": [
+      "taahma"
+    ],
+    "tags": [],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "persistent": {
+      "kind": "attachment",
+      "slot": "taahma"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "defense": 1
+      }
+    ],
+    "triggers": [
+      {
+        "on": {
+          "kind": "own_hero_damaged"
+        },
+        "effects": [
+          {
+            "op": "energy_gain",
+            "who": "self",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "While this card is in play, its host gets +1 Defense. Whenever your Hero is damaged, you gain 1 Energy.",
+    "flavor": "Placeholder flavour for Devotion Proxy Ta'ahma 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 2260,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "hero_damage_trigger",
+      "taahma_buff"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.59,
+      "patterns": [
+        "hero_damage_trigger",
+        "taahma_buff"
+      ]
+    }
+  },
+  {
+    "id": "DEV_LOC_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Location 01",
+    "types": [
+      "location"
+    ],
+    "tags": [],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "persistent": {
+      "kind": "location"
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "own_companions",
+        "defense": 1
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, each Companion you control gets +1 Defense.",
+    "flavor": "Placeholder flavour for Devotion Proxy Location 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 71189,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "location_aura"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.59,
+      "patterns": [
+        "location_aura"
+      ]
+    }
+  },
+  {
+    "id": "DEV_LOC_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Devotion Proxy Location 02",
+    "types": [
+      "location"
+    ],
+    "tags": [],
+    "affinities": [
+      "devotion"
+    ],
+    "rarity": "rare",
+    "unique": true,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "persistent": {
+      "kind": "location"
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "all_companions",
+        "defense": 1
+      }
+    ],
+    "triggers": [
+      {
+        "on": {
+          "kind": "round_end"
+        },
+        "effects": [
+          {
+            "op": "energy_gain",
+            "who": "self",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "While this card is in play, each Companion gets +1 Defense. At Round End, you gain 1 Energy.",
+    "flavor": "Placeholder flavour for Devotion Proxy Location 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 38332,
+      "hue": 45,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "location_aura",
+      "round_end_trigger"
+    ],
+    "ai_hints": {
+      "role": "support",
+      "priority": 0.71,
+      "patterns": [
+        "location_aura",
+        "round_end_trigger"
+      ]
+    }
+  }
+]

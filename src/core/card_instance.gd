@@ -76,6 +76,22 @@ func expire(duration: String) -> void:
     shields = kept_shields
 
 
+## Direct field copy. AI search clones the whole match thousands of times, so
+## this avoids a Dictionary round trip per card.
+func clone() -> CardInstance:
+    var c := CardInstance.new(iid, def_id, def_rev, owner)
+    c.controller = controller
+    c.zone = zone
+    c.attached_to = attached_to
+    c.equipment_iid = equipment_iid
+    c.taahma_iid = taahma_iid
+    c.deployed_round = deployed_round
+    c.entry_seq = entry_seq
+    c.mods = mods.duplicate(true)
+    c.shields = shields.duplicate(true)
+    return c
+
+
 func to_dict() -> Dictionary:
     return {
         "iid": iid, "def_id": def_id, "def_rev": def_rev,

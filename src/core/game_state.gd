@@ -137,7 +137,7 @@ func energy_max(i: int) -> int:
 
 func _aura_energy_max(i: int) -> int:
     var total := 0
-    for iid in _permanent_sources():
+    for iid in _aura_sources():
         var ci := inst(iid)
         var cd := def_of(iid)
         if cd == null:
@@ -152,21 +152,44 @@ func _aura_energy_max(i: int) -> int:
     return total
 
 
-## Every card currently in play that can host an aura: Companions, the active
-## Location, and attachments.
+## Every card currently in play that can host an aura: Heroes, Companions,
+## their attachments and the active Location.
+##
+## Walks the characters rather than every instance in the match: this runs on
+## each stat and Energy query, so it has to stay proportional to the board.
 func _permanent_sources() -> Array:
     var out: Array = []
     for p in players:
-        out.append(p.hero_iid)
-        for ciid in p.companions:
-            out.append(ciid)
+        var ps: PlayerState = p
+        _append_character_and_attachments(out, ps.hero_iid)
+        for ciid in ps.companions:
+            _append_character_and_attachments(out, String(ciid))
     if location_iid != "":
         out.append(location_iid)
-    for iid in instances.keys():
-        var ci: CardInstance = instances[iid]
-        if ci.zone == "attached":
-            out.append(iid)
     return out
+
+
+## Only the in-play cards that actually print an aura.
+func _aura_sources() -> Array:
+    var out: Array = []
+    for iid in _permanent_sources():
+        var cd := def_of(String(iid))
+        if cd != null and cd.has_aura():
+            out.append(String(iid))
+    return out
+
+
+func _append_character_and_attachments(out: Array, iid: String) -> void:
+    if iid == "":
+        return
+    out.append(iid)
+    var ci: CardInstance = instances.get(iid, null)
+    if ci == null:
+        return
+    if ci.equipment_iid != "":
+        out.append(ci.equipment_iid)
+    if ci.taahma_iid != "":
+        out.append(ci.taahma_iid)
 
 
 func current_attack(iid: String) -> int:
@@ -190,7 +213,7 @@ func _aura_stat_for(iid: String, field: String) -> int:
     if target == null:
         return 0
     var total := 0
-    for src_iid in _permanent_sources():
+    for src_iid in _aura_sources():
         var src := inst(src_iid)
         var sd := def_of(src_iid)
         if src == null or sd == null:
@@ -373,7 +396,7 @@ func log_lines(limit: int = 0) -> Array:
 
 # ------------------------------------------------------------- serialisation ---
 
-func to_dict(include_catalog: bool = true) -> Dictionary:
+func to_dict(include_catalog: bool = true, include_history: bool = true) -> Dictionary:
     var insts: Dictionary = {}
     for iid in instances.keys():
         insts[iid] = (instances[iid] as CardInstance).to_dict()
@@ -396,7 +419,7 @@ func to_dict(include_catalog: bool = true) -> Dictionary:
         "counters": counters.duplicate(),
         "sequence": seq,
         "current_step": current_step,
-        "round_history": round_history.duplicate(true),
+        "round_history": round_history.duplicate(true) if include_history else [],
         "location_iid": location_iid,
         "sequence_members": sequence_members.duplicate(),
         "deferred_choices": deferred_choices.duplicate(true),
@@ -404,7 +427,7 @@ func to_dict(include_catalog: bool = true) -> Dictionary:
         "reaction_window": reaction_window.duplicate() if reaction_window is Dictionary else null,
         "pending_failures": pending_failures.duplicate() if pending_failures is Dictionary else {},
         "result": result.duplicate(true) if result is Dictionary else null,
-        "events": events.duplicate(true),
+        "events": events.duplicate(true) if include_history else [],
         "event_seq": event_seq,
         "rng": rng.to_dict() if rng != null else {},
     }
@@ -420,6 +443,46 @@ func to_dict(include_catalog: bool = true) -> Dictionary:
             "provisional": rules.provisional.duplicate(true),
         }
     return d
+
+
+## A cheap copy for AI search: the same authoritative rules, but a separate
+## state to mutate. The catalog and rules profile are shared by reference
+## because both are frozen for the match's lifetime, and the event log is
+## dropped because a search rollout never needs it.
+func clone_for_search() -> GameState:
+    # Field-by-field, not through to_dict/from_dict: the AI clones a match
+    # thousands of times per decision. The catalog and rules profile are shared
+    # by reference because both are frozen for the match's lifetime, and the
+    # event log and archived round history are dropped because a rollout needs
+    # neither and they grow without bound.
+    var c := GameState.new()
+    c.catalog = catalog
+    c.rules = rules
+    c.silent = true
+    c.match_id = match_id
+    c.rules_stamp = rules_stamp
+    c.round_number = round_number
+    c.phase = phase
+    c.first_player = first_player
+    c.action_priority = action_priority
+    c.counters = counters.duplicate()
+    c.current_step = current_step
+    c.location_iid = location_iid
+    c.sequence_members = sequence_members.duplicate()
+    c.deferred_choices = deferred_choices.duplicate(true)
+    c.trigger_depth_limit = trigger_depth_limit
+    c.pending = (pending as Dictionary).duplicate(true) if pending is Dictionary else null
+    c.reaction_window = (reaction_window as Dictionary).duplicate() if reaction_window is Dictionary else null
+    c.result = (result as Dictionary).duplicate(true) if result is Dictionary else null
+    c.pending_failures = pending_failures.duplicate() if pending_failures is Dictionary else {}
+    c.rng = rng.clone()
+    for p in players:
+        c.players.append((p as PlayerState).clone())
+    for iid in instances.keys():
+        c.instances[iid] = (instances[iid] as CardInstance).clone()
+    for s in sequence:
+        c.sequence.append((s as ActionSlot).clone())
+    return c
 
 
 static func from_dict(d: Dictionary) -> GameState:
@@ -456,7 +519,10 @@ static func from_dict(d: Dictionary) -> GameState:
         st.sequence.append(ActionSlot.from_dict(sd))
 
     # Rebuild the frozen catalog and rules profile so the resumed match uses
-    # exactly the definitions it started with.
+    # exactly the definitions it started with. A search clone omits both and
+    # has them assigned by reference instead.
+    if not d.has("frozen_catalog"):
+        return st
     st.catalog = Catalog.from_frozen(d.get("frozen_catalog", {}))
     var rp := RulesProfile.new()
     var raw_rules: Dictionary = d.get("rules_profile", {})

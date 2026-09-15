@@ -1,0 +1,2346 @@
+[
+  {
+    "id": "WIL_HERO_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Hero 01",
+    "types": [
+      "hero"
+    ],
+    "tags": [],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "legendary",
+    "unique": true,
+    "character_id": "will_hero_01",
+    "cost": {
+      "kind": "none"
+    },
+    "hero_max_energy": 4,
+    "attack": 3,
+    "defense": 2,
+    "attack_cost": 1,
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "self_attack_resolved"
+        },
+        "effects": [
+          {
+            "op": "stat_mod",
+            "target": "self",
+            "attack": 1,
+            "duration": "permanent"
+          }
+        ]
+      }
+    ],
+    "text": "When this character's attack resolves, This card gets +1 Attack permanently.",
+    "flavor": "Placeholder flavour for Will Proxy Hero 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 38214,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "attack_trigger",
+      "hero",
+      "permanent_buff"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.47,
+      "patterns": [
+        "attack_trigger",
+        "hero",
+        "permanent_buff"
+      ]
+    }
+  },
+  {
+    "id": "WIL_HERO_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Hero 02",
+    "types": [
+      "hero"
+    ],
+    "tags": [],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "legendary",
+    "unique": true,
+    "character_id": "will_hero_02",
+    "cost": {
+      "kind": "none"
+    },
+    "hero_max_energy": 5,
+    "attack": 2,
+    "defense": 3,
+    "attack_cost": 1,
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "own_companion_deployed"
+        },
+        "effects": [
+          {
+            "op": "stat_mod",
+            "target": "all_own_companions",
+            "attack": 1,
+            "duration": "round"
+          }
+        ]
+      }
+    ],
+    "text": "Whenever a Companion you control enters play, each Companion you control gets +1 Attack for the round.",
+    "flavor": "Placeholder flavour for Will Proxy Hero 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 60595,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "companion_deploy_trigger",
+      "hero",
+      "mass_buff"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.47,
+      "patterns": [
+        "companion_deploy_trigger",
+        "hero",
+        "mass_buff"
+      ]
+    }
+  },
+  {
+    "id": "WIL_SKILL_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Skill 01",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial",
+      "melee"
+    ],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "target": {
+      "kind": "own_character",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "stat_mod",
+        "target": "chosen",
+        "duration": "round",
+        "attack": 2
+      }
+    ],
+    "triggers": [],
+    "text": "Target character you control gets +2 Attack for the round.",
+    "flavor": "Placeholder flavour for Will Proxy Skill 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 3237,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "temp_attack_buff"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.47,
+      "patterns": [
+        "temp_attack_buff"
+      ]
+    }
+  },
+  {
+    "id": "WIL_SKILL_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Skill 02",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial",
+      "melee"
+    ],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "target": {
+      "kind": "own_character",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "stat_mod",
+        "target": "chosen",
+        "duration": "round",
+        "attack": 1,
+        "defense": 1
+      }
+    ],
+    "triggers": [],
+    "text": "Target character you control gets +1 Attack and +1 Defense for the round.",
+    "flavor": "Placeholder flavour for Will Proxy Skill 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 70380,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "temp_attack_buff"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.47,
+      "patterns": [
+        "temp_attack_buff"
+      ]
+    }
+  },
+  {
+    "id": "WIL_SKILL_03",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Skill 03",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial",
+      "melee"
+    ],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "target": {
+      "kind": "own_character",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "stat_mod",
+        "target": "chosen",
+        "duration": "round",
+        "attack": 3
+      }
+    ],
+    "triggers": [],
+    "text": "Target character you control gets +3 Attack for the round.",
+    "flavor": "Placeholder flavour for Will Proxy Skill 03. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 47999,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "temp_attack_buff"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.59,
+      "patterns": [
+        "temp_attack_buff"
+      ]
+    }
+  },
+  {
+    "id": "WIL_SKILL_04",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Skill 04",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial",
+      "melee"
+    ],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "target": {
+      "kind": "opponent_companion",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "direct_damage",
+        "target": "chosen",
+        "amount": 2,
+        "ignores_defense": false
+      }
+    ],
+    "triggers": [],
+    "text": "Deal 2 damage to target Companion your opponent controls, reduced by its Defense.",
+    "flavor": "Placeholder flavour for Will Proxy Skill 04. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 15142,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "direct_damage"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.47,
+      "patterns": [
+        "direct_damage"
+      ]
+    }
+  },
+  {
+    "id": "WIL_SKILL_05",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Skill 05",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial"
+    ],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "stat_mod",
+        "target": "all_own_companions",
+        "duration": "round",
+        "attack": 1
+      }
+    ],
+    "triggers": [],
+    "text": "Each Companion you control gets +1 Attack for the round.",
+    "flavor": "Placeholder flavour for Will Proxy Skill 05. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 92761,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "mass_buff"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.59,
+      "patterns": [
+        "mass_buff"
+      ]
+    }
+  },
+  {
+    "id": "WIL_SKILL_06",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Skill 06",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "draw",
+        "who": "self",
+        "amount": 1
+      }
+    ],
+    "triggers": [],
+    "text": "You draw 1 card.",
+    "flavor": "Placeholder flavour for Will Proxy Skill 06. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 59904,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "draw"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.47,
+      "patterns": [
+        "draw"
+      ]
+    }
+  },
+  {
+    "id": "WIL_SKILL_07",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Skill 07",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "energy_gain",
+        "who": "self",
+        "amount": 2
+      }
+    ],
+    "triggers": [],
+    "text": "You gain 2 Energy.",
+    "flavor": "Placeholder flavour for Will Proxy Skill 07. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 37523,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "energy_refund"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.47,
+      "patterns": [
+        "energy_refund"
+      ]
+    }
+  },
+  {
+    "id": "WIL_SKILL_08",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Skill 08",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial",
+      "melee"
+    ],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "x",
+      "min": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "target": {
+      "kind": "own_character",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "repeat",
+        "amount": {
+          "from": "x"
+        },
+        "effects": [
+          {
+            "op": "stat_mod",
+            "target": "chosen",
+            "attack": 1,
+            "duration": "round"
+          }
+        ]
+      }
+    ],
+    "triggers": [],
+    "text": "Repeat X times: Target character you control gets +1 Attack for the round. X is equal to the amount of Energy spent to play this card.",
+    "flavor": "Placeholder flavour for Will Proxy Skill 08. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 46570,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "temp_attack_buff",
+      "x_cost"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.59,
+      "patterns": [
+        "temp_attack_buff",
+        "x_cost"
+      ]
+    }
+  },
+  {
+    "id": "WIL_SKILL_09",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Skill 09",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial",
+      "reaction"
+    ],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "reaction"
+    ],
+    "reaction_window": "before",
+    "effects": [
+      {
+        "op": "stat_mod",
+        "target": "current_attacker",
+        "attack": 2,
+        "duration": "round"
+      }
+    ],
+    "triggers": [],
+    "text": "Reaction (before the Action): The attacking character gets +2 Attack for the round.",
+    "flavor": "Placeholder flavour for Will Proxy Skill 09. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 24189,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "reaction_boost",
+      "temp_attack_buff"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.47,
+      "patterns": [
+        "reaction_boost",
+        "temp_attack_buff"
+      ]
+    }
+  },
+  {
+    "id": "WIL_SKILL_10",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Skill 10",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial",
+      "reaction"
+    ],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "reaction"
+    ],
+    "reaction_window": "before",
+    "effects": [
+      {
+        "op": "stat_mod",
+        "target": "current_target",
+        "defense": 2,
+        "duration": "round"
+      }
+    ],
+    "triggers": [],
+    "text": "Reaction (before the Action): The attack's target gets +2 Defense for the round.",
+    "flavor": "Placeholder flavour for Will Proxy Skill 10. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 73659,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "defensive_reaction",
+      "temp_defense_buff"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.47,
+      "patterns": [
+        "defensive_reaction",
+        "temp_defense_buff"
+      ]
+    }
+  },
+  {
+    "id": "WIL_SKILL_11",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Skill 11",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial",
+      "reaction"
+    ],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "reaction"
+    ],
+    "reaction_window": "before",
+    "effects": [
+      {
+        "op": "prevent_damage",
+        "target": "current_target",
+        "amount": 2,
+        "duration": "round"
+      }
+    ],
+    "triggers": [],
+    "text": "Reaction (before the Action): Prevent the next 2 damage that would be dealt to the attack's target for the round.",
+    "flavor": "Placeholder flavour for Will Proxy Skill 11. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 96040,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "defensive_reaction",
+      "protection"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.47,
+      "patterns": [
+        "defensive_reaction",
+        "protection"
+      ]
+    }
+  },
+  {
+    "id": "WIL_SKILL_12",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Skill 12",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial",
+      "melee",
+      "reaction"
+    ],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "reaction"
+    ],
+    "reaction_window": "after",
+    "effects": [
+      {
+        "op": "direct_damage",
+        "target": "current_attacker",
+        "amount": 2,
+        "ignores_defense": true
+      }
+    ],
+    "triggers": [],
+    "text": "Reaction (after the Action): Deal 2 damage to the attacking character, ignoring its Defense.",
+    "flavor": "Placeholder flavour for Will Proxy Skill 12. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 28897,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "direct_damage",
+      "reaction_punish"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.59,
+      "patterns": [
+        "direct_damage",
+        "reaction_punish"
+      ]
+    }
+  },
+  {
+    "id": "WIL_SKILL_13",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Skill 13",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial",
+      "melee"
+    ],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "target": {
+      "kind": "own_character",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "stat_mod",
+        "target": "chosen",
+        "duration": "round",
+        "attack": 3,
+        "defense": 2
+      }
+    ],
+    "triggers": [],
+    "text": "Target character you control gets +3 Attack and +2 Defense for the round.",
+    "flavor": "Placeholder flavour for Will Proxy Skill 13. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 51278,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "temp_attack_buff"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.71,
+      "patterns": [
+        "temp_attack_buff"
+      ]
+    }
+  },
+  {
+    "id": "WIL_SKILL_14",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Skill 14",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial"
+    ],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "stat_mod",
+        "target": "all_own_companions",
+        "duration": "round",
+        "attack": 2,
+        "defense": 1
+      }
+    ],
+    "triggers": [],
+    "text": "Each Companion you control gets +2 Attack and +1 Defense for the round.",
+    "flavor": "Placeholder flavour for Will Proxy Skill 14. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 84135,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "mass_buff"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.71,
+      "patterns": [
+        "mass_buff"
+      ]
+    }
+  },
+  {
+    "id": "WIL_SKILL_15",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Skill 15",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial",
+      "melee"
+    ],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "target": {
+      "kind": "opponent_companion",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "direct_damage",
+        "target": "chosen",
+        "amount": 4,
+        "ignores_defense": false
+      }
+    ],
+    "triggers": [],
+    "text": "Deal 4 damage to target Companion your opponent controls, reduced by its Defense.",
+    "flavor": "Placeholder flavour for Will Proxy Skill 15. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 6516,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "direct_damage"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.71,
+      "patterns": [
+        "direct_damage"
+      ]
+    }
+  },
+  {
+    "id": "WIL_SKILL_16",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Skill 16",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial",
+      "melee"
+    ],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "target": {
+      "kind": "own_character",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "stat_mod",
+        "target": "chosen",
+        "duration": "round",
+        "defense": 2
+      }
+    ],
+    "triggers": [],
+    "text": "Target character you control gets +2 Defense for the round.",
+    "flavor": "Placeholder flavour for Will Proxy Skill 16. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 39373,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "temp_defense_buff"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.59,
+      "patterns": [
+        "temp_defense_buff"
+      ]
+    }
+  },
+  {
+    "id": "WIL_SKILL_17",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Skill 17",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "conditional",
+        "cond": {
+          "kind": "controls_companions",
+          "who": "self",
+          "min": 2
+        },
+        "then": [
+          {
+            "op": "damage_hero",
+            "who": "opponent",
+            "amount": 3
+          }
+        ],
+        "otherwise": [
+          {
+            "op": "draw",
+            "who": "self",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "triggers": [],
+    "text": "If you control at least 2 Companions, deal 3 damage to the opposing Hero. Otherwise, you draw 1 card.",
+    "flavor": "Placeholder flavour for Will Proxy Skill 17. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 61754,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "conditional_bonus",
+      "hero_burn"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.59,
+      "patterns": [
+        "conditional_bonus",
+        "hero_burn"
+      ]
+    }
+  },
+  {
+    "id": "WIL_SKILL_18",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Skill 18",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic",
+      "reaction"
+    ],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "reaction"
+    ],
+    "reaction_window": "before",
+    "effects": [
+      {
+        "op": "draw",
+        "who": "self",
+        "amount": 1
+      }
+    ],
+    "triggers": [],
+    "text": "Reaction (before the Action): You draw 1 card.",
+    "flavor": "Placeholder flavour for Will Proxy Skill 18. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 52707,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "draw",
+      "draw_reaction"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.59,
+      "patterns": [
+        "draw",
+        "draw_reaction"
+      ]
+    }
+  },
+  {
+    "id": "WIL_SKILL_19",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Skill 19",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial",
+      "melee"
+    ],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "rare",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "target": {
+      "kind": "own_character",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "stat_mod",
+        "target": "chosen",
+        "duration": "permanent",
+        "attack": 3,
+        "defense": 3
+      }
+    ],
+    "triggers": [],
+    "text": "Target character you control gets +3 Attack and +3 Defense permanently.",
+    "flavor": "Placeholder flavour for Will Proxy Skill 19. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 75088,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "permanent_buff"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.71,
+      "patterns": [
+        "permanent_buff"
+      ]
+    }
+  },
+  {
+    "id": "WIL_SKILL_20",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Skill 20",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "rare",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "energy_max_mod",
+        "who": "self",
+        "amount": 2,
+        "duration": "permanent"
+      }
+    ],
+    "triggers": [],
+    "text": "Your maximum Energy increases by 2 permanently.",
+    "flavor": "Placeholder flavour for Will Proxy Skill 20. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 0,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "max_energy_boost"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.71,
+      "patterns": [
+        "max_energy_boost"
+      ]
+    }
+  },
+  {
+    "id": "WIL_COMP_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Companion 01",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 1,
+    "attack": 2,
+    "defense": 1,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [],
+    "text": "",
+    "flavor": "Placeholder flavour for Will Proxy Companion 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 4639,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "body",
+      "deploy"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.47,
+      "patterns": [
+        "body",
+        "deploy"
+      ]
+    }
+  },
+  {
+    "id": "WIL_COMP_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Companion 02",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 2,
+    "attack": 2,
+    "defense": 2,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [],
+    "text": "",
+    "flavor": "Placeholder flavour for Will Proxy Companion 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 82258,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "body",
+      "deploy"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.59,
+      "patterns": [
+        "body",
+        "deploy"
+      ]
+    }
+  },
+  {
+    "id": "WIL_COMP_03",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Companion 03",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 2,
+    "attack": 2,
+    "defense": 2,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "self_attack_resolved"
+        },
+        "effects": [
+          {
+            "op": "stat_mod",
+            "target": "self",
+            "attack": 1,
+            "duration": "permanent"
+          }
+        ]
+      }
+    ],
+    "text": "When this character's attack resolves, This card gets +1 Attack permanently.",
+    "flavor": "Placeholder flavour for Will Proxy Companion 03. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 59877,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "attack_trigger",
+      "deploy",
+      "permanent_buff"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.59,
+      "patterns": [
+        "attack_trigger",
+        "deploy",
+        "permanent_buff"
+      ]
+    }
+  },
+  {
+    "id": "WIL_COMP_04",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Companion 04",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 2,
+    "attack": 1,
+    "defense": 2,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "self_deployed"
+        },
+        "effects": [
+          {
+            "op": "stat_mod",
+            "target": "self_hero",
+            "attack": 1,
+            "duration": "round"
+          }
+        ]
+      }
+    ],
+    "text": "When this Companion enters play, your Hero gets +1 Attack for the round.",
+    "flavor": "Placeholder flavour for Will Proxy Companion 04. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 16544,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "deploy",
+      "etb_effect",
+      "temp_attack_buff"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.59,
+      "patterns": [
+        "deploy",
+        "etb_effect",
+        "temp_attack_buff"
+      ]
+    }
+  },
+  {
+    "id": "WIL_COMP_05",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Companion 05",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 3,
+    "attack": 3,
+    "defense": 2,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [],
+    "text": "",
+    "flavor": "Placeholder flavour for Will Proxy Companion 05. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 94163,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "body",
+      "deploy"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.71,
+      "patterns": [
+        "body",
+        "deploy"
+      ]
+    }
+  },
+  {
+    "id": "WIL_COMP_06",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Companion 06",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 3,
+    "attack": 2,
+    "defense": 2,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "own_companions",
+        "attack": 1
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, each Companion you control gets +1 Attack.",
+    "flavor": "Placeholder flavour for Will Proxy Companion 06. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 71782,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "aura_buff",
+      "deploy"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.71,
+      "patterns": [
+        "aura_buff",
+        "deploy"
+      ]
+    }
+  },
+  {
+    "id": "WIL_COMP_07",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Companion 07",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 3,
+    "attack": 3,
+    "defense": 3,
+    "attack_cost": 2,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "self_attack_resolved"
+        },
+        "effects": [
+          {
+            "op": "draw",
+            "who": "self",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "When this character's attack resolves, you draw 1 card.",
+    "flavor": "Placeholder flavour for Will Proxy Companion 07. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 49401,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "attack_trigger",
+      "deploy",
+      "draw"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.71,
+      "patterns": [
+        "attack_trigger",
+        "deploy",
+        "draw"
+      ]
+    }
+  },
+  {
+    "id": "WIL_COMP_08",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Companion 08",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 3,
+    "attack": 2,
+    "defense": 3,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "own_companion_deployed"
+        },
+        "effects": [
+          {
+            "op": "stat_mod",
+            "target": "all_own_companions",
+            "attack": 1,
+            "duration": "round"
+          }
+        ]
+      }
+    ],
+    "text": "Whenever a Companion you control enters play, each Companion you control gets +1 Attack for the round.",
+    "flavor": "Placeholder flavour for Will Proxy Companion 08. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 47972,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "companion_deploy_trigger",
+      "deploy"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.71,
+      "patterns": [
+        "companion_deploy_trigger",
+        "deploy"
+      ]
+    }
+  },
+  {
+    "id": "WIL_COMP_09",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Companion 09",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "rare",
+    "unique": true,
+    "character_id": "will_char_09",
+    "cost": {
+      "kind": "fixed",
+      "amount": 4
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 4,
+    "attack": 3,
+    "defense": 3,
+    "attack_cost": 2,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "own_characters",
+        "attack": 1
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, each character you control gets +1 Attack.",
+    "flavor": "Placeholder flavour for Will Proxy Companion 09. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 25591,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "aura_buff",
+      "deploy"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.83,
+      "patterns": [
+        "aura_buff",
+        "deploy"
+      ]
+    }
+  },
+  {
+    "id": "WIL_COMP_10",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Companion 10",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "rare",
+    "unique": true,
+    "character_id": "will_char_10",
+    "cost": {
+      "kind": "fixed",
+      "amount": 4
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 4,
+    "attack": 4,
+    "defense": 3,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "self_attack_resolved"
+        },
+        "effects": [
+          {
+            "op": "stat_mod",
+            "target": "self",
+            "attack": 1,
+            "defense": 1,
+            "duration": "permanent"
+          }
+        ]
+      }
+    ],
+    "text": "When this character's attack resolves, This card gets +1 Attack and +1 Defense permanently.",
+    "flavor": "Placeholder flavour for Will Proxy Companion 10. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 39829,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "attack_trigger",
+      "deploy",
+      "permanent_buff"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.83,
+      "patterns": [
+        "attack_trigger",
+        "deploy",
+        "permanent_buff"
+      ]
+    }
+  },
+  {
+    "id": "WIL_EQUIP_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Equipment 01",
+    "types": [
+      "equipment"
+    ],
+    "tags": [],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "attack": 1,
+    "defense": 1,
+    "persistent": {
+      "kind": "attachment",
+      "slot": "equipment"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "attack": 1,
+        "defense": 1
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, its host gets +1 Attack and +1 Defense.",
+    "flavor": "Placeholder flavour for Will Proxy Equipment 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 44978,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "equipment_buff"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.47,
+      "patterns": [
+        "equipment_buff"
+      ]
+    }
+  },
+  {
+    "id": "WIL_EQUIP_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Equipment 02",
+    "types": [
+      "equipment"
+    ],
+    "tags": [],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "attack": 2,
+    "defense": 1,
+    "persistent": {
+      "kind": "attachment",
+      "slot": "equipment"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "attack": 2,
+        "defense": 1
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, its host gets +2 Attack and +1 Defense.",
+    "flavor": "Placeholder flavour for Will Proxy Equipment 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 67359,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "equipment_buff"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.59,
+      "patterns": [
+        "equipment_buff"
+      ]
+    }
+  },
+  {
+    "id": "WIL_EQUIP_03",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Equipment 03",
+    "types": [
+      "equipment"
+    ],
+    "tags": [],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "attack": 3,
+    "persistent": {
+      "kind": "attachment",
+      "slot": "equipment"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "attack": 3
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, its host gets +3 Attack.",
+    "flavor": "Placeholder flavour for Will Proxy Equipment 03. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 89740,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "equipment_buff"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.59,
+      "patterns": [
+        "equipment_buff"
+      ]
+    }
+  },
+  {
+    "id": "WIL_EQUIP_04",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Equipment 04",
+    "types": [
+      "equipment"
+    ],
+    "tags": [],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "rare",
+    "unique": true,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "attack": 2,
+    "defense": 2,
+    "persistent": {
+      "kind": "attachment",
+      "slot": "equipment"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "attack": 2,
+        "defense": 2
+      }
+    ],
+    "triggers": [
+      {
+        "on": {
+          "kind": "attack_resolved",
+          "scope": "controller"
+        },
+        "effects": [
+          {
+            "op": "energy_gain",
+            "who": "self",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "While this card is in play, its host gets +2 Attack and +2 Defense. Whenever an attack you committed resolves, you gain 1 Energy.",
+    "flavor": "Placeholder flavour for Will Proxy Equipment 04. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 12121,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "attack_watch_trigger",
+      "energy_refund",
+      "equipment_buff"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.71,
+      "patterns": [
+        "attack_watch_trigger",
+        "energy_refund",
+        "equipment_buff"
+      ]
+    }
+  },
+  {
+    "id": "WIL_TAAHMA_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Ta'ahma 01",
+    "types": [
+      "taahma"
+    ],
+    "tags": [],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "persistent": {
+      "kind": "attachment",
+      "slot": "taahma"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "attack": 1,
+        "defense": 1
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, its host gets +1 Attack and +1 Defense.",
+    "flavor": "Placeholder flavour for Will Proxy Ta'ahma 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 73406,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "taahma_buff"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.47,
+      "patterns": [
+        "taahma_buff"
+      ]
+    }
+  },
+  {
+    "id": "WIL_TAAHMA_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Ta'ahma 02",
+    "types": [
+      "taahma"
+    ],
+    "tags": [],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "persistent": {
+      "kind": "attachment",
+      "slot": "taahma"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "attack": 2,
+        "defense": 1
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, its host gets +2 Attack and +1 Defense.",
+    "flavor": "Placeholder flavour for Will Proxy Ta'ahma 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 95787,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "taahma_buff"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.59,
+      "patterns": [
+        "taahma_buff"
+      ]
+    }
+  },
+  {
+    "id": "WIL_LOC_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Location 01",
+    "types": [
+      "location"
+    ],
+    "tags": [],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "persistent": {
+      "kind": "location"
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "own_characters",
+        "attack": 1
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, each character you control gets +1 Attack.",
+    "flavor": "Placeholder flavour for Will Proxy Location 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 20364,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "location_aura"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.59,
+      "patterns": [
+        "location_aura"
+      ]
+    }
+  },
+  {
+    "id": "WIL_LOC_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Will Proxy Location 02",
+    "types": [
+      "location"
+    ],
+    "tags": [],
+    "affinities": [
+      "will"
+    ],
+    "rarity": "rare",
+    "unique": true,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "persistent": {
+      "kind": "location"
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "own_companions",
+        "attack": 1,
+        "defense": 1
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, each Companion you control gets +1 Attack and +1 Defense.",
+    "flavor": "Placeholder flavour for Will Proxy Location 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 53221,
+      "hue": 25,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "location_aura"
+    ],
+    "ai_hints": {
+      "role": "midrange",
+      "priority": 0.71,
+      "patterns": [
+        "location_aura"
+      ]
+    }
+  }
+]

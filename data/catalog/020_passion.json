@@ -1,0 +1,2391 @@
+[
+  {
+    "id": "PAS_HERO_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Hero 01",
+    "types": [
+      "hero"
+    ],
+    "tags": [],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "legendary",
+    "unique": true,
+    "character_id": "passion_hero_01",
+    "cost": {
+      "kind": "none"
+    },
+    "hero_max_energy": 4,
+    "attack": 3,
+    "defense": 1,
+    "attack_cost": 1,
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "affinity_card_resolved",
+          "affinity": "passion",
+          "scope": "either"
+        },
+        "effects": [
+          {
+            "op": "energy_gain",
+            "who": "self",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "Whenever a Passion card resolves while this character is in the Action Sequence, you gain 1 Energy.",
+    "flavor": "Placeholder flavour for Passion Proxy Hero 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 50670,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "affinity_engine",
+      "energy_refund",
+      "hero"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.47,
+      "patterns": [
+        "affinity_engine",
+        "energy_refund",
+        "hero"
+      ]
+    }
+  },
+  {
+    "id": "PAS_HERO_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Hero 02",
+    "types": [
+      "hero"
+    ],
+    "tags": [],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "legendary",
+    "unique": true,
+    "character_id": "passion_hero_02",
+    "cost": {
+      "kind": "none"
+    },
+    "hero_max_energy": 5,
+    "attack": 3,
+    "defense": 2,
+    "attack_cost": 2,
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "self_attack_resolved"
+        },
+        "effects": [
+          {
+            "op": "damage_hero",
+            "who": "opponent",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "When this character's attack resolves, deal 1 damage to the opposing Hero.",
+    "flavor": "Placeholder flavour for Passion Proxy Hero 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 73051,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "attack_trigger",
+      "hero",
+      "hero_burn"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.47,
+      "patterns": [
+        "attack_trigger",
+        "hero",
+        "hero_burn"
+      ]
+    }
+  },
+  {
+    "id": "PAS_SKILL_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Skill 01",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic",
+      "ranged"
+    ],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "damage_hero",
+        "who": "opponent",
+        "amount": 2
+      }
+    ],
+    "triggers": [],
+    "text": "Deal 2 damage to the opposing Hero.",
+    "flavor": "Placeholder flavour for Passion Proxy Skill 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 285,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "hero_burn"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.47,
+      "patterns": [
+        "hero_burn"
+      ]
+    }
+  },
+  {
+    "id": "PAS_SKILL_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Skill 02",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic",
+      "ranged"
+    ],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "damage_hero",
+        "who": "opponent",
+        "amount": 3
+      }
+    ],
+    "triggers": [],
+    "text": "Deal 3 damage to the opposing Hero.",
+    "flavor": "Placeholder flavour for Passion Proxy Skill 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 67428,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "hero_burn"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.59,
+      "patterns": [
+        "hero_burn"
+      ]
+    }
+  },
+  {
+    "id": "PAS_SKILL_03",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Skill 03",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "damage_hero",
+        "who": "opponent",
+        "amount": 2
+      },
+      {
+        "op": "draw",
+        "who": "self",
+        "amount": 1
+      }
+    ],
+    "triggers": [],
+    "text": "Deal 2 damage to the opposing Hero. You draw 1 card.",
+    "flavor": "Placeholder flavour for Passion Proxy Skill 03. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 45047,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "draw",
+      "hero_burn"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.59,
+      "patterns": [
+        "draw",
+        "hero_burn"
+      ]
+    }
+  },
+  {
+    "id": "PAS_SKILL_04",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Skill 04",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "energy_gain",
+        "who": "self",
+        "amount": 2
+      }
+    ],
+    "triggers": [],
+    "text": "You gain 2 Energy.",
+    "flavor": "Placeholder flavour for Passion Proxy Skill 04. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 12190,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "energy_refund"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.47,
+      "patterns": [
+        "energy_refund"
+      ]
+    }
+  },
+  {
+    "id": "PAS_SKILL_05",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Skill 05",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial",
+      "melee"
+    ],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "target": {
+      "kind": "opponent_companion",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "direct_damage",
+        "target": "chosen",
+        "amount": 2,
+        "ignores_defense": false
+      }
+    ],
+    "triggers": [],
+    "text": "Deal 2 damage to target Companion your opponent controls, reduced by its Defense.",
+    "flavor": "Placeholder flavour for Passion Proxy Skill 05. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 89809,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "direct_damage"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.47,
+      "patterns": [
+        "direct_damage"
+      ]
+    }
+  },
+  {
+    "id": "PAS_SKILL_06",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Skill 06",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial",
+      "melee"
+    ],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "target": {
+      "kind": "own_character",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "stat_mod",
+        "target": "chosen",
+        "duration": "round",
+        "attack": 2
+      }
+    ],
+    "triggers": [],
+    "text": "Target character you control gets +2 Attack for the round.",
+    "flavor": "Placeholder flavour for Passion Proxy Skill 06. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 56952,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "temp_attack_buff"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.47,
+      "patterns": [
+        "temp_attack_buff"
+      ]
+    }
+  },
+  {
+    "id": "PAS_SKILL_07",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Skill 07",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic",
+      "ranged"
+    ],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "x",
+      "min": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "damage_hero",
+        "who": "opponent",
+        "amount": {
+          "from": "x"
+        }
+      }
+    ],
+    "triggers": [],
+    "text": "Deal damage equal to X to the opposing Hero. X is equal to the amount of Energy spent to play this card.",
+    "flavor": "Placeholder flavour for Passion Proxy Skill 07. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 34571,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "hero_burn",
+      "x_cost"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.59,
+      "patterns": [
+        "hero_burn",
+        "x_cost"
+      ]
+    }
+  },
+  {
+    "id": "PAS_SKILL_08",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Skill 08",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "chain_reward",
+        "require": {
+          "min": 2,
+          "affinity": "passion",
+          "scope": "either"
+        },
+        "then": [
+          {
+            "op": "damage_hero",
+            "who": "opponent",
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "triggers": [],
+    "text": "If the current chain contains at least 2 Passion Actions, deal 2 damage to the opposing Hero.",
+    "flavor": "Placeholder flavour for Passion Proxy Skill 08. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 1714,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "chain_payoff",
+      "hero_burn"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.47,
+      "patterns": [
+        "chain_payoff",
+        "hero_burn"
+      ]
+    }
+  },
+  {
+    "id": "PAS_SKILL_09",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Skill 09",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic",
+      "ranged",
+      "reaction"
+    ],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "reaction"
+    ],
+    "reaction_window": "after",
+    "effects": [
+      {
+        "op": "damage_hero",
+        "who": "opponent",
+        "amount": 2
+      }
+    ],
+    "triggers": [],
+    "text": "Reaction (after the Action): Deal 2 damage to the opposing Hero.",
+    "flavor": "Placeholder flavour for Passion Proxy Skill 09. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 79333,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "hero_burn",
+      "reaction_burn"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.47,
+      "patterns": [
+        "hero_burn",
+        "reaction_burn"
+      ]
+    }
+  },
+  {
+    "id": "PAS_SKILL_10",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Skill 10",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic",
+      "reaction"
+    ],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "reaction"
+    ],
+    "reaction_window": "before",
+    "effects": [
+      {
+        "op": "energy_gain",
+        "who": "self",
+        "amount": 2
+      }
+    ],
+    "triggers": [],
+    "text": "Reaction (before the Action): You gain 2 Energy.",
+    "flavor": "Placeholder flavour for Passion Proxy Skill 10. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 19603,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "energy_reaction",
+      "energy_refund"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.47,
+      "patterns": [
+        "energy_reaction",
+        "energy_refund"
+      ]
+    }
+  },
+  {
+    "id": "PAS_SKILL_11",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Skill 11",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial",
+      "reaction"
+    ],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "reaction"
+    ],
+    "reaction_window": "before",
+    "effects": [
+      {
+        "op": "stat_mod",
+        "target": "current_attacker",
+        "attack": 2,
+        "duration": "round"
+      }
+    ],
+    "triggers": [],
+    "text": "Reaction (before the Action): The attacking character gets +2 Attack for the round.",
+    "flavor": "Placeholder flavour for Passion Proxy Skill 11. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 41984,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "reaction_boost",
+      "temp_attack_buff"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.47,
+      "patterns": [
+        "reaction_boost",
+        "temp_attack_buff"
+      ]
+    }
+  },
+  {
+    "id": "PAS_SKILL_12",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Skill 12",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial",
+      "melee",
+      "reaction"
+    ],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "reaction"
+    ],
+    "reaction_window": "after",
+    "effects": [
+      {
+        "op": "direct_damage",
+        "target": "current_attacker",
+        "amount": 2,
+        "ignores_defense": true
+      }
+    ],
+    "triggers": [],
+    "text": "Reaction (after the Action): Deal 2 damage to the attacking character, ignoring its Defense.",
+    "flavor": "Placeholder flavour for Passion Proxy Skill 12. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 74841,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "direct_damage",
+      "reaction_punish"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.59,
+      "patterns": [
+        "direct_damage",
+        "reaction_punish"
+      ]
+    }
+  },
+  {
+    "id": "PAS_SKILL_13",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Skill 13",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic",
+      "ranged"
+    ],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "damage_hero",
+        "who": "opponent",
+        "amount": 5
+      }
+    ],
+    "triggers": [],
+    "text": "Deal 5 damage to the opposing Hero.",
+    "flavor": "Placeholder flavour for Passion Proxy Skill 13. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 97222,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "hero_burn"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.71,
+      "patterns": [
+        "hero_burn"
+      ]
+    }
+  },
+  {
+    "id": "PAS_SKILL_14",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Skill 14",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic",
+      "ranged"
+    ],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "damage_hero",
+        "who": "opponent",
+        "amount": {
+          "from": "chain_count",
+          "affinity": "passion",
+          "scope": "either"
+        }
+      }
+    ],
+    "triggers": [],
+    "text": "Deal damage equal to the number of Passion Actions in the current chain to the opposing Hero.",
+    "flavor": "Placeholder flavour for Passion Proxy Skill 14. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 30079,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "chain_scaling",
+      "hero_burn"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.59,
+      "patterns": [
+        "chain_scaling",
+        "hero_burn"
+      ]
+    }
+  },
+  {
+    "id": "PAS_SKILL_15",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Skill 15",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "x",
+      "min": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "draw",
+        "who": "self",
+        "amount": {
+          "from": "x"
+        }
+      }
+    ],
+    "triggers": [],
+    "text": "You draw a number of cards equal to X. X is equal to the amount of Energy spent to play this card.",
+    "flavor": "Placeholder flavour for Passion Proxy Skill 15. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 52460,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "draw",
+      "x_cost"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.59,
+      "patterns": [
+        "draw",
+        "x_cost"
+      ]
+    }
+  },
+  {
+    "id": "PAS_SKILL_16",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Skill 16",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "random_exhaust_from_hand",
+        "who": "opponent",
+        "amount": 1
+      }
+    ],
+    "triggers": [],
+    "text": "Your opponent Exhausts 1 card at random from their hand.",
+    "flavor": "Placeholder flavour for Passion Proxy Skill 16. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 85317,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "discard_random"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.59,
+      "patterns": [
+        "discard_random"
+      ]
+    }
+  },
+  {
+    "id": "PAS_SKILL_17",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Skill 17",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic",
+      "ranged"
+    ],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "damage_hero",
+        "who": "opponent",
+        "amount": {
+          "from": "count",
+          "of": "own_companions"
+        }
+      }
+    ],
+    "triggers": [],
+    "text": "Deal damage equal to the number of Companions you control to the opposing Hero.",
+    "flavor": "Placeholder flavour for Passion Proxy Skill 17. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 7698,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "count_scaling",
+      "hero_burn"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.59,
+      "patterns": [
+        "count_scaling",
+        "hero_burn"
+      ]
+    }
+  },
+  {
+    "id": "PAS_SKILL_18",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Skill 18",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic",
+      "reaction"
+    ],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "reaction"
+    ],
+    "reaction_window": "before",
+    "effects": [
+      {
+        "op": "chain_reward",
+        "require": {
+          "min": 2,
+          "affinity": "passion",
+          "scope": "either"
+        },
+        "then": [
+          {
+            "op": "energy_gain",
+            "who": "self",
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "triggers": [],
+    "text": "Reaction (before the Action): If the current chain contains at least 2 Passion Actions, you gain 2 Energy.",
+    "flavor": "Placeholder flavour for Passion Proxy Skill 18. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 40555,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "chain_payoff",
+      "energy_reaction"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.59,
+      "patterns": [
+        "chain_payoff",
+        "energy_reaction"
+      ]
+    }
+  },
+  {
+    "id": "PAS_SKILL_19",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Skill 19",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "rare",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "conditional",
+        "cond": {
+          "kind": "energy_at_least",
+          "who": "self",
+          "min": 4
+        },
+        "then": [
+          {
+            "op": "damage_hero",
+            "who": "opponent",
+            "amount": 6
+          }
+        ],
+        "otherwise": [
+          {
+            "op": "draw",
+            "who": "self",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "triggers": [],
+    "text": "If you have at least 4 Energy, deal 6 damage to the opposing Hero. Otherwise, you draw 1 card.",
+    "flavor": "Placeholder flavour for Passion Proxy Skill 19. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 62936,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "conditional_bonus",
+      "hero_burn"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.71,
+      "patterns": [
+        "conditional_bonus",
+        "hero_burn"
+      ]
+    }
+  },
+  {
+    "id": "PAS_SKILL_20",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Skill 20",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "rare",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "energy_max_mod",
+        "who": "self",
+        "amount": 3,
+        "duration": "permanent"
+      }
+    ],
+    "triggers": [],
+    "text": "Your maximum Energy increases by 3 permanently.",
+    "flavor": "Placeholder flavour for Passion Proxy Skill 20. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 97048,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "max_energy_boost"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.71,
+      "patterns": [
+        "max_energy_boost"
+      ]
+    }
+  },
+  {
+    "id": "PAS_COMP_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Companion 01",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 1,
+    "attack": 2,
+    "defense": 1,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [],
+    "text": "",
+    "flavor": "Placeholder flavour for Passion Proxy Companion 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 86919,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "body",
+      "deploy"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.47,
+      "patterns": [
+        "body",
+        "deploy"
+      ]
+    }
+  },
+  {
+    "id": "PAS_COMP_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Companion 02",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 1,
+    "attack": 1,
+    "defense": 1,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "self_deployed"
+        },
+        "effects": [
+          {
+            "op": "damage_hero",
+            "who": "opponent",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "When this Companion enters play, deal 1 damage to the opposing Hero.",
+    "flavor": "Placeholder flavour for Passion Proxy Companion 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 64538,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "deploy",
+      "etb_effect",
+      "hero_burn"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.47,
+      "patterns": [
+        "deploy",
+        "etb_effect",
+        "hero_burn"
+      ]
+    }
+  },
+  {
+    "id": "PAS_COMP_03",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Companion 03",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 2,
+    "attack": 3,
+    "defense": 1,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [],
+    "text": "",
+    "flavor": "Placeholder flavour for Passion Proxy Companion 03. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 42157,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "body",
+      "deploy"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.59,
+      "patterns": [
+        "body",
+        "deploy"
+      ]
+    }
+  },
+  {
+    "id": "PAS_COMP_04",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Companion 04",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 2,
+    "attack": 2,
+    "defense": 1,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "self_attack_resolved"
+        },
+        "effects": [
+          {
+            "op": "energy_gain",
+            "who": "self",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "When this character's attack resolves, you gain 1 Energy.",
+    "flavor": "Placeholder flavour for Passion Proxy Companion 04. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 98824,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "attack_trigger",
+      "deploy",
+      "energy_refund"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.59,
+      "patterns": [
+        "attack_trigger",
+        "deploy",
+        "energy_refund"
+      ]
+    }
+  },
+  {
+    "id": "PAS_COMP_05",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Companion 05",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 2,
+    "attack": 1,
+    "defense": 2,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "self_leaves_play"
+        },
+        "effects": [
+          {
+            "op": "damage_hero",
+            "who": "opponent",
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "text": "When this card leaves play, deal 2 damage to the opposing Hero.",
+    "flavor": "Placeholder flavour for Passion Proxy Companion 05. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 76443,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "death_trigger",
+      "deploy",
+      "hero_burn"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.59,
+      "patterns": [
+        "death_trigger",
+        "deploy",
+        "hero_burn"
+      ]
+    }
+  },
+  {
+    "id": "PAS_COMP_06",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Companion 06",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 3,
+    "attack": 3,
+    "defense": 2,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "affinity_card_resolved",
+          "affinity": "passion",
+          "scope": "either"
+        },
+        "effects": [
+          {
+            "op": "energy_gain",
+            "who": "self",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "Whenever a Passion card resolves while this character is in the Action Sequence, you gain 1 Energy.",
+    "flavor": "Placeholder flavour for Passion Proxy Companion 06. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 54062,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "affinity_engine",
+      "deploy",
+      "energy_refund"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.71,
+      "patterns": [
+        "affinity_engine",
+        "deploy",
+        "energy_refund"
+      ]
+    }
+  },
+  {
+    "id": "PAS_COMP_07",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Companion 07",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 3,
+    "attack": 3,
+    "defense": 2,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "self_attack_resolved"
+        },
+        "effects": [
+          {
+            "op": "damage_hero",
+            "who": "opponent",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "When this character's attack resolves, deal 1 damage to the opposing Hero.",
+    "flavor": "Placeholder flavour for Passion Proxy Companion 07. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 31681,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "attack_trigger",
+      "deploy",
+      "hero_burn"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.71,
+      "patterns": [
+        "attack_trigger",
+        "deploy",
+        "hero_burn"
+      ]
+    }
+  },
+  {
+    "id": "PAS_COMP_08",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Companion 08",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 3,
+    "attack": 4,
+    "defense": 2,
+    "attack_cost": 2,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [],
+    "text": "",
+    "flavor": "Placeholder flavour for Passion Proxy Companion 08. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 88348,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "body",
+      "deploy"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.71,
+      "patterns": [
+        "body",
+        "deploy"
+      ]
+    }
+  },
+  {
+    "id": "PAS_COMP_09",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Companion 09",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "rare",
+    "unique": true,
+    "character_id": "passion_char_09",
+    "cost": {
+      "kind": "fixed",
+      "amount": 4
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 4,
+    "attack": 4,
+    "defense": 2,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "affinity_card_resolved",
+          "affinity": "passion",
+          "scope": "either"
+        },
+        "effects": [
+          {
+            "op": "energy_gain",
+            "who": "self",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "Whenever a Passion card resolves while this character is in the Action Sequence, you gain 1 Energy.",
+    "flavor": "Placeholder flavour for Passion Proxy Companion 09. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 65967,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "affinity_engine",
+      "deploy",
+      "energy_refund"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.83,
+      "patterns": [
+        "affinity_engine",
+        "deploy",
+        "energy_refund"
+      ]
+    }
+  },
+  {
+    "id": "PAS_COMP_10",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Companion 10",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "rare",
+    "unique": true,
+    "character_id": "passion_char_10",
+    "cost": {
+      "kind": "fixed",
+      "amount": 4
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 4,
+    "attack": 3,
+    "defense": 3,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "self_attack_resolved"
+        },
+        "effects": [
+          {
+            "op": "damage_hero",
+            "who": "opponent",
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "text": "When this character's attack resolves, deal 2 damage to the opposing Hero.",
+    "flavor": "Placeholder flavour for Passion Proxy Companion 10. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 22109,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "attack_trigger",
+      "deploy",
+      "hero_burn"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.83,
+      "patterns": [
+        "attack_trigger",
+        "deploy",
+        "hero_burn"
+      ]
+    }
+  },
+  {
+    "id": "PAS_EQUIP_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Equipment 01",
+    "types": [
+      "equipment"
+    ],
+    "tags": [],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "attack": 2,
+    "persistent": {
+      "kind": "attachment",
+      "slot": "equipment"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "attack": 2
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, its host gets +2 Attack.",
+    "flavor": "Placeholder flavour for Passion Proxy Equipment 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 44378,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "equipment_buff"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.47,
+      "patterns": [
+        "equipment_buff"
+      ]
+    }
+  },
+  {
+    "id": "PAS_EQUIP_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Equipment 02",
+    "types": [
+      "equipment"
+    ],
+    "tags": [],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "attack": 3,
+    "persistent": {
+      "kind": "attachment",
+      "slot": "equipment"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "attack": 3
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, its host gets +3 Attack.",
+    "flavor": "Placeholder flavour for Passion Proxy Equipment 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 66759,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "equipment_buff"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.59,
+      "patterns": [
+        "equipment_buff"
+      ]
+    }
+  },
+  {
+    "id": "PAS_EQUIP_03",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Equipment 03",
+    "types": [
+      "equipment"
+    ],
+    "tags": [],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "attack": 2,
+    "defense": 1,
+    "persistent": {
+      "kind": "attachment",
+      "slot": "equipment"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "attack": 2,
+        "defense": 1
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, its host gets +2 Attack and +1 Defense.",
+    "flavor": "Placeholder flavour for Passion Proxy Equipment 03. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 89140,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "equipment_buff"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.59,
+      "patterns": [
+        "equipment_buff"
+      ]
+    }
+  },
+  {
+    "id": "PAS_EQUIP_04",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Equipment 04",
+    "types": [
+      "equipment"
+    ],
+    "tags": [],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "rare",
+    "unique": true,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "attack": 3,
+    "defense": 1,
+    "persistent": {
+      "kind": "attachment",
+      "slot": "equipment"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "attack": 3,
+        "defense": 1
+      }
+    ],
+    "triggers": [
+      {
+        "on": {
+          "kind": "attack_resolved",
+          "scope": "controller"
+        },
+        "effects": [
+          {
+            "op": "damage_hero",
+            "who": "opponent",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "While this card is in play, its host gets +3 Attack and +1 Defense. Whenever an attack you committed resolves, deal 1 damage to the opposing Hero.",
+    "flavor": "Placeholder flavour for Passion Proxy Equipment 04. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 11521,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "attack_watch_trigger",
+      "equipment_buff",
+      "hero_burn"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.71,
+      "patterns": [
+        "attack_watch_trigger",
+        "equipment_buff",
+        "hero_burn"
+      ]
+    }
+  },
+  {
+    "id": "PAS_TAAHMA_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Ta'ahma 01",
+    "types": [
+      "taahma"
+    ],
+    "tags": [],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "persistent": {
+      "kind": "attachment",
+      "slot": "taahma"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "attack": 1
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, its host gets +1 Attack.",
+    "flavor": "Placeholder flavour for Passion Proxy Ta'ahma 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 10758,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "taahma_buff"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.47,
+      "patterns": [
+        "taahma_buff"
+      ]
+    }
+  },
+  {
+    "id": "PAS_TAAHMA_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Ta'ahma 02",
+    "types": [
+      "taahma"
+    ],
+    "tags": [],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "persistent": {
+      "kind": "attachment",
+      "slot": "taahma"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "attack": 2
+      }
+    ],
+    "triggers": [
+      {
+        "on": {
+          "kind": "affinity_card_resolved",
+          "affinity": "passion",
+          "scope": "controller"
+        },
+        "effects": [
+          {
+            "op": "energy_gain",
+            "who": "self",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "While this card is in play, its host gets +2 Attack. Whenever a Passion card you control resolves while this card is in play, you gain 1 Energy.",
+    "flavor": "Placeholder flavour for Passion Proxy Ta'ahma 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 33139,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "affinity_engine",
+      "energy_refund",
+      "taahma_buff"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.59,
+      "patterns": [
+        "affinity_engine",
+        "energy_refund",
+        "taahma_buff"
+      ]
+    }
+  },
+  {
+    "id": "PAS_LOC_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Location 01",
+    "types": [
+      "location"
+    ],
+    "tags": [],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "persistent": {
+      "kind": "location"
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "all_companions",
+        "attack": 1
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, each Companion gets +1 Attack.",
+    "flavor": "Placeholder flavour for Passion Proxy Location 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 19108,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "location_aura"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.59,
+      "patterns": [
+        "location_aura"
+      ]
+    }
+  },
+  {
+    "id": "PAS_LOC_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Passion Proxy Location 02",
+    "types": [
+      "location"
+    ],
+    "tags": [],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "rare",
+    "unique": true,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "persistent": {
+      "kind": "location"
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "own_companions",
+        "attack": 2
+      }
+    ],
+    "triggers": [
+      {
+        "on": {
+          "kind": "round_end"
+        },
+        "effects": [
+          {
+            "op": "damage_hero",
+            "who": "opponent",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "While this card is in play, each Companion you control gets +2 Attack. At Round End, deal 1 damage to the opposing Hero.",
+    "flavor": "Placeholder flavour for Passion Proxy Location 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 51965,
+      "hue": 350,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "hero_burn",
+      "location_aura",
+      "round_end_trigger"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.71,
+      "patterns": [
+        "hero_burn",
+        "location_aura",
+        "round_end_trigger"
+      ]
+    }
+  }
+]

@@ -1,0 +1,2384 @@
+[
+  {
+    "id": "HAR_HERO_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Hero 01",
+    "types": [
+      "hero"
+    ],
+    "tags": [],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "legendary",
+    "unique": true,
+    "character_id": "harmony_hero_01",
+    "cost": {
+      "kind": "none"
+    },
+    "hero_max_energy": 4,
+    "attack": 2,
+    "defense": 2,
+    "attack_cost": 1,
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "affinity_card_resolved",
+          "affinity": "harmony",
+          "scope": "either"
+        },
+        "effects": [
+          {
+            "op": "energy_gain",
+            "who": "self",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "Whenever a Harmony card resolves while this character is in the Action Sequence, you gain 1 Energy.",
+    "flavor": "Placeholder flavour for Harmony Proxy Hero 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 78925,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "affinity_engine",
+      "energy_refund",
+      "hero"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.47,
+      "patterns": [
+        "affinity_engine",
+        "energy_refund",
+        "hero"
+      ]
+    }
+  },
+  {
+    "id": "HAR_HERO_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Hero 02",
+    "types": [
+      "hero"
+    ],
+    "tags": [],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "legendary",
+    "unique": true,
+    "character_id": "harmony_hero_02",
+    "cost": {
+      "kind": "none"
+    },
+    "hero_max_energy": 5,
+    "attack": 2,
+    "defense": 3,
+    "attack_cost": 1,
+    "effects": [
+      {
+        "op": "aura_energy_max",
+        "who": "self",
+        "amount": 1
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, your maximum Energy is increased by 1.",
+    "flavor": "Placeholder flavour for Harmony Proxy Hero 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 46068,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "energy_ramp",
+      "hero"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.47,
+      "patterns": [
+        "energy_ramp",
+        "hero"
+      ]
+    }
+  },
+  {
+    "id": "HAR_SKILL_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Skill 01",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "chain_reward",
+        "require": {
+          "min": 2,
+          "affinity": "any",
+          "scope": "either"
+        },
+        "then": [
+          {
+            "op": "draw",
+            "who": "self",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "triggers": [],
+    "text": "If the current chain contains at least 2 Actions, you draw 1 card.",
+    "flavor": "Placeholder flavour for Harmony Proxy Skill 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 69624,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "chain_payoff",
+      "draw"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.47,
+      "patterns": [
+        "chain_payoff",
+        "draw"
+      ]
+    }
+  },
+  {
+    "id": "HAR_SKILL_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Skill 02",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "chain_reward",
+        "require": {
+          "min": 2,
+          "affinity": "any",
+          "scope": "either"
+        },
+        "then": [
+          {
+            "op": "damage_hero",
+            "who": "opponent",
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "triggers": [],
+    "text": "If the current chain contains at least 2 Actions, deal 2 damage to the opposing Hero.",
+    "flavor": "Placeholder flavour for Harmony Proxy Skill 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 2481,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "chain_payoff",
+      "hero_burn"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.47,
+      "patterns": [
+        "chain_payoff",
+        "hero_burn"
+      ]
+    }
+  },
+  {
+    "id": "HAR_SKILL_03",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Skill 03",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "draw",
+        "who": "self",
+        "amount": 1
+      }
+    ],
+    "triggers": [],
+    "text": "You draw 1 card.",
+    "flavor": "Placeholder flavour for Harmony Proxy Skill 03. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 24862,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "draw"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.47,
+      "patterns": [
+        "draw"
+      ]
+    }
+  },
+  {
+    "id": "HAR_SKILL_04",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Skill 04",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "energy_gain",
+        "who": "self",
+        "amount": 2
+      }
+    ],
+    "triggers": [],
+    "text": "You gain 2 Energy.",
+    "flavor": "Placeholder flavour for Harmony Proxy Skill 04. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 57719,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "energy_refund"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.47,
+      "patterns": [
+        "energy_refund"
+      ]
+    }
+  },
+  {
+    "id": "HAR_SKILL_05",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Skill 05",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial",
+      "melee"
+    ],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "target": {
+      "kind": "own_character",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "stat_mod",
+        "target": "chosen",
+        "duration": "round",
+        "attack": 1,
+        "defense": 1
+      }
+    ],
+    "triggers": [],
+    "text": "Target character you control gets +1 Attack and +1 Defense for the round.",
+    "flavor": "Placeholder flavour for Harmony Proxy Skill 05. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 80100,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "temp_attack_buff"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.47,
+      "patterns": [
+        "temp_attack_buff"
+      ]
+    }
+  },
+  {
+    "id": "HAR_SKILL_06",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Skill 06",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic",
+      "ranged"
+    ],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "damage_hero",
+        "who": "opponent",
+        "amount": {
+          "from": "chain_count",
+          "affinity": "any",
+          "scope": "either"
+        }
+      }
+    ],
+    "triggers": [],
+    "text": "Deal damage equal to the number of Actions in the current chain to the opposing Hero.",
+    "flavor": "Placeholder flavour for Harmony Proxy Skill 06. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 12957,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "chain_scaling",
+      "hero_burn"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.59,
+      "patterns": [
+        "chain_scaling",
+        "hero_burn"
+      ]
+    }
+  },
+  {
+    "id": "HAR_SKILL_07",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Skill 07",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "energy_gain",
+        "who": "self",
+        "amount": {
+          "from": "chain_count",
+          "affinity": "any",
+          "scope": "controller"
+        }
+      }
+    ],
+    "triggers": [],
+    "text": "You gain Energy equal to the number of Actions you committed in the current chain.",
+    "flavor": "Placeholder flavour for Harmony Proxy Skill 07. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 35338,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "chain_scaling",
+      "energy_refund"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.59,
+      "patterns": [
+        "chain_scaling",
+        "energy_refund"
+      ]
+    }
+  },
+  {
+    "id": "HAR_SKILL_08",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Skill 08",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic",
+      "reaction"
+    ],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "reaction"
+    ],
+    "reaction_window": "before",
+    "effects": [
+      {
+        "op": "chain_reward",
+        "require": {
+          "min": 2,
+          "affinity": "harmony",
+          "scope": "either"
+        },
+        "then": [
+          {
+            "op": "energy_gain",
+            "who": "self",
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "triggers": [],
+    "text": "Reaction (before the Action): If the current chain contains at least 2 Harmony Actions, you gain 2 Energy.",
+    "flavor": "Placeholder flavour for Harmony Proxy Skill 08. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 26291,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "chain_payoff",
+      "energy_reaction"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.47,
+      "patterns": [
+        "chain_payoff",
+        "energy_reaction"
+      ]
+    }
+  },
+  {
+    "id": "HAR_SKILL_09",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Skill 09",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic",
+      "reaction"
+    ],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "reaction"
+    ],
+    "reaction_window": "before",
+    "effects": [
+      {
+        "op": "draw",
+        "who": "self",
+        "amount": 1
+      }
+    ],
+    "triggers": [],
+    "text": "Reaction (before the Action): You draw 1 card.",
+    "flavor": "Placeholder flavour for Harmony Proxy Skill 09. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 48672,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "draw",
+      "draw_reaction"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.47,
+      "patterns": [
+        "draw",
+        "draw_reaction"
+      ]
+    }
+  },
+  {
+    "id": "HAR_SKILL_10",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Skill 10",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic",
+      "reaction"
+    ],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "reaction"
+    ],
+    "reaction_window": "before",
+    "effects": [
+      {
+        "op": "energy_gain",
+        "who": "self",
+        "amount": 2
+      }
+    ],
+    "triggers": [],
+    "text": "Reaction (before the Action): You gain 2 Energy.",
+    "flavor": "Placeholder flavour for Harmony Proxy Skill 10. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 34434,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "energy_reaction",
+      "energy_refund"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.47,
+      "patterns": [
+        "energy_reaction",
+        "energy_refund"
+      ]
+    }
+  },
+  {
+    "id": "HAR_SKILL_11",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Skill 11",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial",
+      "reaction"
+    ],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "reaction"
+    ],
+    "reaction_window": "before",
+    "effects": [
+      {
+        "op": "stat_mod",
+        "target": "current_target",
+        "defense": 2,
+        "duration": "round"
+      }
+    ],
+    "triggers": [],
+    "text": "Reaction (before the Action): The attack's target gets +2 Defense for the round.",
+    "flavor": "Placeholder flavour for Harmony Proxy Skill 11. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 12053,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "defensive_reaction",
+      "temp_defense_buff"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.47,
+      "patterns": [
+        "defensive_reaction",
+        "temp_defense_buff"
+      ]
+    }
+  },
+  {
+    "id": "HAR_SKILL_12",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Skill 12",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial",
+      "reaction"
+    ],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "reaction"
+    ],
+    "reaction_window": "before",
+    "effects": [
+      {
+        "op": "prevent_damage",
+        "target": "current_target",
+        "amount": 2,
+        "duration": "round"
+      }
+    ],
+    "triggers": [],
+    "text": "Reaction (before the Action): Prevent the next 2 damage that would be dealt to the attack's target for the round.",
+    "flavor": "Placeholder flavour for Harmony Proxy Skill 12. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 79196,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "defensive_reaction",
+      "protection"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.47,
+      "patterns": [
+        "defensive_reaction",
+        "protection"
+      ]
+    }
+  },
+  {
+    "id": "HAR_SKILL_13",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Skill 13",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "chain_reward",
+        "require": {
+          "min": 3,
+          "affinity": "any",
+          "scope": "either"
+        },
+        "then": [
+          {
+            "op": "draw",
+            "who": "self",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "triggers": [],
+    "text": "If the current chain contains at least 3 Actions, you draw 1 card.",
+    "flavor": "Placeholder flavour for Harmony Proxy Skill 13. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 56815,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "chain_payoff",
+      "draw"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.59,
+      "patterns": [
+        "chain_payoff",
+        "draw"
+      ]
+    }
+  },
+  {
+    "id": "HAR_SKILL_14",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Skill 14",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "chain_reward",
+        "require": {
+          "min": 3,
+          "affinity": "any",
+          "scope": "either"
+        },
+        "then": [
+          {
+            "op": "damage_hero",
+            "who": "opponent",
+            "amount": 4
+          }
+        ]
+      }
+    ],
+    "triggers": [],
+    "text": "If the current chain contains at least 3 Actions, deal 4 damage to the opposing Hero.",
+    "flavor": "Placeholder flavour for Harmony Proxy Skill 14. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 23958,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "chain_payoff",
+      "hero_burn"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.59,
+      "patterns": [
+        "chain_payoff",
+        "hero_burn"
+      ]
+    }
+  },
+  {
+    "id": "HAR_SKILL_15",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Skill 15",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "energy_gain",
+        "who": "self",
+        "amount": {
+          "from": "count",
+          "of": "own_companions"
+        }
+      }
+    ],
+    "triggers": [],
+    "text": "You gain Energy equal to the number of Companions you control.",
+    "flavor": "Placeholder flavour for Harmony Proxy Skill 15. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 1577,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "count_scaling",
+      "energy_refund"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.59,
+      "patterns": [
+        "count_scaling",
+        "energy_refund"
+      ]
+    }
+  },
+  {
+    "id": "HAR_SKILL_16",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Skill 16",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "draw",
+        "who": "self",
+        "amount": 2
+      }
+    ],
+    "triggers": [],
+    "text": "You draw 2 cards.",
+    "flavor": "Placeholder flavour for Harmony Proxy Skill 16. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 68720,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "draw"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.71,
+      "patterns": [
+        "draw"
+      ]
+    }
+  },
+  {
+    "id": "HAR_SKILL_17",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Skill 17",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial"
+    ],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "stat_mod",
+        "target": "all_own_companions",
+        "duration": "round",
+        "attack": 1,
+        "defense": 1
+      }
+    ],
+    "triggers": [],
+    "text": "Each Companion you control gets +1 Attack and +1 Defense for the round.",
+    "flavor": "Placeholder flavour for Harmony Proxy Skill 17. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 46339,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "mass_buff"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.71,
+      "patterns": [
+        "mass_buff"
+      ]
+    }
+  },
+  {
+    "id": "HAR_SKILL_18",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Skill 18",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic",
+      "ranged"
+    ],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "damage_hero",
+        "who": "opponent",
+        "amount": {
+          "from": "chain_count",
+          "affinity": "harmony",
+          "scope": "either"
+        }
+      }
+    ],
+    "triggers": [],
+    "text": "Deal damage equal to the number of Harmony Actions in the current chain to the opposing Hero.",
+    "flavor": "Placeholder flavour for Harmony Proxy Skill 18. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 55386,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "chain_scaling",
+      "hero_burn"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.71,
+      "patterns": [
+        "chain_scaling",
+        "hero_burn"
+      ]
+    }
+  },
+  {
+    "id": "HAR_SKILL_19",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Skill 19",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "rare",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "chain_reward",
+        "require": {
+          "min": 4,
+          "affinity": "any",
+          "scope": "either"
+        },
+        "then": [
+          {
+            "op": "damage_hero",
+            "who": "opponent",
+            "amount": 6
+          }
+        ]
+      }
+    ],
+    "triggers": [],
+    "text": "If the current chain contains at least 4 Actions, deal 6 damage to the opposing Hero.",
+    "flavor": "Placeholder flavour for Harmony Proxy Skill 19. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 33005,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "chain_payoff",
+      "hero_burn"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.71,
+      "patterns": [
+        "chain_payoff",
+        "hero_burn"
+      ]
+    }
+  },
+  {
+    "id": "HAR_SKILL_20",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Skill 20",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "rare",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "energy_max_mod",
+        "who": "self",
+        "amount": 2,
+        "duration": "permanent"
+      }
+    ],
+    "triggers": [],
+    "text": "Your maximum Energy increases by 2 permanently.",
+    "flavor": "Placeholder flavour for Harmony Proxy Skill 20. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 53689,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "max_energy_boost"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.71,
+      "patterns": [
+        "max_energy_boost"
+      ]
+    }
+  },
+  {
+    "id": "HAR_COMP_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Companion 01",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 1,
+    "attack": 1,
+    "defense": 2,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [],
+    "text": "",
+    "flavor": "Placeholder flavour for Harmony Proxy Companion 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 89836,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "body",
+      "deploy"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.47,
+      "patterns": [
+        "body",
+        "deploy"
+      ]
+    }
+  },
+  {
+    "id": "HAR_COMP_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Companion 02",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 1,
+    "attack": 1,
+    "defense": 1,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "self_deployed"
+        },
+        "effects": [
+          {
+            "op": "energy_gain",
+            "who": "self",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "When this Companion enters play, you gain 1 Energy.",
+    "flavor": "Placeholder flavour for Harmony Proxy Companion 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 22693,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "deploy",
+      "energy_refund",
+      "etb_effect"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.47,
+      "patterns": [
+        "deploy",
+        "energy_refund",
+        "etb_effect"
+      ]
+    }
+  },
+  {
+    "id": "HAR_COMP_03",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Companion 03",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 2,
+    "attack": 2,
+    "defense": 2,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [],
+    "text": "",
+    "flavor": "Placeholder flavour for Harmony Proxy Companion 03. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 45074,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "body",
+      "deploy"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.59,
+      "patterns": [
+        "body",
+        "deploy"
+      ]
+    }
+  },
+  {
+    "id": "HAR_COMP_04",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Companion 04",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 2,
+    "attack": 1,
+    "defense": 2,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "affinity_card_resolved",
+          "affinity": "harmony",
+          "scope": "either"
+        },
+        "effects": [
+          {
+            "op": "energy_gain",
+            "who": "self",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "Whenever a Harmony card resolves while this character is in the Action Sequence, you gain 1 Energy.",
+    "flavor": "Placeholder flavour for Harmony Proxy Companion 04. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 56979,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "affinity_engine",
+      "deploy",
+      "energy_refund"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.59,
+      "patterns": [
+        "affinity_engine",
+        "deploy",
+        "energy_refund"
+      ]
+    }
+  },
+  {
+    "id": "HAR_COMP_05",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Companion 05",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 3,
+    "attack": 2,
+    "defense": 3,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [],
+    "text": "",
+    "flavor": "Placeholder flavour for Harmony Proxy Companion 05. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 79360,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "body",
+      "deploy"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.71,
+      "patterns": [
+        "body",
+        "deploy"
+      ]
+    }
+  },
+  {
+    "id": "HAR_COMP_06",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Companion 06",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 3,
+    "attack": 2,
+    "defense": 3,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "affinity_card_resolved",
+          "affinity": "harmony",
+          "scope": "either"
+        },
+        "effects": [
+          {
+            "op": "energy_gain",
+            "who": "self",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "Whenever a Harmony card resolves while this character is in the Action Sequence, you gain 1 Energy.",
+    "flavor": "Placeholder flavour for Harmony Proxy Companion 06. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 12217,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "affinity_engine",
+      "deploy",
+      "energy_refund"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.71,
+      "patterns": [
+        "affinity_engine",
+        "deploy",
+        "energy_refund"
+      ]
+    }
+  },
+  {
+    "id": "HAR_COMP_07",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Companion 07",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 3,
+    "attack": 2,
+    "defense": 2,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "round_end"
+        },
+        "effects": [
+          {
+            "op": "draw",
+            "who": "self",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "At Round End, you draw 1 card.",
+    "flavor": "Placeholder flavour for Harmony Proxy Companion 07. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 34598,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "deploy",
+      "draw",
+      "round_end_trigger"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.71,
+      "patterns": [
+        "deploy",
+        "draw",
+        "round_end_trigger"
+      ]
+    }
+  },
+  {
+    "id": "HAR_COMP_08",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Companion 08",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 3,
+    "attack": 2,
+    "defense": 2,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "own_companion_deployed"
+        },
+        "effects": [
+          {
+            "op": "energy_gain",
+            "who": "self",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "Whenever a Companion you control enters play, you gain 1 Energy.",
+    "flavor": "Placeholder flavour for Harmony Proxy Companion 08. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 88407,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "companion_deploy_trigger",
+      "deploy"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.71,
+      "patterns": [
+        "companion_deploy_trigger",
+        "deploy"
+      ]
+    }
+  },
+  {
+    "id": "HAR_COMP_09",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Companion 09",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "rare",
+    "unique": true,
+    "character_id": "harmony_char_09",
+    "cost": {
+      "kind": "fixed",
+      "amount": 4
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 4,
+    "attack": 3,
+    "defense": 3,
+    "attack_cost": 2,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "all_companions",
+        "attack": 1
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, each Companion gets +1 Attack.",
+    "flavor": "Placeholder flavour for Harmony Proxy Companion 09. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 10788,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "aura_buff",
+      "deploy"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.83,
+      "patterns": [
+        "aura_buff",
+        "deploy"
+      ]
+    }
+  },
+  {
+    "id": "HAR_COMP_10",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Companion 10",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "rare",
+    "unique": true,
+    "character_id": "harmony_char_10",
+    "cost": {
+      "kind": "fixed",
+      "amount": 4
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 4,
+    "attack": 3,
+    "defense": 3,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "affinity_card_resolved",
+          "affinity": "harmony",
+          "scope": "either"
+        },
+        "effects": [
+          {
+            "op": "energy_gain",
+            "who": "self",
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "text": "Whenever a Harmony card resolves while this character is in the Action Sequence, you gain 2 Energy.",
+    "flavor": "Placeholder flavour for Harmony Proxy Companion 10. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 54646,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "affinity_engine",
+      "deploy",
+      "energy_refund"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.83,
+      "patterns": [
+        "affinity_engine",
+        "deploy",
+        "energy_refund"
+      ]
+    }
+  },
+  {
+    "id": "HAR_EQUIP_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Equipment 01",
+    "types": [
+      "equipment"
+    ],
+    "tags": [],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "attack": 1,
+    "defense": 1,
+    "persistent": {
+      "kind": "attachment",
+      "slot": "equipment"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "attack": 1,
+        "defense": 1
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, its host gets +1 Attack and +1 Defense.",
+    "flavor": "Placeholder flavour for Harmony Proxy Equipment 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 64783,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "equipment_buff"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.47,
+      "patterns": [
+        "equipment_buff"
+      ]
+    }
+  },
+  {
+    "id": "HAR_EQUIP_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Equipment 02",
+    "types": [
+      "equipment"
+    ],
+    "tags": [],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "attack": 2,
+    "defense": 1,
+    "persistent": {
+      "kind": "attachment",
+      "slot": "equipment"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "attack": 2,
+        "defense": 1
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, its host gets +2 Attack and +1 Defense.",
+    "flavor": "Placeholder flavour for Harmony Proxy Equipment 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 42402,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "equipment_buff"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.59,
+      "patterns": [
+        "equipment_buff"
+      ]
+    }
+  },
+  {
+    "id": "HAR_EQUIP_03",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Equipment 03",
+    "types": [
+      "equipment"
+    ],
+    "tags": [],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "attack": 1,
+    "defense": 2,
+    "persistent": {
+      "kind": "attachment",
+      "slot": "equipment"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "attack": 1,
+        "defense": 2
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, its host gets +1 Attack and +2 Defense.",
+    "flavor": "Placeholder flavour for Harmony Proxy Equipment 03. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 20021,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "equipment_buff"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.59,
+      "patterns": [
+        "equipment_buff"
+      ]
+    }
+  },
+  {
+    "id": "HAR_EQUIP_04",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Equipment 04",
+    "types": [
+      "equipment"
+    ],
+    "tags": [],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "rare",
+    "unique": true,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "attack": 2,
+    "defense": 2,
+    "persistent": {
+      "kind": "attachment",
+      "slot": "equipment"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "attack": 2,
+        "defense": 2
+      },
+      {
+        "op": "aura_energy_max",
+        "who": "self",
+        "amount": 1
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, its host gets +2 Attack and +2 Defense. While this card is in play, your maximum Energy is increased by 1.",
+    "flavor": "Placeholder flavour for Harmony Proxy Equipment 04. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 76688,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "energy_ramp",
+      "equipment_buff"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.71,
+      "patterns": [
+        "energy_ramp",
+        "equipment_buff"
+      ]
+    }
+  },
+  {
+    "id": "HAR_TAAHMA_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Ta'ahma 01",
+    "types": [
+      "taahma"
+    ],
+    "tags": [],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "persistent": {
+      "kind": "attachment",
+      "slot": "taahma"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "attack": 1
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, its host gets +1 Attack.",
+    "flavor": "Placeholder flavour for Harmony Proxy Ta'ahma 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 91297,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "taahma_buff"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.47,
+      "patterns": [
+        "taahma_buff"
+      ]
+    }
+  },
+  {
+    "id": "HAR_TAAHMA_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Ta'ahma 02",
+    "types": [
+      "taahma"
+    ],
+    "tags": [],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "persistent": {
+      "kind": "attachment",
+      "slot": "taahma"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "defense": 1
+      }
+    ],
+    "triggers": [
+      {
+        "on": {
+          "kind": "affinity_card_resolved",
+          "affinity": "harmony",
+          "scope": "either"
+        },
+        "effects": [
+          {
+            "op": "energy_gain",
+            "who": "self",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "While this card is in play, its host gets +1 Defense. Whenever a Harmony card resolves while this card is in play, you gain 1 Energy.",
+    "flavor": "Placeholder flavour for Harmony Proxy Ta'ahma 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 58440,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "affinity_engine",
+      "energy_refund",
+      "taahma_buff"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.59,
+      "patterns": [
+        "affinity_engine",
+        "energy_refund",
+        "taahma_buff"
+      ]
+    }
+  },
+  {
+    "id": "HAR_LOC_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Location 01",
+    "types": [
+      "location"
+    ],
+    "tags": [],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "persistent": {
+      "kind": "location"
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "all_companions",
+        "attack": 1,
+        "defense": 1
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, each Companion gets +1 Attack and +1 Defense.",
+    "flavor": "Placeholder flavour for Harmony Proxy Location 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 50737,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "location_aura"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.59,
+      "patterns": [
+        "location_aura"
+      ]
+    }
+  },
+  {
+    "id": "HAR_LOC_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Harmony Proxy Location 02",
+    "types": [
+      "location"
+    ],
+    "tags": [],
+    "affinities": [
+      "harmony"
+    ],
+    "rarity": "rare",
+    "unique": true,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "persistent": {
+      "kind": "location"
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "own_companions",
+        "attack": 1
+      }
+    ],
+    "triggers": [
+      {
+        "on": {
+          "kind": "round_end"
+        },
+        "effects": [
+          {
+            "op": "draw",
+            "who": "self",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "While this card is in play, each Companion you control gets +1 Attack. At Round End, you draw 1 card.",
+    "flavor": "Placeholder flavour for Harmony Proxy Location 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 17880,
+      "hue": 160,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "draw",
+      "location_aura",
+      "round_end_trigger"
+    ],
+    "ai_hints": {
+      "role": "synergy",
+      "priority": 0.71,
+      "patterns": [
+        "draw",
+        "location_aura",
+        "round_end_trigger"
+      ]
+    }
+  }
+]

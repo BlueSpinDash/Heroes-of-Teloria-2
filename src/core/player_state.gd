@@ -55,6 +55,25 @@ func pile(name: String) -> Array:
     return []
 
 
+func clone() -> PlayerState:
+    var p := PlayerState.new(index)
+    p.display_name = display_name
+    p.hero_iid = hero_iid
+    p.deck_id = deck_id
+    p.hand = hand.duplicate()
+    p.hit = hit.duplicate()
+    p.exhaust = exhaust.duplicate()
+    p.wound = wound.duplicate()
+    p.companions = companions.duplicate()
+    p.energy_current = energy_current
+    p.energy_max_mods = energy_max_mods.duplicate(true)
+    p.passed_actions = passed_actions
+    p.committed_characters = committed_characters.duplicate()
+    p.is_ai = is_ai
+    p.affinity_profile = affinity_profile
+    return p
+
+
 func to_dict() -> Dictionary:
     return {
         "index": index, "display_name": display_name, "hero_iid": hero_iid, "deck_id": deck_id,

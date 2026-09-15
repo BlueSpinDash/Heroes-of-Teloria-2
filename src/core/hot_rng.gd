@@ -78,6 +78,15 @@ func take_random(name: String, items: Array, count: int) -> Array:
     return taken
 
 
+func clone() -> HotRng:
+    var c := HotRng.new(_root_seed)
+    for name in _streams.keys():
+        var src: RandomNumberGenerator = _streams[name]
+        var dst := c.stream(String(name))
+        dst.state = src.state
+    return c
+
+
 func to_dict() -> Dictionary:
     var states: Dictionary = {}
     for name in _streams.keys():

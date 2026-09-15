@@ -12,6 +12,18 @@ const SUITES := {
 }
 
 
+var _finished := false
+
+
+## If a suite fails to compile, _initialize aborts part-way through. Returning
+## true here guarantees the runner still exits instead of hanging a CI job.
+func _process(_delta: float) -> bool:
+    if not _finished:
+        print("\nFAIL — the test runner stopped early; see the script errors above.")
+        quit(1)
+    return true
+
+
 func _initialize() -> void:
     var only := ""
     for arg in OS.get_cmdline_user_args():
@@ -32,6 +44,9 @@ func _initialize() -> void:
             failures.append("could not load suite %s" % path)
             continue
         var suite = script.new()
+        if suite == null:
+            failures.append("suite %s could not be instantiated" % path)
+            continue
         var t := TestHarness.new()
         t.suite = String(name)
         var started := Time.get_ticks_msec()
@@ -43,6 +58,7 @@ func _initialize() -> void:
         print("  %-12s %3d passed, %2d failed  (%d ms)" % [name, t.passed, t.failures.size(), elapsed])
 
     print("")
+    _finished = true
     if failures.is_empty():
         print("PASS — %d assertions across %d suite(s): %s" % [total_passed, ran.size(), ", ".join(ran)])
         quit(0)

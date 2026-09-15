@@ -46,6 +46,21 @@ func reactions_for(window: String) -> Array:
     return out
 
 
+func clone() -> ActionSlot:
+    var s := ActionSlot.new(slot_id, controller)
+    s.kind = kind
+    s.card_iid = card_iid
+    s.attacker_iid = attacker_iid
+    s.targets = targets.duplicate()
+    s.x_paid = x_paid
+    s.energy_paid = energy_paid
+    s.affinities = affinities.duplicate()
+    s.resolved = resolved
+    s.window_done = window_done
+    s.reactions = reactions.duplicate(true)
+    return s
+
+
 func to_dict() -> Dictionary:
     return {
         "slot_id": slot_id, "controller": controller, "kind": kind,

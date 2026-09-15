@@ -1,0 +1,2303 @@
+[
+  {
+    "id": "VIG_HERO_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Hero 01",
+    "types": [
+      "hero"
+    ],
+    "tags": [],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "legendary",
+    "unique": true,
+    "character_id": "vigilance_hero_01",
+    "cost": {
+      "kind": "none"
+    },
+    "hero_max_energy": 4,
+    "attack": 2,
+    "defense": 3,
+    "attack_cost": 1,
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "attack_resolved",
+          "scope": "opponent"
+        },
+        "effects": [
+          {
+            "op": "energy_gain",
+            "who": "self",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "Whenever an attack your opponent committed resolves, you gain 1 Energy.",
+    "flavor": "Placeholder flavour for Vigilance Proxy Hero 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 52120,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "attack_watch_trigger",
+      "energy_refund",
+      "hero"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.47,
+      "patterns": [
+        "attack_watch_trigger",
+        "energy_refund",
+        "hero"
+      ]
+    }
+  },
+  {
+    "id": "VIG_HERO_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Hero 02",
+    "types": [
+      "hero"
+    ],
+    "tags": [],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "legendary",
+    "unique": true,
+    "character_id": "vigilance_hero_02",
+    "cost": {
+      "kind": "none"
+    },
+    "hero_max_energy": 5,
+    "attack": 1,
+    "defense": 4,
+    "attack_cost": 1,
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "own_hero_damaged"
+        },
+        "effects": [
+          {
+            "op": "energy_gain",
+            "who": "self",
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "text": "Whenever your Hero is damaged, you gain 2 Energy.",
+    "flavor": "Placeholder flavour for Vigilance Proxy Hero 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 84977,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "energy_refund",
+      "hero",
+      "hero_damage_trigger"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.47,
+      "patterns": [
+        "energy_refund",
+        "hero",
+        "hero_damage_trigger"
+      ]
+    }
+  },
+  {
+    "id": "VIG_SKILL_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Skill 01",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial"
+    ],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "target": {
+      "kind": "own_character",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "prevent_damage",
+        "target": "chosen",
+        "amount": 2,
+        "duration": "round"
+      }
+    ],
+    "triggers": [],
+    "text": "Prevent the next 2 damage that would be dealt to target character you control for the round.",
+    "flavor": "Placeholder flavour for Vigilance Proxy Skill 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 44811,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "protection"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.47,
+      "patterns": [
+        "protection"
+      ]
+    }
+  },
+  {
+    "id": "VIG_SKILL_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Skill 02",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial",
+      "melee"
+    ],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "target": {
+      "kind": "own_character",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "stat_mod",
+        "target": "chosen",
+        "duration": "round",
+        "defense": 3
+      }
+    ],
+    "triggers": [],
+    "text": "Target character you control gets +3 Defense for the round.",
+    "flavor": "Placeholder flavour for Vigilance Proxy Skill 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 22430,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "temp_defense_buff"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.47,
+      "patterns": [
+        "temp_defense_buff"
+      ]
+    }
+  },
+  {
+    "id": "VIG_SKILL_03",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Skill 03",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "draw",
+        "who": "self",
+        "amount": 1
+      }
+    ],
+    "triggers": [],
+    "text": "You draw 1 card.",
+    "flavor": "Placeholder flavour for Vigilance Proxy Skill 03. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 49,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "draw"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.47,
+      "patterns": [
+        "draw"
+      ]
+    }
+  },
+  {
+    "id": "VIG_SKILL_04",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Skill 04",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial"
+    ],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "prevent_damage",
+        "target": "self_hero",
+        "amount": 3,
+        "duration": "round"
+      }
+    ],
+    "triggers": [],
+    "text": "Prevent the next 3 damage that would be dealt to your Hero for the round.",
+    "flavor": "Placeholder flavour for Vigilance Proxy Skill 04. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 77668,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "protection"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.47,
+      "patterns": [
+        "protection"
+      ]
+    }
+  },
+  {
+    "id": "VIG_SKILL_05",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Skill 05",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "mill",
+        "who": "opponent",
+        "amount": 2
+      }
+    ],
+    "triggers": [],
+    "text": "Move up to 2 cards from the top of your opponent's Hit Deck to your opponent's Exhaust Deck.",
+    "flavor": "Placeholder flavour for Vigilance Proxy Skill 05. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 55287,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "mill"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.47,
+      "patterns": [
+        "mill"
+      ]
+    }
+  },
+  {
+    "id": "VIG_SKILL_06",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Skill 06",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "target": {
+      "kind": "opponent_companion",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "conditional",
+        "cond": {
+          "kind": "target_defense_at_most",
+          "max": 2
+        },
+        "then": [
+          {
+            "op": "destroy",
+            "target": "chosen"
+          }
+        ]
+      }
+    ],
+    "triggers": [],
+    "text": "If its Defense is 2 or less, destroy target Companion your opponent controls.",
+    "flavor": "Placeholder flavour for Vigilance Proxy Skill 06. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 32906,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "conditional_bonus",
+      "removal"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.59,
+      "patterns": [
+        "conditional_bonus",
+        "removal"
+      ]
+    }
+  },
+  {
+    "id": "VIG_SKILL_07",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Skill 07",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "target": {
+      "kind": "opponent_companion",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "bounce",
+        "target": "chosen"
+      }
+    ],
+    "triggers": [],
+    "text": "If target Companion your opponent controls is a Companion, return it to its owner's hand.",
+    "flavor": "Placeholder flavour for Vigilance Proxy Skill 07. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 10525,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "bounce"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.59,
+      "patterns": [
+        "bounce"
+      ]
+    }
+  },
+  {
+    "id": "VIG_SKILL_08",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Skill 08",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial",
+      "reaction"
+    ],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "reaction"
+    ],
+    "reaction_window": "before",
+    "effects": [
+      {
+        "op": "prevent_damage",
+        "target": "self_hero",
+        "amount": 3,
+        "duration": "round"
+      }
+    ],
+    "triggers": [],
+    "text": "Reaction (before the Action): Prevent the next 3 damage that would be dealt to your Hero for the round.",
+    "flavor": "Placeholder flavour for Vigilance Proxy Skill 08. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 46240,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "defensive_reaction",
+      "protection"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.47,
+      "patterns": [
+        "defensive_reaction",
+        "protection"
+      ]
+    }
+  },
+  {
+    "id": "VIG_SKILL_09",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Skill 09",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial",
+      "reaction"
+    ],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "reaction"
+    ],
+    "reaction_window": "before",
+    "effects": [
+      {
+        "op": "prevent_damage",
+        "target": "current_target",
+        "amount": 3,
+        "duration": "round"
+      }
+    ],
+    "triggers": [],
+    "text": "Reaction (before the Action): Prevent the next 3 damage that would be dealt to the attack's target for the round.",
+    "flavor": "Placeholder flavour for Vigilance Proxy Skill 09. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 23859,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "defensive_reaction",
+      "protection"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.47,
+      "patterns": [
+        "defensive_reaction",
+        "protection"
+      ]
+    }
+  },
+  {
+    "id": "VIG_SKILL_10",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Skill 10",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial",
+      "reaction"
+    ],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "reaction"
+    ],
+    "reaction_window": "before",
+    "effects": [
+      {
+        "op": "stat_mod",
+        "target": "current_target",
+        "defense": 3,
+        "duration": "round"
+      }
+    ],
+    "triggers": [],
+    "text": "Reaction (before the Action): The attack's target gets +3 Defense for the round.",
+    "flavor": "Placeholder flavour for Vigilance Proxy Skill 10. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 15233,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "defensive_reaction",
+      "temp_defense_buff"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.47,
+      "patterns": [
+        "defensive_reaction",
+        "temp_defense_buff"
+      ]
+    }
+  },
+  {
+    "id": "VIG_SKILL_11",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Skill 11",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic",
+      "reaction"
+    ],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "reaction"
+    ],
+    "reaction_window": "before",
+    "effects": [
+      {
+        "op": "stat_mod",
+        "target": "current_attacker",
+        "attack": -2,
+        "duration": "round"
+      }
+    ],
+    "triggers": [],
+    "text": "Reaction (before the Action): The attacking character gets -2 Attack for the round.",
+    "flavor": "Placeholder flavour for Vigilance Proxy Skill 11. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 37614,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "debuff_reaction"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.47,
+      "patterns": [
+        "debuff_reaction"
+      ]
+    }
+  },
+  {
+    "id": "VIG_SKILL_12",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Skill 12",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic",
+      "reaction"
+    ],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "reaction"
+    ],
+    "reaction_window": "before",
+    "effects": [
+      {
+        "op": "draw",
+        "who": "self",
+        "amount": 1
+      }
+    ],
+    "triggers": [],
+    "text": "Reaction (before the Action): You draw 1 card.",
+    "flavor": "Placeholder flavour for Vigilance Proxy Skill 12. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 59995,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "draw",
+      "draw_reaction"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.47,
+      "patterns": [
+        "draw",
+        "draw_reaction"
+      ]
+    }
+  },
+  {
+    "id": "VIG_SKILL_13",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Skill 13",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial"
+    ],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "target": {
+      "kind": "own_character",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "prevent_damage",
+        "target": "chosen",
+        "amount": 5,
+        "duration": "round"
+      }
+    ],
+    "triggers": [],
+    "text": "Prevent the next 5 damage that would be dealt to target character you control for the round.",
+    "flavor": "Placeholder flavour for Vigilance Proxy Skill 13. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 82376,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "protection"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.59,
+      "patterns": [
+        "protection"
+      ]
+    }
+  },
+  {
+    "id": "VIG_SKILL_14",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Skill 14",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "recover_from_exhaust",
+        "who": "self",
+        "amount": 2
+      }
+    ],
+    "triggers": [],
+    "text": "Return up to 2 cards from your Exhaust Deck to your hand.",
+    "flavor": "Placeholder flavour for Vigilance Proxy Skill 14. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 58413,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "recovery"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.59,
+      "patterns": [
+        "recovery"
+      ]
+    }
+  },
+  {
+    "id": "VIG_SKILL_15",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Skill 15",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "draw",
+        "who": "self",
+        "amount": 2
+      }
+    ],
+    "triggers": [],
+    "text": "You draw 2 cards.",
+    "flavor": "Placeholder flavour for Vigilance Proxy Skill 15. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 48090,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "draw"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.71,
+      "patterns": [
+        "draw"
+      ]
+    }
+  },
+  {
+    "id": "VIG_SKILL_16",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Skill 16",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "target": {
+      "kind": "opponent_equipment",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "destroy",
+        "target": "chosen"
+      }
+    ],
+    "triggers": [],
+    "text": "Destroy target Equipment your opponent controls.",
+    "flavor": "Placeholder flavour for Vigilance Proxy Skill 16. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 70471,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "attachment_removal"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.59,
+      "patterns": [
+        "attachment_removal"
+      ]
+    }
+  },
+  {
+    "id": "VIG_SKILL_17",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Skill 17",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "energy_max_mod",
+        "who": "opponent",
+        "amount": -2,
+        "duration": "round"
+      }
+    ],
+    "triggers": [],
+    "text": "Your opponent's maximum Energy decreases by 2 for the round.",
+    "flavor": "Placeholder flavour for Vigilance Proxy Skill 17. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 92852,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "max_energy_reduction"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.59,
+      "patterns": [
+        "max_energy_reduction"
+      ]
+    }
+  },
+  {
+    "id": "VIG_SKILL_18",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Skill 18",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "target": {
+      "kind": "opponent_companion",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "bounce",
+        "target": "chosen"
+      }
+    ],
+    "triggers": [],
+    "text": "If target Companion your opponent controls is a Companion, return it to its owner's hand.",
+    "flavor": "Placeholder flavour for Vigilance Proxy Skill 18. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 94281,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "bounce"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.71,
+      "patterns": [
+        "bounce"
+      ]
+    }
+  },
+  {
+    "id": "VIG_SKILL_19",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Skill 19",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "rare",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "target": {
+      "kind": "opponent_companion",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "destroy",
+        "target": "chosen"
+      }
+    ],
+    "triggers": [],
+    "text": "Destroy target Companion your opponent controls.",
+    "flavor": "Placeholder flavour for Vigilance Proxy Skill 19. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 16662,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "removal"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.71,
+      "patterns": [
+        "removal"
+      ]
+    }
+  },
+  {
+    "id": "VIG_SKILL_20",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Skill 20",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial"
+    ],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "rare",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "prevent_damage",
+        "target": "self_hero",
+        "amount": 6,
+        "duration": "round"
+      }
+    ],
+    "triggers": [],
+    "text": "Prevent the next 6 damage that would be dealt to your Hero for the round.",
+    "flavor": "Placeholder flavour for Vigilance Proxy Skill 20. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 60746,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "protection"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.71,
+      "patterns": [
+        "protection"
+      ]
+    }
+  },
+  {
+    "id": "VIG_COMP_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Companion 01",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 1,
+    "attack": 1,
+    "defense": 2,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [],
+    "text": "",
+    "flavor": "Placeholder flavour for Vigilance Proxy Companion 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 14697,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "body",
+      "deploy"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.47,
+      "patterns": [
+        "body",
+        "deploy"
+      ]
+    }
+  },
+  {
+    "id": "VIG_COMP_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Companion 02",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 2,
+    "attack": 2,
+    "defense": 2,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [],
+    "text": "",
+    "flavor": "Placeholder flavour for Vigilance Proxy Companion 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 81840,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "body",
+      "deploy"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.59,
+      "patterns": [
+        "body",
+        "deploy"
+      ]
+    }
+  },
+  {
+    "id": "VIG_COMP_03",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Companion 03",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 2,
+    "attack": 1,
+    "defense": 2,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "own_companions",
+        "defense": 1
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, each Companion you control gets +1 Defense.",
+    "flavor": "Placeholder flavour for Vigilance Proxy Companion 03. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 59459,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "aura_buff",
+      "deploy"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.59,
+      "patterns": [
+        "aura_buff",
+        "deploy"
+      ]
+    }
+  },
+  {
+    "id": "VIG_COMP_04",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Companion 04",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 2,
+    "attack": 1,
+    "defense": 3,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "attack_resolved",
+          "scope": "opponent"
+        },
+        "effects": [
+          {
+            "op": "energy_gain",
+            "who": "self",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "Whenever an attack your opponent committed resolves, you gain 1 Energy.",
+    "flavor": "Placeholder flavour for Vigilance Proxy Companion 04. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 47554,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "attack_watch_trigger",
+      "deploy"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.59,
+      "patterns": [
+        "attack_watch_trigger",
+        "deploy"
+      ]
+    }
+  },
+  {
+    "id": "VIG_COMP_05",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Companion 05",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 3,
+    "attack": 1,
+    "defense": 4,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [],
+    "text": "",
+    "flavor": "Placeholder flavour for Vigilance Proxy Companion 05. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 25173,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "body",
+      "deploy"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.71,
+      "patterns": [
+        "body",
+        "deploy"
+      ]
+    }
+  },
+  {
+    "id": "VIG_COMP_06",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Companion 06",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 3,
+    "attack": 2,
+    "defense": 2,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "self_deployed"
+        },
+        "effects": [
+          {
+            "op": "prevent_damage",
+            "target": "self_hero",
+            "amount": 3,
+            "duration": "round"
+          }
+        ]
+      }
+    ],
+    "text": "When this Companion enters play, prevent the next 3 damage that would be dealt to your Hero for the round.",
+    "flavor": "Placeholder flavour for Vigilance Proxy Companion 06. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 92316,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "deploy",
+      "etb_effect",
+      "protection"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.71,
+      "patterns": [
+        "deploy",
+        "etb_effect",
+        "protection"
+      ]
+    }
+  },
+  {
+    "id": "VIG_COMP_07",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Companion 07",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 3,
+    "attack": 2,
+    "defense": 3,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "own_hero_damaged"
+        },
+        "effects": [
+          {
+            "op": "draw",
+            "who": "self",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "Whenever your Hero is damaged, you draw 1 card.",
+    "flavor": "Placeholder flavour for Vigilance Proxy Companion 07. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 69935,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "deploy",
+      "hero_damage_trigger"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.71,
+      "patterns": [
+        "deploy",
+        "hero_damage_trigger"
+      ]
+    }
+  },
+  {
+    "id": "VIG_COMP_08",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Companion 08",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 3,
+    "attack": 1,
+    "defense": 3,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "round_end"
+        },
+        "effects": [
+          {
+            "op": "draw",
+            "who": "self",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "At Round End, you draw 1 card.",
+    "flavor": "Placeholder flavour for Vigilance Proxy Companion 08. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 58030,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "deploy",
+      "draw",
+      "round_end_trigger"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.71,
+      "patterns": [
+        "deploy",
+        "draw",
+        "round_end_trigger"
+      ]
+    }
+  },
+  {
+    "id": "VIG_COMP_09",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Companion 09",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "rare",
+    "unique": true,
+    "character_id": "vigilance_char_09",
+    "cost": {
+      "kind": "fixed",
+      "amount": 4
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 4,
+    "attack": 2,
+    "defense": 4,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "own_hero",
+        "defense": 2
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, your Hero gets +2 Defense.",
+    "flavor": "Placeholder flavour for Vigilance Proxy Companion 09. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 35649,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "aura_buff",
+      "deploy"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.83,
+      "patterns": [
+        "aura_buff",
+        "deploy"
+      ]
+    }
+  },
+  {
+    "id": "VIG_COMP_10",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Companion 10",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "rare",
+    "unique": true,
+    "character_id": "vigilance_char_10",
+    "cost": {
+      "kind": "fixed",
+      "amount": 4
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 4,
+    "attack": 2,
+    "defense": 4,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "attack_resolved",
+          "scope": "opponent"
+        },
+        "effects": [
+          {
+            "op": "damage_hero",
+            "who": "opponent",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "Whenever an attack your opponent committed resolves, deal 1 damage to the opposing Hero.",
+    "flavor": "Placeholder flavour for Vigilance Proxy Companion 10. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 49887,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "attack_watch_trigger",
+      "deploy"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.83,
+      "patterns": [
+        "attack_watch_trigger",
+        "deploy"
+      ]
+    }
+  },
+  {
+    "id": "VIG_EQUIP_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Equipment 01",
+    "types": [
+      "equipment"
+    ],
+    "tags": [],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "defense": 2,
+    "persistent": {
+      "kind": "attachment",
+      "slot": "equipment"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "defense": 2
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, its host gets +2 Defense.",
+    "flavor": "Placeholder flavour for Vigilance Proxy Equipment 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 23872,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "equipment_buff"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.47,
+      "patterns": [
+        "equipment_buff"
+      ]
+    }
+  },
+  {
+    "id": "VIG_EQUIP_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Equipment 02",
+    "types": [
+      "equipment"
+    ],
+    "tags": [],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "attack": 1,
+    "defense": 2,
+    "persistent": {
+      "kind": "attachment",
+      "slot": "equipment"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "attack": 1,
+        "defense": 2
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, its host gets +1 Attack and +2 Defense.",
+    "flavor": "Placeholder flavour for Vigilance Proxy Equipment 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 56729,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "equipment_buff"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.59,
+      "patterns": [
+        "equipment_buff"
+      ]
+    }
+  },
+  {
+    "id": "VIG_EQUIP_03",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Equipment 03",
+    "types": [
+      "equipment"
+    ],
+    "tags": [],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "defense": 4,
+    "persistent": {
+      "kind": "attachment",
+      "slot": "equipment"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "defense": 4
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, its host gets +4 Defense.",
+    "flavor": "Placeholder flavour for Vigilance Proxy Equipment 03. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 79110,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "equipment_buff"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.59,
+      "patterns": [
+        "equipment_buff"
+      ]
+    }
+  },
+  {
+    "id": "VIG_EQUIP_04",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Equipment 04",
+    "types": [
+      "equipment"
+    ],
+    "tags": [],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "rare",
+    "unique": true,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "attack": 1,
+    "defense": 4,
+    "persistent": {
+      "kind": "attachment",
+      "slot": "equipment"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "attack": 1,
+        "defense": 4
+      }
+    ],
+    "triggers": [
+      {
+        "on": {
+          "kind": "attack_resolved",
+          "scope": "opponent"
+        },
+        "effects": [
+          {
+            "op": "energy_gain",
+            "who": "self",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "While this card is in play, its host gets +1 Attack and +4 Defense. Whenever an attack your opponent committed resolves, you gain 1 Energy.",
+    "flavor": "Placeholder flavour for Vigilance Proxy Equipment 04. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 11967,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "attack_watch_trigger",
+      "energy_refund",
+      "equipment_buff"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.71,
+      "patterns": [
+        "attack_watch_trigger",
+        "energy_refund",
+        "equipment_buff"
+      ]
+    }
+  },
+  {
+    "id": "VIG_TAAHMA_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Ta'ahma 01",
+    "types": [
+      "taahma"
+    ],
+    "tags": [],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "persistent": {
+      "kind": "attachment",
+      "slot": "taahma"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "defense": 2
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, its host gets +2 Defense.",
+    "flavor": "Placeholder flavour for Vigilance Proxy Ta'ahma 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 2440,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "taahma_buff"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.47,
+      "patterns": [
+        "taahma_buff"
+      ]
+    }
+  },
+  {
+    "id": "VIG_TAAHMA_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Ta'ahma 02",
+    "types": [
+      "taahma"
+    ],
+    "tags": [],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "persistent": {
+      "kind": "attachment",
+      "slot": "taahma"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "defense": 3
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, its host gets +3 Defense.",
+    "flavor": "Placeholder flavour for Vigilance Proxy Ta'ahma 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 35297,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "taahma_buff"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.59,
+      "patterns": [
+        "taahma_buff"
+      ]
+    }
+  },
+  {
+    "id": "VIG_LOC_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Location 01",
+    "types": [
+      "location"
+    ],
+    "tags": [],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "persistent": {
+      "kind": "location"
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "all_companions",
+        "defense": 1
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, each Companion gets +1 Defense.",
+    "flavor": "Placeholder flavour for Vigilance Proxy Location 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 28826,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "location_aura"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.59,
+      "patterns": [
+        "location_aura"
+      ]
+    }
+  },
+  {
+    "id": "VIG_LOC_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Vigilance Proxy Location 02",
+    "types": [
+      "location"
+    ],
+    "tags": [],
+    "affinities": [
+      "vigilance"
+    ],
+    "rarity": "rare",
+    "unique": true,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "persistent": {
+      "kind": "location"
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "own_characters",
+        "defense": 1
+      }
+    ],
+    "triggers": [
+      {
+        "on": {
+          "kind": "round_end"
+        },
+        "effects": [
+          {
+            "op": "draw",
+            "who": "self",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "While this card is in play, each character you control gets +1 Defense. At Round End, you draw 1 card.",
+    "flavor": "Placeholder flavour for Vigilance Proxy Location 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 51207,
+      "hue": 215,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "draw",
+      "location_aura",
+      "round_end_trigger"
+    ],
+    "ai_hints": {
+      "role": "control",
+      "priority": 0.71,
+      "patterns": [
+        "draw",
+        "location_aura",
+        "round_end_trigger"
+      ]
+    }
+  }
+]

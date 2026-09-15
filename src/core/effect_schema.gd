@@ -116,11 +116,15 @@ static func op_is_persistent_only(op: String) -> bool:
     return OPS.has(op) and bool(OPS[op].get("persistent_only", false))
 
 
+## Ops whose amount may legitimately be negative (a reduction).
+const SIGNED_AMOUNT_OPS := ["energy_max_mod", "aura_energy_max"]
+
+
 ## Validate one amount value (plain int or dynamic spec). Returns error list.
-static func validate_amount(value, path: String) -> Array:
+static func validate_amount(value, path: String, allow_negative: bool = false) -> Array:
     var errs: Array = []
     if value is int or value is float:
-        if int(value) < 0:
+        if int(value) < 0 and not allow_negative:
             errs.append("%s: amount must not be negative" % path)
         return errs
     if not (value is Dictionary):
@@ -241,7 +245,7 @@ static func validate_effects(effects, path: String, allow_persistent_only: bool)
         if e.has("scope") and op == "aura_stat_mod" and not AURA_SCOPES.has(String(e["scope"])):
             errs.append("%s: aura scope must be one of %s" % [p, str(AURA_SCOPES)])
         if e.has("amount"):
-            errs.append_array(validate_amount(e["amount"], p + ".amount"))
+            errs.append_array(validate_amount(e["amount"], p + ".amount", SIGNED_AMOUNT_OPS.has(op)))
         if e.has("ignores_defense") and not (e["ignores_defense"] is bool):
             errs.append("%s: 'ignores_defense' must be stated explicitly as true or false" % p)
         if op == "stat_mod":

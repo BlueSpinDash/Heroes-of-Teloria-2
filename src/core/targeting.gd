@@ -43,17 +43,19 @@ static func legal_targets(state: GameState, kind: String, chooser: int) -> Array
 
 static func _attachments(state: GameState, slot: String, controller: int) -> Array:
     var out: Array = []
-    for iid in state.instances.keys():
-        var ci: CardInstance = state.instances[iid]
-        if ci.zone != "attached":
+    for i in 2:
+        if controller >= 0 and i != controller:
             continue
-        if controller >= 0 and ci.controller != controller:
-            continue
-        var cd := state.def_of(iid)
-        if cd == null:
-            continue
-        if cd.attachment_slot() == slot:
-            out.append(String(iid))
+        var p := state.player(i)
+        var hosts: Array = [p.hero_iid]
+        hosts.append_array(p.companions)
+        for host_iid in hosts:
+            var host := state.inst(String(host_iid))
+            if host == null:
+                continue
+            var a := host.equipment_iid if slot == "equipment" else host.taahma_iid
+            if a != "":
+                out.append(a)
     out.sort()
     return out
 

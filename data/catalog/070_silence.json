@@ -1,0 +1,2313 @@
+[
+  {
+    "id": "SIL_HERO_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Hero 01",
+    "types": [
+      "hero"
+    ],
+    "tags": [],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "legendary",
+    "unique": true,
+    "character_id": "silence_hero_01",
+    "cost": {
+      "kind": "none"
+    },
+    "hero_max_energy": 4,
+    "attack": 2,
+    "defense": 2,
+    "attack_cost": 1,
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "opponent_hero_damaged"
+        },
+        "effects": [
+          {
+            "op": "energy_drain",
+            "who": "opponent",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "Whenever the opposing Hero is damaged, your opponent loses 1 Energy.",
+    "flavor": "Placeholder flavour for Silence Proxy Hero 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 97578,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "energy_denial",
+      "hero",
+      "hero_damage_trigger"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.47,
+      "patterns": [
+        "energy_denial",
+        "hero",
+        "hero_damage_trigger"
+      ]
+    }
+  },
+  {
+    "id": "SIL_HERO_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Hero 02",
+    "types": [
+      "hero"
+    ],
+    "tags": [],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "legendary",
+    "unique": true,
+    "character_id": "silence_hero_02",
+    "cost": {
+      "kind": "none"
+    },
+    "hero_max_energy": 5,
+    "attack": 2,
+    "defense": 3,
+    "attack_cost": 1,
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "opponent_companions",
+        "attack": -1
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, each Companion your opponent controls gets -1 Attack.",
+    "flavor": "Placeholder flavour for Silence Proxy Hero 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 19959,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "aura_buff",
+      "debuff",
+      "hero"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.47,
+      "patterns": [
+        "aura_buff",
+        "debuff",
+        "hero"
+      ]
+    }
+  },
+  {
+    "id": "SIL_SKILL_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Skill 01",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "energy_drain",
+        "who": "opponent",
+        "amount": 2
+      }
+    ],
+    "triggers": [],
+    "text": "Your opponent loses 2 Energy.",
+    "flavor": "Placeholder flavour for Silence Proxy Skill 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 51265,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "energy_denial"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.47,
+      "patterns": [
+        "energy_denial"
+      ]
+    }
+  },
+  {
+    "id": "SIL_SKILL_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Skill 02",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "target": {
+      "kind": "opponent_character",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "stat_mod",
+        "target": "chosen",
+        "duration": "round",
+        "attack": 2
+      }
+    ],
+    "triggers": [],
+    "text": "Target character your opponent controls gets +2 Attack for the round.",
+    "flavor": "Placeholder flavour for Silence Proxy Skill 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 18408,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "debuff"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.47,
+      "patterns": [
+        "debuff"
+      ]
+    }
+  },
+  {
+    "id": "SIL_SKILL_03",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Skill 03",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "mill",
+        "who": "opponent",
+        "amount": 2
+      }
+    ],
+    "triggers": [],
+    "text": "Move up to 2 cards from the top of your opponent's Hit Deck to your opponent's Exhaust Deck.",
+    "flavor": "Placeholder flavour for Silence Proxy Skill 03. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 96027,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "mill"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.47,
+      "patterns": [
+        "mill"
+      ]
+    }
+  },
+  {
+    "id": "SIL_SKILL_04",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Skill 04",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "random_exhaust_from_hand",
+        "who": "opponent",
+        "amount": 1
+      }
+    ],
+    "triggers": [],
+    "text": "Your opponent Exhausts 1 card at random from their hand.",
+    "flavor": "Placeholder flavour for Silence Proxy Skill 04. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 84122,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "discard_random"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.47,
+      "patterns": [
+        "discard_random"
+      ]
+    }
+  },
+  {
+    "id": "SIL_SKILL_05",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Skill 05",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "energy_max_mod",
+        "who": "opponent",
+        "amount": -1,
+        "duration": "round"
+      }
+    ],
+    "triggers": [],
+    "text": "Your opponent's maximum Energy decreases by 1 for the round.",
+    "flavor": "Placeholder flavour for Silence Proxy Skill 05. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 61741,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "max_energy_reduction"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.47,
+      "patterns": [
+        "max_energy_reduction"
+      ]
+    }
+  },
+  {
+    "id": "SIL_SKILL_06",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Skill 06",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "target": {
+      "kind": "opponent_companion",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "conditional",
+        "cond": {
+          "kind": "target_defense_at_most",
+          "max": 2
+        },
+        "then": [
+          {
+            "op": "destroy",
+            "target": "chosen"
+          }
+        ]
+      }
+    ],
+    "triggers": [],
+    "text": "If its Defense is 2 or less, destroy target Companion your opponent controls.",
+    "flavor": "Placeholder flavour for Silence Proxy Skill 06. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 28884,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "conditional_bonus",
+      "removal"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.59,
+      "patterns": [
+        "conditional_bonus",
+        "removal"
+      ]
+    }
+  },
+  {
+    "id": "SIL_SKILL_07",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Skill 07",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "target": {
+      "kind": "location",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "destroy",
+        "target": "chosen"
+      }
+    ],
+    "triggers": [],
+    "text": "Destroy the active Location.",
+    "flavor": "Placeholder flavour for Silence Proxy Skill 07. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 6503,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "location_removal"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.59,
+      "patterns": [
+        "location_removal"
+      ]
+    }
+  },
+  {
+    "id": "SIL_SKILL_08",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Skill 08",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic",
+      "reaction"
+    ],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "reaction"
+    ],
+    "reaction_window": "before",
+    "effects": [
+      {
+        "op": "stat_mod",
+        "target": "current_attacker",
+        "attack": -2,
+        "duration": "round"
+      }
+    ],
+    "triggers": [],
+    "text": "Reaction (before the Action): The attacking character gets -2 Attack for the round.",
+    "flavor": "Placeholder flavour for Silence Proxy Skill 08. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 52694,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "debuff_reaction"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.47,
+      "patterns": [
+        "debuff_reaction"
+      ]
+    }
+  },
+  {
+    "id": "SIL_SKILL_09",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Skill 09",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic",
+      "reaction"
+    ],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "reaction"
+    ],
+    "reaction_window": "before",
+    "effects": [
+      {
+        "op": "energy_drain",
+        "who": "opponent",
+        "amount": 2
+      }
+    ],
+    "triggers": [],
+    "text": "Reaction (before the Action): Your opponent loses 2 Energy.",
+    "flavor": "Placeholder flavour for Silence Proxy Skill 09. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 30313,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "energy_denial",
+      "reaction_denial"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.47,
+      "patterns": [
+        "energy_denial",
+        "reaction_denial"
+      ]
+    }
+  },
+  {
+    "id": "SIL_SKILL_10",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Skill 10",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial",
+      "reaction"
+    ],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "reaction"
+    ],
+    "reaction_window": "before",
+    "effects": [
+      {
+        "op": "prevent_damage",
+        "target": "current_target",
+        "amount": 2,
+        "duration": "round"
+      }
+    ],
+    "triggers": [],
+    "text": "Reaction (before the Action): Prevent the next 2 damage that would be dealt to the attack's target for the round.",
+    "flavor": "Placeholder flavour for Silence Proxy Skill 10. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 86455,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "defensive_reaction",
+      "protection"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.47,
+      "patterns": [
+        "defensive_reaction",
+        "protection"
+      ]
+    }
+  },
+  {
+    "id": "SIL_SKILL_11",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Skill 11",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic",
+      "reaction"
+    ],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "reaction"
+    ],
+    "reaction_window": "before",
+    "effects": [
+      {
+        "op": "draw",
+        "who": "self",
+        "amount": 1
+      }
+    ],
+    "triggers": [],
+    "text": "Reaction (before the Action): You draw 1 card.",
+    "flavor": "Placeholder flavour for Silence Proxy Skill 11. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 8836,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "draw",
+      "draw_reaction"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.47,
+      "patterns": [
+        "draw",
+        "draw_reaction"
+      ]
+    }
+  },
+  {
+    "id": "SIL_SKILL_12",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Skill 12",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic",
+      "reaction"
+    ],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "reaction"
+    ],
+    "reaction_window": "before",
+    "effects": [
+      {
+        "op": "bounce",
+        "target": "current_target"
+      }
+    ],
+    "triggers": [],
+    "text": "Reaction (before the Action): If the attack's target is a Companion, return it to its owner's hand.",
+    "flavor": "Placeholder flavour for Silence Proxy Skill 12. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 41693,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "bounce",
+      "defensive_reaction"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.59,
+      "patterns": [
+        "bounce",
+        "defensive_reaction"
+      ]
+    }
+  },
+  {
+    "id": "SIL_SKILL_13",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Skill 13",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "target": {
+      "kind": "opponent_companion",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "destroy",
+        "target": "chosen"
+      }
+    ],
+    "triggers": [],
+    "text": "Destroy target Companion your opponent controls.",
+    "flavor": "Placeholder flavour for Silence Proxy Skill 13. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 64074,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "removal"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.71,
+      "patterns": [
+        "removal"
+      ]
+    }
+  },
+  {
+    "id": "SIL_SKILL_14",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Skill 14",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "energy_drain",
+        "who": "opponent",
+        "amount": 3
+      }
+    ],
+    "triggers": [],
+    "text": "Your opponent loses 3 Energy.",
+    "flavor": "Placeholder flavour for Silence Proxy Skill 14. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 75979,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "energy_denial"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.59,
+      "patterns": [
+        "energy_denial"
+      ]
+    }
+  },
+  {
+    "id": "SIL_SKILL_15",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Skill 15",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "exhaust_from_hand",
+        "who": "opponent",
+        "amount": 1,
+        "chooser": "opponent"
+      }
+    ],
+    "triggers": [],
+    "text": "Your opponent Exhausts 1 card of their choice from their hand.",
+    "flavor": "Placeholder flavour for Silence Proxy Skill 15. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 98360,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "discard_choice"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.59,
+      "patterns": [
+        "discard_choice"
+      ]
+    }
+  },
+  {
+    "id": "SIL_SKILL_16",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Skill 16",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "target": {
+      "kind": "opponent_character",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "stat_mod",
+        "target": "chosen",
+        "duration": "round",
+        "attack": 3,
+        "defense": 2
+      }
+    ],
+    "triggers": [],
+    "text": "Target character your opponent controls gets +3 Attack and +2 Defense for the round.",
+    "flavor": "Placeholder flavour for Silence Proxy Skill 16. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 31217,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "debuff"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.59,
+      "patterns": [
+        "debuff"
+      ]
+    }
+  },
+  {
+    "id": "SIL_SKILL_17",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Skill 17",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "energy_max_mod",
+        "who": "opponent",
+        "amount": -2,
+        "duration": "round"
+      }
+    ],
+    "triggers": [],
+    "text": "Your opponent's maximum Energy decreases by 2 for the round.",
+    "flavor": "Placeholder flavour for Silence Proxy Skill 17. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 53598,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "max_energy_reduction"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.59,
+      "patterns": [
+        "max_energy_reduction"
+      ]
+    }
+  },
+  {
+    "id": "SIL_SKILL_18",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Skill 18",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "target": {
+      "kind": "opponent_companion",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "bounce",
+        "target": "chosen"
+      }
+    ],
+    "triggers": [],
+    "text": "If target Companion your opponent controls is a Companion, return it to its owner's hand.",
+    "flavor": "Placeholder flavour for Silence Proxy Skill 18. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 65503,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "bounce"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.59,
+      "patterns": [
+        "bounce"
+      ]
+    }
+  },
+  {
+    "id": "SIL_SKILL_19",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Skill 19",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "rare",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "target": {
+      "kind": "opponent_companion",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "destroy",
+        "target": "chosen"
+      }
+    ],
+    "triggers": [],
+    "text": "Destroy target Companion your opponent controls.",
+    "flavor": "Placeholder flavour for Silence Proxy Skill 19. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 87884,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "removal"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.59,
+      "patterns": [
+        "removal"
+      ]
+    }
+  },
+  {
+    "id": "SIL_SKILL_20",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Skill 20",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "rare",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "random_exhaust_from_hand",
+        "who": "opponent",
+        "amount": 2
+      }
+    ],
+    "triggers": [],
+    "text": "Your opponent Exhausts 2 cards at random from their hand.",
+    "flavor": "Placeholder flavour for Silence Proxy Skill 20. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 48028,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "discard_random"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.71,
+      "patterns": [
+        "discard_random"
+      ]
+    }
+  },
+  {
+    "id": "SIL_COMP_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Companion 01",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 1,
+    "attack": 1,
+    "defense": 1,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [],
+    "text": "",
+    "flavor": "Placeholder flavour for Silence Proxy Companion 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 86803,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "body",
+      "deploy"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.47,
+      "patterns": [
+        "body",
+        "deploy"
+      ]
+    }
+  },
+  {
+    "id": "SIL_COMP_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Companion 02",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 1,
+    "attack": 1,
+    "defense": 1,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "self_deployed"
+        },
+        "effects": [
+          {
+            "op": "energy_drain",
+            "who": "opponent",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "When this Companion enters play, your opponent loses 1 Energy.",
+    "flavor": "Placeholder flavour for Silence Proxy Companion 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 64422,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "deploy",
+      "energy_denial",
+      "etb_effect"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.47,
+      "patterns": [
+        "deploy",
+        "energy_denial",
+        "etb_effect"
+      ]
+    }
+  },
+  {
+    "id": "SIL_COMP_03",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Companion 03",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 2,
+    "attack": 2,
+    "defense": 2,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [],
+    "text": "",
+    "flavor": "Placeholder flavour for Silence Proxy Companion 03. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 42041,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "body",
+      "deploy"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.59,
+      "patterns": [
+        "body",
+        "deploy"
+      ]
+    }
+  },
+  {
+    "id": "SIL_COMP_04",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Companion 04",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 2,
+    "attack": 1,
+    "defense": 2,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "self_deployed"
+        },
+        "effects": [
+          {
+            "op": "mill",
+            "who": "opponent",
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "text": "When this Companion enters play, move up to 2 cards from the top of your opponent's Hit Deck to your opponent's Exhaust Deck.",
+    "flavor": "Placeholder flavour for Silence Proxy Companion 04. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 19660,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "deploy",
+      "etb_effect",
+      "mill"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.59,
+      "patterns": [
+        "deploy",
+        "etb_effect",
+        "mill"
+      ]
+    }
+  },
+  {
+    "id": "SIL_COMP_05",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Companion 05",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 2,
+    "attack": 1,
+    "defense": 2,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "opponent_companions",
+        "attack": -1
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, each Companion your opponent controls gets -1 Attack.",
+    "flavor": "Placeholder flavour for Silence Proxy Companion 05. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 97279,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "aura_buff",
+      "deploy"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.59,
+      "patterns": [
+        "aura_buff",
+        "deploy"
+      ]
+    }
+  },
+  {
+    "id": "SIL_COMP_06",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Companion 06",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 3,
+    "attack": 2,
+    "defense": 2,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "self_attack_resolved"
+        },
+        "effects": [
+          {
+            "op": "energy_drain",
+            "who": "opponent",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "When this character's attack resolves, your opponent loses 1 Energy.",
+    "flavor": "Placeholder flavour for Silence Proxy Companion 06. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 74898,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "attack_trigger",
+      "deploy",
+      "energy_denial"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.71,
+      "patterns": [
+        "attack_trigger",
+        "deploy",
+        "energy_denial"
+      ]
+    }
+  },
+  {
+    "id": "SIL_COMP_07",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Companion 07",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 3,
+    "attack": 2,
+    "defense": 2,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "self_deployed"
+        },
+        "effects": [
+          {
+            "op": "random_exhaust_from_hand",
+            "who": "opponent",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "When this Companion enters play, your opponent Exhausts 1 card at random from their hand.",
+    "flavor": "Placeholder flavour for Silence Proxy Companion 07. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 52517,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "deploy",
+      "discard_random",
+      "etb_effect"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.71,
+      "patterns": [
+        "deploy",
+        "discard_random",
+        "etb_effect"
+      ]
+    }
+  },
+  {
+    "id": "SIL_COMP_08",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Companion 08",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 3,
+    "attack": 2,
+    "defense": 3,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "self_leaves_play"
+        },
+        "effects": [
+          {
+            "op": "energy_drain",
+            "who": "opponent",
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "text": "When this card leaves play, your opponent loses 2 Energy.",
+    "flavor": "Placeholder flavour for Silence Proxy Companion 08. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 30136,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "death_trigger",
+      "deploy",
+      "energy_denial"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.71,
+      "patterns": [
+        "death_trigger",
+        "deploy",
+        "energy_denial"
+      ]
+    }
+  },
+  {
+    "id": "SIL_COMP_09",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Companion 09",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "rare",
+    "unique": true,
+    "character_id": "silence_char_09",
+    "cost": {
+      "kind": "fixed",
+      "amount": 4
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 4,
+    "attack": 3,
+    "defense": 3,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "opponent_characters",
+        "attack": -1
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, each character your opponent controls gets -1 Attack.",
+    "flavor": "Placeholder flavour for Silence Proxy Companion 09. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 7755,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "aura_buff",
+      "deploy"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.83,
+      "patterns": [
+        "aura_buff",
+        "deploy"
+      ]
+    }
+  },
+  {
+    "id": "SIL_COMP_10",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Companion 10",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "rare",
+    "unique": true,
+    "character_id": "silence_char_10",
+    "cost": {
+      "kind": "fixed",
+      "amount": 4
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 4,
+    "attack": 2,
+    "defense": 4,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "round_end"
+        },
+        "effects": [
+          {
+            "op": "mill",
+            "who": "opponent",
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "text": "At Round End, move up to 2 cards from the top of your opponent's Hit Deck to your opponent's Exhaust Deck.",
+    "flavor": "Placeholder flavour for Silence Proxy Companion 10. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 21993,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "deploy",
+      "mill",
+      "round_end_trigger"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.83,
+      "patterns": [
+        "deploy",
+        "mill",
+        "round_end_trigger"
+      ]
+    }
+  },
+  {
+    "id": "SIL_EQUIP_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Equipment 01",
+    "types": [
+      "equipment"
+    ],
+    "tags": [],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "attack": 1,
+    "defense": 1,
+    "persistent": {
+      "kind": "attachment",
+      "slot": "equipment"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "attack": 1,
+        "defense": 1
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, its host gets +1 Attack and +1 Defense.",
+    "flavor": "Placeholder flavour for Silence Proxy Equipment 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 8078,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "equipment_buff"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.47,
+      "patterns": [
+        "equipment_buff"
+      ]
+    }
+  },
+  {
+    "id": "SIL_EQUIP_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Equipment 02",
+    "types": [
+      "equipment"
+    ],
+    "tags": [],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "attack": 2,
+    "defense": 1,
+    "persistent": {
+      "kind": "attachment",
+      "slot": "equipment"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "attack": 2,
+        "defense": 1
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, its host gets +2 Attack and +1 Defense.",
+    "flavor": "Placeholder flavour for Silence Proxy Equipment 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 30459,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "equipment_buff"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.59,
+      "patterns": [
+        "equipment_buff"
+      ]
+    }
+  },
+  {
+    "id": "SIL_EQUIP_03",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Equipment 03",
+    "types": [
+      "equipment"
+    ],
+    "tags": [],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "attack": 1,
+    "defense": 2,
+    "persistent": {
+      "kind": "attachment",
+      "slot": "equipment"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "attack": 1,
+        "defense": 2
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, its host gets +1 Attack and +2 Defense.",
+    "flavor": "Placeholder flavour for Silence Proxy Equipment 03. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 52840,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "equipment_buff"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.59,
+      "patterns": [
+        "equipment_buff"
+      ]
+    }
+  },
+  {
+    "id": "SIL_EQUIP_04",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Equipment 04",
+    "types": [
+      "equipment"
+    ],
+    "tags": [],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "rare",
+    "unique": true,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "attack": 2,
+    "defense": 2,
+    "persistent": {
+      "kind": "attachment",
+      "slot": "equipment"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "attack": 2,
+        "defense": 2
+      }
+    ],
+    "triggers": [
+      {
+        "on": {
+          "kind": "attack_resolved",
+          "scope": "controller"
+        },
+        "effects": [
+          {
+            "op": "energy_drain",
+            "who": "opponent",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "While this card is in play, its host gets +2 Attack and +2 Defense. Whenever an attack you committed resolves, your opponent loses 1 Energy.",
+    "flavor": "Placeholder flavour for Silence Proxy Equipment 04. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 96173,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "attack_watch_trigger",
+      "energy_denial",
+      "equipment_buff"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.71,
+      "patterns": [
+        "attack_watch_trigger",
+        "energy_denial",
+        "equipment_buff"
+      ]
+    }
+  },
+  {
+    "id": "SIL_TAAHMA_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Ta'ahma 01",
+    "types": [
+      "taahma"
+    ],
+    "tags": [],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "persistent": {
+      "kind": "attachment",
+      "slot": "taahma"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "attack": 1
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, its host gets +1 Attack.",
+    "flavor": "Placeholder flavour for Silence Proxy Ta'ahma 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 11090,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "taahma_buff"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.47,
+      "patterns": [
+        "taahma_buff"
+      ]
+    }
+  },
+  {
+    "id": "SIL_TAAHMA_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Ta'ahma 02",
+    "types": [
+      "taahma"
+    ],
+    "tags": [],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "persistent": {
+      "kind": "attachment",
+      "slot": "taahma"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "attack": 1,
+        "defense": 1
+      }
+    ],
+    "triggers": [
+      {
+        "on": {
+          "kind": "attack_resolved",
+          "scope": "controller"
+        },
+        "effects": [
+          {
+            "op": "mill",
+            "who": "opponent",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "While this card is in play, its host gets +1 Attack and +1 Defense. Whenever an attack you committed resolves, move up to 1 card from the top of your opponent's Hit Deck to your opponent's Exhaust Deck.",
+    "flavor": "Placeholder flavour for Silence Proxy Ta'ahma 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 33471,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "attack_watch_trigger",
+      "mill",
+      "taahma_buff"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.59,
+      "patterns": [
+        "attack_watch_trigger",
+        "mill",
+        "taahma_buff"
+      ]
+    }
+  },
+  {
+    "id": "SIL_LOC_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Location 01",
+    "types": [
+      "location"
+    ],
+    "tags": [],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "persistent": {
+      "kind": "location"
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "opponent_companions",
+        "attack": -1
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, each Companion your opponent controls gets -1 Attack.",
+    "flavor": "Placeholder flavour for Silence Proxy Location 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 54280,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "location_aura"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.59,
+      "patterns": [
+        "location_aura"
+      ]
+    }
+  },
+  {
+    "id": "SIL_LOC_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Silence Proxy Location 02",
+    "types": [
+      "location"
+    ],
+    "tags": [],
+    "affinities": [
+      "silence"
+    ],
+    "rarity": "rare",
+    "unique": true,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "persistent": {
+      "kind": "location"
+    },
+    "effects": [
+      {
+        "op": "aura_energy_max",
+        "who": "opponent",
+        "amount": -1
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, your opponent's maximum Energy is reduced by 1.",
+    "flavor": "Placeholder flavour for Silence Proxy Location 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 19841,
+      "hue": 280,
+      "saturation": 0.45
+    },
+    "patterns": [
+      "location_aura",
+      "max_energy_reduction"
+    ],
+    "ai_hints": {
+      "role": "disruption",
+      "priority": 0.71,
+      "patterns": [
+        "location_aura",
+        "max_energy_reduction"
+      ]
+    }
+  }
+]

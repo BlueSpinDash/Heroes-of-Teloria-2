@@ -1,0 +1,1102 @@
+[
+  {
+    "id": "NEU_SKILL_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Neutral Proxy Skill 01",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "draw",
+        "who": "self",
+        "amount": 1
+      }
+    ],
+    "triggers": [],
+    "text": "You draw 1 card.",
+    "flavor": "Placeholder flavour for Neutral Proxy Skill 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 50989,
+      "hue": 210,
+      "saturation": 0.0
+    },
+    "patterns": [
+      "draw"
+    ],
+    "ai_hints": {
+      "role": "flexible",
+      "priority": 0.47,
+      "patterns": [
+        "draw"
+      ]
+    }
+  },
+  {
+    "id": "NEU_SKILL_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Neutral Proxy Skill 02",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "energy_gain",
+        "who": "self",
+        "amount": 2
+      }
+    ],
+    "triggers": [],
+    "text": "You gain 2 Energy.",
+    "flavor": "Placeholder flavour for Neutral Proxy Skill 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 18132,
+      "hue": 210,
+      "saturation": 0.0
+    },
+    "patterns": [
+      "energy_refund"
+    ],
+    "ai_hints": {
+      "role": "flexible",
+      "priority": 0.47,
+      "patterns": [
+        "energy_refund"
+      ]
+    }
+  },
+  {
+    "id": "NEU_SKILL_03",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Neutral Proxy Skill 03",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial",
+      "melee"
+    ],
+    "affinities": [],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "target": {
+      "kind": "own_character",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "stat_mod",
+        "target": "chosen",
+        "duration": "round",
+        "attack": 1,
+        "defense": 1
+      }
+    ],
+    "triggers": [],
+    "text": "Target character you control gets +1 Attack and +1 Defense for the round.",
+    "flavor": "Placeholder flavour for Neutral Proxy Skill 03. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 95751,
+      "hue": 210,
+      "saturation": 0.0
+    },
+    "patterns": [
+      "temp_attack_buff"
+    ],
+    "ai_hints": {
+      "role": "flexible",
+      "priority": 0.47,
+      "patterns": [
+        "temp_attack_buff"
+      ]
+    }
+  },
+  {
+    "id": "NEU_SKILL_04",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Neutral Proxy Skill 04",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial",
+      "reaction"
+    ],
+    "affinities": [],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "reaction"
+    ],
+    "reaction_window": "before",
+    "effects": [
+      {
+        "op": "stat_mod",
+        "target": "current_target",
+        "defense": 2,
+        "duration": "round"
+      }
+    ],
+    "triggers": [],
+    "text": "Reaction (before the Action): The attack's target gets +2 Defense for the round.",
+    "flavor": "Placeholder flavour for Neutral Proxy Skill 04. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 62894,
+      "hue": 210,
+      "saturation": 0.0
+    },
+    "patterns": [
+      "defensive_reaction",
+      "temp_defense_buff"
+    ],
+    "ai_hints": {
+      "role": "flexible",
+      "priority": 0.47,
+      "patterns": [
+        "defensive_reaction",
+        "temp_defense_buff"
+      ]
+    }
+  },
+  {
+    "id": "NEU_SKILL_05",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Neutral Proxy Skill 05",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial",
+      "reaction"
+    ],
+    "affinities": [],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "reaction"
+    ],
+    "reaction_window": "before",
+    "effects": [
+      {
+        "op": "prevent_damage",
+        "target": "current_target",
+        "amount": 2,
+        "duration": "round"
+      }
+    ],
+    "triggers": [],
+    "text": "Reaction (before the Action): Prevent the next 2 damage that would be dealt to the attack's target for the round.",
+    "flavor": "Placeholder flavour for Neutral Proxy Skill 05. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 40513,
+      "hue": 210,
+      "saturation": 0.0
+    },
+    "patterns": [
+      "defensive_reaction",
+      "protection"
+    ],
+    "ai_hints": {
+      "role": "flexible",
+      "priority": 0.47,
+      "patterns": [
+        "defensive_reaction",
+        "protection"
+      ]
+    }
+  },
+  {
+    "id": "NEU_SKILL_06",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Neutral Proxy Skill 06",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic",
+      "reaction"
+    ],
+    "affinities": [],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "reaction"
+    ],
+    "reaction_window": "before",
+    "effects": [
+      {
+        "op": "energy_gain",
+        "who": "self",
+        "amount": 2
+      }
+    ],
+    "triggers": [],
+    "text": "Reaction (before the Action): You gain 2 Energy.",
+    "flavor": "Placeholder flavour for Neutral Proxy Skill 06. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 7656,
+      "hue": 210,
+      "saturation": 0.0
+    },
+    "patterns": [
+      "energy_reaction",
+      "energy_refund"
+    ],
+    "ai_hints": {
+      "role": "flexible",
+      "priority": 0.47,
+      "patterns": [
+        "energy_reaction",
+        "energy_refund"
+      ]
+    }
+  },
+  {
+    "id": "NEU_SKILL_07",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Neutral Proxy Skill 07",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial",
+      "melee"
+    ],
+    "affinities": [],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "target": {
+      "kind": "opponent_companion",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "direct_damage",
+        "target": "chosen",
+        "amount": 3,
+        "ignores_defense": false
+      }
+    ],
+    "triggers": [],
+    "text": "Deal 3 damage to target Companion your opponent controls, reduced by its Defense.",
+    "flavor": "Placeholder flavour for Neutral Proxy Skill 07. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 85275,
+      "hue": 210,
+      "saturation": 0.0
+    },
+    "patterns": [
+      "direct_damage"
+    ],
+    "ai_hints": {
+      "role": "flexible",
+      "priority": 0.59,
+      "patterns": [
+        "direct_damage"
+      ]
+    }
+  },
+  {
+    "id": "NEU_SKILL_08",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Neutral Proxy Skill 08",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic"
+    ],
+    "affinities": [],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "effects": [
+      {
+        "op": "draw",
+        "who": "self",
+        "amount": 2
+      }
+    ],
+    "triggers": [],
+    "text": "You draw 2 cards.",
+    "flavor": "Placeholder flavour for Neutral Proxy Skill 08. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 52418,
+      "hue": 210,
+      "saturation": 0.0
+    },
+    "patterns": [
+      "draw"
+    ],
+    "ai_hints": {
+      "role": "flexible",
+      "priority": 0.71,
+      "patterns": [
+        "draw"
+      ]
+    }
+  },
+  {
+    "id": "NEU_SKILL_09",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Neutral Proxy Skill 09",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "magic",
+      "reaction"
+    ],
+    "affinities": [],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "reaction"
+    ],
+    "reaction_window": "before",
+    "effects": [
+      {
+        "op": "draw",
+        "who": "self",
+        "amount": 1
+      }
+    ],
+    "triggers": [],
+    "text": "Reaction (before the Action): You draw 1 card.",
+    "flavor": "Placeholder flavour for Neutral Proxy Skill 09. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 30037,
+      "hue": 210,
+      "saturation": 0.0
+    },
+    "patterns": [
+      "draw",
+      "draw_reaction"
+    ],
+    "ai_hints": {
+      "role": "flexible",
+      "priority": 0.59,
+      "patterns": [
+        "draw",
+        "draw_reaction"
+      ]
+    }
+  },
+  {
+    "id": "NEU_SKILL_10",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Neutral Proxy Skill 10",
+    "types": [
+      "skill"
+    ],
+    "tags": [
+      "martial",
+      "melee",
+      "reaction"
+    ],
+    "affinities": [],
+    "rarity": "rare",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "reaction"
+    ],
+    "reaction_window": "after",
+    "effects": [
+      {
+        "op": "direct_damage",
+        "target": "current_attacker",
+        "amount": 3,
+        "ignores_defense": true
+      }
+    ],
+    "triggers": [],
+    "text": "Reaction (after the Action): Deal 3 damage to the attacking character, ignoring its Defense.",
+    "flavor": "Placeholder flavour for Neutral Proxy Skill 10. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 70307,
+      "hue": 210,
+      "saturation": 0.0
+    },
+    "patterns": [
+      "direct_damage",
+      "reaction_punish"
+    ],
+    "ai_hints": {
+      "role": "flexible",
+      "priority": 0.59,
+      "patterns": [
+        "direct_damage",
+        "reaction_punish"
+      ]
+    }
+  },
+  {
+    "id": "NEU_COMP_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Neutral Proxy Companion 01",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 1,
+    "attack": 1,
+    "defense": 1,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [],
+    "text": "",
+    "flavor": "Placeholder flavour for Neutral Proxy Companion 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 17111,
+      "hue": 210,
+      "saturation": 0.0
+    },
+    "patterns": [
+      "body",
+      "deploy"
+    ],
+    "ai_hints": {
+      "role": "flexible",
+      "priority": 0.47,
+      "patterns": [
+        "body",
+        "deploy"
+      ]
+    }
+  },
+  {
+    "id": "NEU_COMP_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Neutral Proxy Companion 02",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 2,
+    "attack": 2,
+    "defense": 2,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [],
+    "text": "",
+    "flavor": "Placeholder flavour for Neutral Proxy Companion 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 94730,
+      "hue": 210,
+      "saturation": 0.0
+    },
+    "patterns": [
+      "body",
+      "deploy"
+    ],
+    "ai_hints": {
+      "role": "flexible",
+      "priority": 0.59,
+      "patterns": [
+        "body",
+        "deploy"
+      ]
+    }
+  },
+  {
+    "id": "NEU_COMP_03",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Neutral Proxy Companion 03",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 2,
+    "attack": 1,
+    "defense": 2,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "self_deployed"
+        },
+        "effects": [
+          {
+            "op": "draw",
+            "who": "self",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "When this Companion enters play, you draw 1 card.",
+    "flavor": "Placeholder flavour for Neutral Proxy Companion 03. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 72349,
+      "hue": 210,
+      "saturation": 0.0
+    },
+    "patterns": [
+      "deploy",
+      "draw",
+      "etb_effect"
+    ],
+    "ai_hints": {
+      "role": "flexible",
+      "priority": 0.59,
+      "patterns": [
+        "deploy",
+        "draw",
+        "etb_effect"
+      ]
+    }
+  },
+  {
+    "id": "NEU_COMP_04",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Neutral Proxy Companion 04",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 3,
+    "attack": 3,
+    "defense": 2,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [],
+    "text": "",
+    "flavor": "Placeholder flavour for Neutral Proxy Companion 04. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 29016,
+      "hue": 210,
+      "saturation": 0.0
+    },
+    "patterns": [
+      "body",
+      "deploy"
+    ],
+    "ai_hints": {
+      "role": "flexible",
+      "priority": 0.71,
+      "patterns": [
+        "body",
+        "deploy"
+      ]
+    }
+  },
+  {
+    "id": "NEU_COMP_05",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Neutral Proxy Companion 05",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 3,
+    "attack": 2,
+    "defense": 2,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "round_end"
+        },
+        "effects": [
+          {
+            "op": "energy_gain",
+            "who": "self",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "At Round End, you gain 1 Energy.",
+    "flavor": "Placeholder flavour for Neutral Proxy Companion 05. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 6635,
+      "hue": 210,
+      "saturation": 0.0
+    },
+    "patterns": [
+      "deploy",
+      "energy_refund",
+      "round_end_trigger"
+    ],
+    "ai_hints": {
+      "role": "flexible",
+      "priority": 0.71,
+      "patterns": [
+        "deploy",
+        "energy_refund",
+        "round_end_trigger"
+      ]
+    }
+  },
+  {
+    "id": "NEU_COMP_06",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Neutral Proxy Companion 06",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [],
+    "rarity": "legendary",
+    "unique": true,
+    "character_id": "neutral_char_06",
+    "cost": {
+      "kind": "fixed",
+      "amount": 5
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 5,
+    "attack": 3,
+    "defense": 4,
+    "attack_cost": 2,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "all_companions",
+        "attack": 1,
+        "defense": 1
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, each Companion gets +1 Attack and +1 Defense.",
+    "flavor": "Placeholder flavour for Neutral Proxy Companion 06. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 84254,
+      "hue": 210,
+      "saturation": 0.0
+    },
+    "patterns": [
+      "aura_buff",
+      "deploy"
+    ],
+    "ai_hints": {
+      "role": "flexible",
+      "priority": 0.95,
+      "patterns": [
+        "aura_buff",
+        "deploy"
+      ]
+    }
+  },
+  {
+    "id": "NEU_EQUIP_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Neutral Proxy Equipment 01",
+    "types": [
+      "equipment"
+    ],
+    "tags": [],
+    "affinities": [],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 1
+    },
+    "timing": [
+      "action"
+    ],
+    "attack": 1,
+    "persistent": {
+      "kind": "attachment",
+      "slot": "equipment"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "attack": 1
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, its host gets +1 Attack.",
+    "flavor": "Placeholder flavour for Neutral Proxy Equipment 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 59850,
+      "hue": 210,
+      "saturation": 0.0
+    },
+    "patterns": [
+      "equipment_buff"
+    ],
+    "ai_hints": {
+      "role": "flexible",
+      "priority": 0.47,
+      "patterns": [
+        "equipment_buff"
+      ]
+    }
+  },
+  {
+    "id": "NEU_EQUIP_02",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Neutral Proxy Equipment 02",
+    "types": [
+      "equipment"
+    ],
+    "tags": [],
+    "affinities": [],
+    "rarity": "uncommon",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "attack": 1,
+    "defense": 2,
+    "persistent": {
+      "kind": "attachment",
+      "slot": "equipment"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "attack": 1,
+        "defense": 2
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, its host gets +1 Attack and +2 Defense.",
+    "flavor": "Placeholder flavour for Neutral Proxy Equipment 02. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 82231,
+      "hue": 210,
+      "saturation": 0.0
+    },
+    "patterns": [
+      "equipment_buff"
+    ],
+    "ai_hints": {
+      "role": "flexible",
+      "priority": 0.59,
+      "patterns": [
+        "equipment_buff"
+      ]
+    }
+  },
+  {
+    "id": "NEU_TAAHMA_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Neutral Proxy Ta'ahma 01",
+    "types": [
+      "taahma"
+    ],
+    "tags": [],
+    "affinities": [],
+    "rarity": "rare",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "persistent": {
+      "kind": "attachment",
+      "slot": "taahma"
+    },
+    "target": {
+      "kind": "own_character_host",
+      "count": 1
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "host",
+        "defense": 1
+      }
+    ],
+    "triggers": [
+      {
+        "on": {
+          "kind": "round_end"
+        },
+        "effects": [
+          {
+            "op": "draw",
+            "who": "self",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "While this card is in play, its host gets +1 Defense. At Round End, you draw 1 card.",
+    "flavor": "Placeholder flavour for Neutral Proxy Ta'ahma 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 15254,
+      "hue": 210,
+      "saturation": 0.0
+    },
+    "patterns": [
+      "draw",
+      "round_end_trigger",
+      "taahma_buff"
+    ],
+    "ai_hints": {
+      "role": "flexible",
+      "priority": 0.59,
+      "patterns": [
+        "draw",
+        "round_end_trigger",
+        "taahma_buff"
+      ]
+    }
+  },
+  {
+    "id": "NEU_LOC_01",
+    "revision": 1,
+    "placeholder": true,
+    "name": "Neutral Proxy Location 01",
+    "types": [
+      "location"
+    ],
+    "tags": [],
+    "affinities": [],
+    "rarity": "rare",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "persistent": {
+      "kind": "location"
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "all_companions",
+        "attack": 1
+      }
+    ],
+    "triggers": [],
+    "text": "While this card is in play, each Companion gets +1 Attack.",
+    "flavor": "Placeholder flavour for Neutral Proxy Location 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "abstract_sigil",
+      "seed": 83988,
+      "hue": 210,
+      "saturation": 0.0
+    },
+    "patterns": [
+      "location_aura"
+    ],
+    "ai_hints": {
+      "role": "flexible",
+      "priority": 0.59,
+      "patterns": [
+        "location_aura"
+      ]
+    }
+  }
+]

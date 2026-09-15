@@ -431,17 +431,26 @@ static func _collect_matching(state: GameState, ev: Dictionary) -> Array:
 static func _trigger_sources(state: GameState) -> Array:
     var out: Array = []
     for p in state.players:
-        out.append((p as PlayerState).hero_iid)
-        out.append_array((p as PlayerState).companions)
+        var ps: PlayerState = p
+        _add_source(state, out, ps.hero_iid)
+        for ciid in ps.companions:
+            _add_source(state, out, String(ciid))
     if state.location_iid != "":
         out.append(state.location_iid)
-    var attached: Array = []
-    for iid in state.instances.keys():
-        if (state.instances[iid] as CardInstance).zone == "attached":
-            attached.append(String(iid))
-    attached.sort()
-    out.append_array(attached)
     return out
+
+
+static func _add_source(state: GameState, out: Array, iid: String) -> void:
+    if iid == "":
+        return
+    out.append(iid)
+    var ci := state.inst(iid)
+    if ci == null:
+        return
+    if ci.equipment_iid != "":
+        out.append(ci.equipment_iid)
+    if ci.taahma_iid != "":
+        out.append(ci.taahma_iid)
 
 
 static func _trigger_matches(state: GameState, src: CardInstance, on: Dictionary, ev: Dictionary) -> bool:

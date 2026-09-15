@@ -109,7 +109,7 @@ static func render_effect(e: Dictionary, def: CardDef) -> String:
         "destroy":
             return "Destroy %s." % _target(e.get("target"), def)
         "bounce":
-            return "Return %s to its owner's hand." % _target(e.get("target"), def)
+            return "If %s is a Companion, return it to its owner's hand." % _target(e.get("target"), def)
         "draw":
             var who2 := String(e.get("who", "self"))
             var subj := "You draw" if who2 == "self" else "Your opponent draws"
@@ -127,7 +127,7 @@ static func render_effect(e: Dictionary, def: CardDef) -> String:
             var owner := "Your" if who5 == "self" else "Your opponent's"
             var amt: Variant = e.get("amount", 0)
             var dirn := "increases"
-            if amt is int and int(amt) < 0:
+            if _is_negative(amt):
                 dirn = "decreases"
             return "%s maximum Energy %s by %s%s." % [
                 owner, dirn, _abs_amount(amt, def), _duration_suffix(String(e.get("duration", "round")))]
@@ -195,7 +195,7 @@ static func render_effect(e: Dictionary, def: CardDef) -> String:
             var owner11 := "your" if who11 == "self" else "your opponent's"
             var amt11: Variant = e.get("amount", 0)
             var dirn11 := "increased"
-            if amt11 is int and int(amt11) < 0:
+            if _is_negative(amt11):
                 dirn11 = "reduced"
             return "While this card is in play, %s maximum Energy is %s by %s." % [
                 owner11, dirn11, _abs_amount(amt11, def)]
@@ -379,6 +379,10 @@ static func _duration_suffix(duration: String) -> String:
         "round": return " for the round"
         "permanent": return " permanently"
     return ""
+
+
+static func _is_negative(amount) -> bool:
+    return (amount is int or amount is float) and float(amount) < 0.0
 
 
 static func _capitalise(s: String) -> String:

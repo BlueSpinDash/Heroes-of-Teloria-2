@@ -9,6 +9,8 @@ extends RefCounted
 ## can pin the exact revision it started with.
 
 var data: Dictionary = {}
+## Cached once per definition: aura lookups happen on every stat query.
+var _has_aura: int = -1
 
 
 func _init(d: Dictionary = {}) -> void:
@@ -121,6 +123,17 @@ func fixed_cost() -> int:
 
 func x_min() -> int:
     return int(cost.get("min", 1))
+
+
+## True when this definition prints a continuous aura effect.
+func has_aura() -> bool:
+    if _has_aura < 0:
+        _has_aura = 0
+        for e in effects:
+            if e is Dictionary and EffectSchema.op_is_persistent_only(String((e as Dictionary).get("op", ""))):
+                _has_aura = 1
+                break
+    return _has_aura == 1
 
 
 func is_character() -> bool:
