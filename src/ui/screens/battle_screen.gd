@@ -820,6 +820,20 @@ func _build_choice_controls(p: Dictionary) -> void:
                 _choice_selection = []
                 _after_command())
             _controls.add_child(confirm)
+        "choose_card_type":
+            var sd := st.def_of(String(p.get("source", "")))
+            _prompt.text = "Name a Card Type for %s." % (sd.name if sd != null else "this card")
+            for card_type in EffectSchema.CARD_TYPES:
+                var name := String(card_type)
+                var b := UiTheme.button(UiTheme.TYPE_LABEL.get(name, name.capitalize()))
+                b.pressed.connect(func():
+                    var r := GameEngine.submit(st, {"cmd": "choose_card_type", "player": 0,
+                        "card_type": name})
+                    if not bool(r["ok"]):
+                        app.toast(String(r["error"]), true)
+                        return
+                    _after_command())
+                _controls.add_child(b)
         "choose_deploy":
             _prompt.text = "You may put a Companion from your hand into play."
             for iid in GameEngine._deployable_from_hand(st, 0):

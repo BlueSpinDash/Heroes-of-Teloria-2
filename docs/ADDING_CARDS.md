@@ -63,6 +63,15 @@ Unyielding Flame, taken from a supplied card face:
 * the id did not change, so the Passion starter deck and the Passion AI deck
   still reference her without any edit.
 
+`VIG_HERO_01` became Sorbet, the Undone Architect the same way, and needed the
+engine extended for it. Her ability names a Card Type and then pays off on it,
+which nothing in the vocabulary could say: it took a `choose_card_type` op, a
+`chosen_type_card_resolved` trigger, somewhere on the card to remember the
+answer for the round, and a way to write "each Vigilance Companion you control"
+as a target. Those are all in `docs/EFFECT_SCHEMA.md` now and are available to
+any future card. That is the shape of a card that needs engine work: the
+vocabulary grows once, deliberately, and the card is then ordinary data.
+
 ## What I will tell you back
 
 For each card I will report:

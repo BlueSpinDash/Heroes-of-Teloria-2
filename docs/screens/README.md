@@ -24,6 +24,8 @@ xvfb-run -a godot --path . --resolution 1440x900 --script tools/ui_drive.gd
 | `14_saves.png` | The save list, with two games in progress |
 | `15_new_save.png` | Starting a save: choosing the Affinity it begins in |
 | `16_new_collection.png` | A new save's collection: one Affinity owned, the rest to earn |
+| `17_sorbet.png` | Sorbet on the Hero frame, beside Parfait and a proxy |
+| `18_card_type.png` | Sorbet's Card Type choice, mid-resolution |
 
 The battle screen's own artwork lives in `assets/board/`. `board_full.png` is
 the painted board; `tools/slice_board.gd` cuts the plates the screen uses out

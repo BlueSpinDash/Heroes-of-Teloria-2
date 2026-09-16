@@ -1,61 +1,85 @@
 [
   {
     "id": "VIG_HERO_01",
-    "revision": 1,
-    "placeholder": true,
-    "name": "Vigilance Proxy Hero 01",
+    "revision": 2,
+    "placeholder": false,
+    "authored": true,
+    "name": "Sorbet, the Undone Architect",
+    "short_name": "Sorbet",
     "types": [
       "hero"
     ],
     "tags": [],
+    "attack_tags": [
+      "martial",
+      "ranged"
+    ],
     "affinities": [
       "vigilance"
     ],
     "rarity": "legendary",
     "unique": true,
-    "character_id": "vigilance_hero_01",
+    "character_id": "sorbet",
     "cost": {
       "kind": "none"
     },
-    "hero_max_energy": 4,
+    "hero_max_energy": 3,
     "attack": 2,
-    "defense": 3,
+    "defense": 2,
     "attack_cost": 1,
     "effects": [],
     "triggers": [
       {
         "on": {
-          "kind": "attack_resolved",
-          "scope": "opponent"
+          "kind": "self_attack_resolved"
         },
         "effects": [
           {
-            "op": "energy_gain",
-            "who": "self",
-            "amount": 1
+            "op": "choose_card_type",
+            "chooser": "controller"
+          }
+        ]
+      },
+      {
+        "on": {
+          "kind": "chosen_type_card_resolved",
+          "scope": "either"
+        },
+        "effects": [
+          {
+            "op": "stat_mod",
+            "target": {
+              "ref": "all_own_companions",
+              "affinity": "vigilance"
+            },
+            "duration": "round",
+            "attack": 1,
+            "defense": 1
           }
         ]
       }
     ],
-    "text": "Whenever an attack your opponent committed resolves, you gain 1 Energy.",
-    "flavor": "Placeholder flavour for Vigilance Proxy Hero 01. Names, art and flavour are replaceable and never change mechanics.",
+    "text": "When Sorbet's attack resolves, you choose a Card Type. Whenever a card of the chosen type resolves after Sorbet, each Vigilance Companion you control gets +1 Attack and +1 Defense for the round.",
+    "flavor": "",
     "art": {
-      "style": "abstract_sigil",
+      "style": "supplied",
+      "image": "sorbet_the_undone_architect.png",
+      "fit": "cover",
       "seed": 52120,
-      "hue": 215,
+      "hue": 150,
       "saturation": 0.45
     },
     "patterns": [
-      "attack_watch_trigger",
-      "energy_refund",
+      "chosen_type_engine",
+      "stat_buff",
       "hero"
     ],
     "ai_hints": {
       "role": "control",
       "priority": 0.47,
       "patterns": [
-        "attack_watch_trigger",
-        "energy_refund",
+        "chosen_type_engine",
+        "stat_buff",
         "hero"
       ]
     }

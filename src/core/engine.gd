@@ -130,6 +130,12 @@ static func _announce_pending(st: GameState) -> void:
             st.emit("choice_required", {
                 "player": p.get("player"),
                 "message": "P%d may put a Companion from hand into play." % (int(p.get("player", 0)) + 1)})
+        "choose_card_type":
+            var sd := st.def_of(String(p.get("source", "")))
+            st.emit("choice_required", {
+                "player": p.get("player"),
+                "message": "P%d must name a Card Type for %s." % [
+                    int(p.get("player", 0)) + 1, sd.name if sd != null else "a card"]})
         "reaction_window":
             st.emit("reaction_window", {
                 "player": p.get("player"), "slot": p.get("slot"),
@@ -154,6 +160,12 @@ static func _auto_resolve_pending(st: GameState) -> bool:
                 return true
         "choose_deploy":
             if _deployable_from_hand(st, int(p.get("player", 0))).is_empty():
+                st.pending = null
+                return true
+        "choose_card_type":
+            # The card that would remember the answer is gone, so there is
+            # nothing to decide.
+            if st.inst(String(p.get("source", ""))) == null:
                 st.pending = null
                 return true
         "reaction_window":
@@ -371,9 +383,11 @@ static func _resolve_card_action(st: GameState, slot: ActionSlot) -> void:
 
 
 static func _emit_card_resolved(st: GameState, slot: ActionSlot) -> void:
+    var rd := st.def_of(slot.card_iid) if slot.card_iid != "" else null
     st.trigger_events.append({
         "kind": "card_resolved", "iid": slot.card_iid, "controller": slot.controller,
         "affinities": slot.affinities.duplicate(), "slot": st.current_step,
+        "types": rd.types.duplicate() if rd != null else [],
         "attacker": slot.attacker_iid,
         "target": String(slot.targets[0]) if not slot.targets.is_empty() else "",
     })
@@ -460,7 +474,8 @@ static func _resolve_reaction(st: GameState, slot: ActionSlot, r: Dictionary) ->
     # though it never joins the Affinity chain.
     st.trigger_events.append({
         "kind": "card_resolved", "iid": iid, "controller": controller,
-        "affinities": cd.affinities.duplicate(), "slot": st.current_step, "reaction": true})
+        "affinities": cd.affinities.duplicate(), "types": cd.types.duplicate(),
+        "slot": st.current_step, "reaction": true})
     EffectRunner.process_trigger_queue(st, 1)
 
 
@@ -531,6 +546,10 @@ static func legal_commands(st: GameState, player: int) -> Array:
             "choose_deploy":
                 out.append({"cmd": "choose_deploy", "player": player,
                     "pool": _deployable_from_hand(st, player), "optional": bool(p.get("optional", false))})
+            "choose_card_type":
+                out.append({"cmd": "choose_card_type", "player": player,
+                    "pool": EffectSchema.CARD_TYPES.duplicate(),
+                    "source": String(p.get("source", ""))})
         return out
     if st.phase != "action":
         return out
@@ -682,6 +701,8 @@ static func submit(st: GameState, cmd: Dictionary) -> Dictionary:
             return _do_choose_cards(st, player, cmd)
         "choose_deploy":
             return _do_choose_deploy(st, player, cmd)
+        "choose_card_type":
+            return _do_choose_card_type(st, player, cmd)
     return _err("Unknown command '%s'." % name)
 
 
@@ -919,6 +940,34 @@ static func _apply_card_choice(st: GameState, p: Dictionary, iids: Array) -> voi
                         owner + 1, cd.name if cd != null else String(iid)]})
         _:
             Mechanics.exhaust_from_hand(st, owner, iids)
+
+
+## Name a Card Type. The answer is remembered on the card that asked, for the
+## rest of the round, and triggers that read it consult it from there.
+static func _do_choose_card_type(st: GameState, player: int, cmd: Dictionary) -> Dictionary:
+    if not (st.pending is Dictionary) \
+            or String((st.pending as Dictionary).get("kind", "")) != "choose_card_type":
+        return _err("No Card Type choice is pending.")
+    var p: Dictionary = st.pending
+    if int(p.get("player", -1)) != player:
+        return _err("That choice belongs to the other player.")
+    var chosen := String(cmd.get("card_type", ""))
+    if not EffectSchema.CARD_TYPES.has(chosen):
+        return _err("'%s' is not a Card Type." % chosen)
+    var ci := st.inst(String(p.get("source", "")))
+    if ci == null:
+        st.pending = null
+        advance(st)
+        return {"ok": true, "error": ""}
+    ci.chosen_type = chosen
+    var sd := st.def_of(ci.iid)
+    st.emit("card_type_chosen", {
+        "player": player, "iid": ci.iid, "card_type": chosen,
+        "message": "P%d names %s for %s." % [
+            player + 1, chosen.capitalize(), sd.name if sd != null else ci.iid]})
+    st.pending = null
+    advance(st)
+    return {"ok": true, "error": ""}
 
 
 static func _do_choose_deploy(st: GameState, player: int, cmd: Dictionary) -> Dictionary:

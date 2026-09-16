@@ -154,17 +154,24 @@ func _build_framed(frame_path: String) -> void:
         int(9 * scale_factor), UiTheme.RARITY_COLOR.get(def.rarity, UiTheme.PARCHMENT_DARK)))
 
     # The rules panel takes the meta line and the rules text together, the way
-    # the plain face does, so nothing a card says is left off the frame.
+    # the plain face does, so nothing a card says is left off the frame. The
+    # panel is a fixed painted space, so a long rule is set smaller to fit it
+    # rather than running off the bottom of the card.
+    var rules_slot: Rect2 = HERO_SLOTS["rules"]
+    var rules_w := rules_slot.size.x * card_width
+    var rules_h := rules_slot.size.y * card_width * BASE_HEIGHT / BASE_WIDTH
     var rules := UiTheme.vbox(int(2 * scale_factor))
     rules.mouse_filter = Control.MOUSE_FILTER_IGNORE
     var meta := _meta_line()
+    var meta_size := int(10 * scale_factor)
     if meta != "":
-        var meta_label := UiTheme.wrapped(meta, int(10 * scale_factor), UiTheme.PARCHMENT_DARK.darkened(0.55))
+        var meta_label := UiTheme.wrapped(meta, meta_size, UiTheme.PARCHMENT_DARK.darkened(0.55))
         meta_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
         rules.add_child(meta_label)
-    var body_label := UiTheme.wrapped(
-        def.text if def.text.strip_edges() != "" else "No rules text.",
-        int(11 * scale_factor), UiTheme.INK)
+        rules_h -= _wrapped_height(meta, meta_size, rules_w) + 2.0 * scale_factor
+    var body_text := def.text if def.text.strip_edges() != "" else "No rules text."
+    var body_label := UiTheme.wrapped(body_text,
+        _fit_wrapped_font_size(body_text, int(12 * scale_factor), rules_w, rules_h), UiTheme.INK)
     body_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     body_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
     rules.add_child(body_label)
@@ -202,6 +209,29 @@ func _fit_font_size(text: String, base: int, width: float, floor_size: int = 8) 
     var size := base
     while size > floor_size and font.get_string_size(
             text, HORIZONTAL_ALIGNMENT_LEFT, -1, UiTheme.fs(size)).x > width:
+        size -= 1
+    return size
+
+
+## How tall `text` is when wrapped to `width` at `size`.
+func _wrapped_height(text: String, size: int, width: float) -> float:
+    var font := get_theme_font("font", "Label")
+    if font == null:
+        font = ThemeDB.fallback_font
+    if font == null or text == "" or width <= 0.0:
+        return 0.0
+    return font.get_multiline_string_size(
+        text, HORIZONTAL_ALIGNMENT_CENTER, width, UiTheme.fs(size)).y
+
+
+## The largest size at or below `base` at which `text`, wrapped to `width`,
+## fits inside `height`.
+func _fit_wrapped_font_size(text: String, base: int, width: float, height: float,
+        floor_size: int = 6) -> int:
+    if height <= 0.0:
+        return base
+    var size := base
+    while size > floor_size and _wrapped_height(text, size, width) > height:
         size -= 1
     return size
 

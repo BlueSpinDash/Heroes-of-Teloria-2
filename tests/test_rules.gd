@@ -24,6 +24,7 @@ func run(t: TestHarness) -> void:
     test_simultaneous_defeat(t)
     test_persistent_destinations(t)
     test_parfait_refund(t)
+    test_sorbet_named_type(t)
     test_chain_rules(t)
     test_x_is_locked(t)
     test_instance_integrity(t)
@@ -539,6 +540,93 @@ func test_parfait_refund(t: TestHarness) -> void:
         if kind == "left_sequence" and seen_refund:
             refund_before_exit = true
     t.ok(refund_before_exit, "the refund was logged before she left the Sequence")
+
+
+## Sorbet names a Card Type when her attack resolves, and every Vigilance
+## Companion her controller has grows each time a card of that type resolves
+## after her. A card of another type must do nothing, or the choice is
+## decoration rather than a decision.
+func test_sorbet_named_type(t: TestHarness) -> void:
+    t.begin("Sorbet's named Card Type decides what grows her Companions")
+    F.auto_card_type = "skill"
+    var st := F.fresh_decks(
+        F.deck("FIX_HERO_SORBET", {"FIX_COMP_VIG": 3, "FIX_COMP": 3, "FIX_EQUIP": 3}),
+        F.sink_deck("FIX_HERO_B"), 11)
+    var sorbet := st.player(0).hero_iid
+    st.player(0).energy_max_mods.append({"amount": 8, "expires": "permanent"})
+    st.player(1).energy_max_mods.append({"amount": 8, "expires": "permanent"})
+    st.player(0).energy_current = 12
+    st.player(1).energy_current = 12
+
+    # Already in play, so the round under test is only about what she names.
+    var vig := F.to_hand(st, 0, "FIX_COMP_VIG")
+    var will := F.to_hand(st, 0, "FIX_COMP")
+    Mechanics.deploy_companion(st, vig, 0)
+    Mechanics.deploy_companion(st, will, 0)
+    st.inst(vig).deployed_round = 0
+    st.inst(will).deployed_round = 0
+    t.eq(st.current_attack(vig), 1, "the Vigilance Companion starts at its printed 1 Attack")
+    t.eq(st.current_attack(will), 2, "and the Will Companion at its printed 2")
+
+    # Sorbet first, then a Skill, then an Equipment. Only the Skill matches.
+    st.action_priority = 0
+    t.ok(bool(GameEngine.submit(st, {"cmd": "commit_attack", "player": 0,
+        "attacker_iid": sorbet, "target_iid": st.player(1).hero_iid})["ok"]),
+        "Sorbet's attack was committed first")
+    var burn := F.to_hand(st, 1, "FIX_BURN")
+    t.ok(bool(GameEngine.submit(st, {"cmd": "commit_card", "player": 1,
+        "card_iid": burn, "targets": []})["ok"]), "a Skill was committed after her")
+    var equip := F.to_hand(st, 0, "FIX_EQUIP")
+    t.ok(bool(GameEngine.submit(st, {"cmd": "commit_card", "player": 0,
+        "card_iid": equip, "targets": [sorbet]})["ok"]), "and an Equipment after that")
+
+    # Three commitments alternate priority back to P2, so P2 passes first.
+    GameEngine.submit(st, {"cmd": "pass_actions", "player": 1})
+    GameEngine.submit(st, {"cmd": "pass_actions", "player": 0})
+    # Drive the whole round. The buffs are for the round, so they are gone by
+    # the time it ends: what they did is read from the event record, which is
+    # the durable account of what happened.
+    var guard := 0
+    while st.result == null and st.round_number == 1 and guard < 300:
+        guard += 1
+        if st.pending != null:
+            F._auto_answer(st)
+        else:
+            GameEngine.advance(st)
+
+    var named := ""
+    var left_sequence_at := -1
+    var vig_buffs: Array = []
+    var will_buffs: Array = []
+    for i in st.events.size():
+        var e: Dictionary = st.events[i]
+        match String(e.get("kind", "")):
+            "card_type_chosen":
+                if String(e.get("iid", "")) == sorbet:
+                    named = String(e.get("card_type", ""))
+            "left_sequence":
+                if String(e.get("iid", "")) == sorbet:
+                    left_sequence_at = i
+            "stat_modified":
+                if String(e.get("iid", "")) == vig:
+                    vig_buffs.append(i)
+                elif String(e.get("iid", "")) == will:
+                    will_buffs.append(i)
+    t.eq(named, "skill", "she named a Card Type as her attack resolved")
+
+    # One Skill resolved after her, so exactly one +1/+1 landed. The Equipment
+    # resolved after her too and is of another type, so it added nothing.
+    t.eq(vig_buffs.size(), 1, "the Vigilance Companion grew exactly once, for the Skill")
+    t.empty(will_buffs, "the Will Companion never grew: the buff reads Vigilance")
+    t.ge(float(left_sequence_at), 0.0, "she left the Sequence when her attack resolved")
+    if not vig_buffs.is_empty():
+        t.ok(int(vig_buffs[0]) > left_sequence_at,
+            "and the buff landed after she had left it, because it is worded for the round")
+
+    # The growth and the naming are both for this round only.
+    t.eq(st.current_attack(vig), 1, "the growth expired at Round End")
+    t.eq(st.current_defense(vig), 1, "in Defense as well")
+    t.eq(st.inst(sorbet).chosen_type, "", "and the named type is forgotten with it")
 
 
 func test_chain_rules(t: TestHarness) -> void:

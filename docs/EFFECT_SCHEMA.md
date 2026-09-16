@@ -140,6 +140,18 @@ Inside effects, a `target` field is a symbolic reference, not a kind:
 | `all_own_companions` / `all_opponent_companions` / `all_companions` | Every matching Companion |
 | `current_attacker` / `current_target` | The attack this Reaction is responding to |
 
+A reference may be narrowed by Affinity by writing it as an object instead of
+a name:
+
+```json
+{"op": "stat_mod", "duration": "round", "attack": 1, "defense": 1,
+ "target": {"ref": "all_own_companions", "affinity": "vigilance"}}
+```
+
+That reads "each Vigilance Companion you control". Narrowing a reference that
+resolves to a single card is allowed and simply makes the effect do nothing
+when that card does not carry the Affinity.
+
 Targets are chosen on commitment and revalidated on resolution. An invalid
 choice makes the referencing component do nothing: there is no retarget, no
 Energy refund, and no restored action allowance.
@@ -167,6 +179,7 @@ Twenty operations. Anything else fails validation.
 | `exhaust_from_hand` | `who`, `amount`, `chooser` | A chosen discard. |
 | `random_exhaust_from_hand` | `who`, `amount` | A random discard. |
 | `deploy_from_hand` | `who` | Put a Companion from hand into play. |
+| `choose_card_type` | `chooser` | That player names one of the six Card Types. The card remembers it for the round, and `chosen_type_card_resolved` reads it. |
 
 **Energy**
 
@@ -226,15 +239,25 @@ Aura scopes: `own_companions`, `opponent_companions`, `all_companions`,
 ]
 ```
 
-Kinds: `affinity_card_resolved`, `self_deployed`, `own_companion_deployed`,
-`self_attack_resolved`, `attack_resolved`, `round_end`, `own_hero_damaged`,
-`opponent_hero_damaged`, `self_leaves_play`.
+Kinds: `affinity_card_resolved`, `chosen_type_card_resolved`, `self_deployed`,
+`own_companion_deployed`, `self_attack_resolved`, `attack_resolved`,
+`round_end`, `own_hero_damaged`, `opponent_hero_damaged`, `self_leaves_play`.
 
 `affinity_card_resolved` on a **character** only fires while that character is
 actually in the Action Sequence. That is the Parfait pattern: she pays one
 Energy for her Passion attack and gets it back when her own attack resolves,
 before she leaves the Sequence. `tests/test_rules.gd` keeps that behaviour
 pinned as a fixture.
+
+`chosen_type_card_resolved` fires when a card of the type this card named
+resolves. It does **not** require its source to still be in the Sequence,
+because it is worded for the rest of the round rather than for while the card
+is committed. It reads as "after" on its own: a type is only named when the
+card resolves, so nothing that resolved earlier can match it, and the name is
+forgotten at Round End with everything else that lasts a round. That is the
+Sorbet pattern — she names a Card Type when her attack resolves, and every
+Vigilance Companion her controller has grows each time a card of that type
+resolves afterwards — and it is pinned as a fixture too.
 
 Avoid `stat_mod` or `prevent_damage` with `"duration": "round"` inside a
 `round_end` trigger: round-duration effects expire moments later in the same

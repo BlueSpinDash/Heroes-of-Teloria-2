@@ -43,7 +43,30 @@ static func all_defs() -> Array:
                 "effects": [{"op": "energy_gain", "who": "self", "amount": 1}]}],
             "patterns": ["fixture_hero", "energy_refund"]}),
 
+        # Sorbet's confirmed shape: she names a Card Type when her attack
+        # resolves, and every Vigilance Companion her controller has grows
+        # each time a card of that type resolves after her.
+        def({"id": "FIX_HERO_SORBET", "name": "Fixture Hero Sorbet", "types": ["hero"],
+            "affinities": ["vigilance"], "rarity": "legendary", "unique": true,
+            "character_id": "fix_sorbet", "cost": {"kind": "none"},
+            "attack_tags": ["martial", "ranged"],
+            "hero_max_energy": 3, "attack": 2, "defense": 2, "attack_cost": 1,
+            "triggers": [
+                {"on": {"kind": "self_attack_resolved"},
+                    "effects": [{"op": "choose_card_type", "chooser": "controller"}]},
+                {"on": {"kind": "chosen_type_card_resolved", "scope": "either"},
+                    "effects": [{"op": "stat_mod",
+                        "target": {"ref": "all_own_companions", "affinity": "vigilance"},
+                        "duration": "round", "attack": 1, "defense": 1}]},
+            ],
+            "patterns": ["fixture_hero"]}),
+
         # --- Companions ---------------------------------------------------
+        def({"id": "FIX_COMP_VIG", "name": "Fixture Vigilance Companion",
+            "types": ["companion"], "affinities": ["vigilance"],
+            "cost": {"kind": "fixed", "amount": 1},
+            "energy_contribution": 1, "attack": 1, "defense": 1, "attack_cost": 1,
+            "persistent": {"kind": "companion"}, "patterns": ["deploy"]}),
         def({"id": "FIX_COMP", "name": "Fixture Companion", "types": ["companion"],
             "affinities": ["will"], "cost": {"kind": "fixed", "amount": 2},
             "energy_contribution": 2, "attack": 2, "defense": 2, "attack_cost": 1,
@@ -168,7 +191,13 @@ static func match_of(deck0: Dictionary, deck1: Dictionary, seed_value: int = 123
 ## A match already in the Action Phase with empty hands and P1 on priority,
 ## so a test controls exactly what is playable and in what order.
 static func fresh(hero0: String = "FIX_HERO_A", hero1: String = "FIX_HERO_B", seed_value: int = 7) -> GameState:
-    var st := match_of(sink_deck(hero0), sink_deck(hero1), seed_value)
+    return fresh_decks(sink_deck(hero0), sink_deck(hero1), seed_value)
+
+
+## The same, with decks the caller chooses, for a test that needs a card the
+## shared sink deck does not carry.
+static func fresh_decks(deck0: Dictionary, deck1: Dictionary, seed_value: int = 7) -> GameState:
+    var st := match_of(deck0, deck1, seed_value)
     setup_action_phase(st)
     clear_hands(st)
     st.first_player = 0
@@ -212,6 +241,11 @@ static func setup_action_phase(st: GameState) -> void:
             GameEngine.advance(st)
 
 
+## The Card Type `_auto_answer` names when a card asks for one. A test that
+## cares which type was chosen sets this before driving the round.
+static var auto_card_type: String = "skill"
+
+
 static func _auto_answer(st: GameState) -> void:
     var p: Dictionary = st.pending
     var player := int(p.get("player", 0))
@@ -224,6 +258,9 @@ static func _auto_answer(st: GameState) -> void:
             GameEngine.submit(st, {"cmd": "choose_cards", "player": player, "iids": pool.slice(0, n)})
         "choose_deploy":
             GameEngine.submit(st, {"cmd": "choose_deploy", "player": player, "card_iid": ""})
+        "choose_card_type":
+            GameEngine.submit(st, {"cmd": "choose_card_type", "player": player,
+                "card_type": auto_card_type})
         _:
             st.pending = null
             GameEngine.advance(st)

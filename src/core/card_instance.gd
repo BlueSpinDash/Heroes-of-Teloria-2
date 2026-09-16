@@ -27,6 +27,10 @@ var taahma_iid: String = ""
 var deployed_round: int = -1
 ## Temporary stat modifiers: {"attack": int, "defense": int, "expires": String}
 var mods: Array = []
+
+## A Card Type this card named this round, for cards that choose one when they
+## resolve. Cleared at Round End with the rest of a round's temporary state.
+var chosen_type: String = ""
 ## Damage prevention: {"amount": int, "expires": String}
 var shields: Array = []
 ## Order in which this card entered play. Breaks ties when several sources
@@ -64,6 +68,9 @@ func shield_total() -> int:
 
 
 func expire(duration: String) -> void:
+    if duration == "round":
+        # A Card Type named this round is named for this round only.
+        chosen_type = ""
     var kept: Array = []
     for m in mods:
         if String(m.get("expires", "round")) != duration:
@@ -87,6 +94,7 @@ func clone() -> CardInstance:
     c.taahma_iid = taahma_iid
     c.deployed_round = deployed_round
     c.entry_seq = entry_seq
+    c.chosen_type = chosen_type
     c.mods = mods.duplicate(true)
     c.shields = shields.duplicate(true)
     return c
@@ -98,6 +106,7 @@ func to_dict() -> Dictionary:
         "owner": owner, "controller": controller, "zone": zone,
         "attached_to": attached_to, "equipment_iid": equipment_iid, "taahma_iid": taahma_iid,
         "deployed_round": deployed_round, "entry_seq": entry_seq,
+        "chosen_type": chosen_type,
         "mods": mods.duplicate(true), "shields": shields.duplicate(true),
     }
 
@@ -111,6 +120,7 @@ static func from_dict(d: Dictionary) -> CardInstance:
     ci.taahma_iid = String(d.get("taahma_iid", ""))
     ci.deployed_round = int(d.get("deployed_round", -1))
     ci.entry_seq = int(d.get("entry_seq", 0))
+    ci.chosen_type = String(d.get("chosen_type", ""))
     ci.mods = d.get("mods", []).duplicate(true)
     ci.shields = d.get("shields", []).duplicate(true)
     return ci
