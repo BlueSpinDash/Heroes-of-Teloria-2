@@ -135,6 +135,10 @@ func _build_fields() -> void:
             "edited" if app.catalog.is_overridden(working.id) else "bundled"], 11, UiTheme.TEXT_DIM))
     _fields.add_child(_text_field("Display name", "name"))
     _fields.add_child(_text_field("Flavour text", "flavor"))
+    _fields.add_child(_bool_field("Finished card (not a proxy)", "authored"))
+    _fields.add_child(UiTheme.wrapped(
+        "Marking a card finished sets it aside from the proxy generator, so regenerating the "
+        + "catalog never overwrites it.", 11, UiTheme.TEXT_DIM))
 
     _fields.add_child(UiTheme.label("Classification", 14, UiTheme.GOLD))
     _fields.add_child(_choice_field("Rarity", "rarity", EffectSchema.RARITIES))
@@ -156,9 +160,15 @@ func _build_fields() -> void:
         _fields.add_child(_int_field("Printed Attack modifier", "attack", 0, 20))
         _fields.add_child(_int_field("Printed Defense modifier", "defense", 0, 20))
 
-    _fields.add_child(UiTheme.label("Art placeholder", 14, UiTheme.GOLD))
-    _fields.add_child(_art_field("Hue", "hue", 0, 359))
-    _fields.add_child(_art_field("Pattern seed", "seed", 0, 99999))
+    _fields.add_child(UiTheme.label("Art", 14, UiTheme.GOLD))
+    _fields.add_child(_art_text_field("Art file", "image"))
+    _fields.add_child(UiTheme.wrapped(
+        "A bare filename is looked for in assets/art/. Leave it empty to use the generated "
+        + "placeholder sigil. A missing file is not an error: the card falls back and still plays.",
+        11, UiTheme.TEXT_DIM))
+    _fields.add_child(_art_choice_field("Fit", "fit", ["cover", "contain"]))
+    _fields.add_child(_art_field("Placeholder hue", "hue", 0, 359))
+    _fields.add_child(_art_field("Placeholder seed", "seed", 0, 99999))
 
     _fields.add_child(UiTheme.label("Structured effects", 14, UiTheme.GOLD))
     _fields.add_child(UiTheme.wrapped(
@@ -228,6 +238,40 @@ func _art_field(caption: String, key: String, low: int, high: int) -> Control:
         working.data["art"] = a
         _refresh_preview())
     return _labelled(caption, e)
+
+
+func _art_text_field(caption: String, key: String) -> Control:
+    var e := LineEdit.new()
+    var art: Dictionary = working.data.get("art", {})
+    e.text = String(art.get(key, ""))
+    e.placeholder_text = "for example  passion_hero_01.png"
+    e.add_theme_font_size_override("font_size", 13)
+    e.text_changed.connect(func(t):
+        var a: Dictionary = (working.data.get("art", {}) as Dictionary).duplicate()
+        if t.strip_edges() == "":
+            a.erase(key)
+        else:
+            a[key] = t.strip_edges()
+        working.data["art"] = a
+        ArtLibrary.clear_cache()
+        _refresh_preview())
+    return _labelled(caption, e)
+
+
+func _art_choice_field(caption: String, key: String, options: Array) -> Control:
+    var o := OptionButton.new()
+    o.add_theme_font_size_override("font_size", 13)
+    var art: Dictionary = working.data.get("art", {})
+    for i in options.size():
+        o.add_item(String(options[i]).capitalize(), i)
+        if String(options[i]) == String(art.get(key, "cover")):
+            o.select(i)
+    o.item_selected.connect(func(i):
+        var a: Dictionary = (working.data.get("art", {}) as Dictionary).duplicate()
+        a[key] = String(options[i])
+        working.data["art"] = a
+        _refresh_preview())
+    return _labelled(caption, o)
 
 
 func _bool_field(caption: String, key: String) -> Control:
@@ -322,6 +366,9 @@ func _apply_effects_then_preview() -> void:
 func _refresh_preview() -> void:
     if working == null:
         return
+    # A finished card is by definition no longer placeholder content.
+    if bool(working.data.get("authored", false)):
+        working.data["placeholder"] = false
     # Regenerate the rules text from the effect data, always.
     working.data["text"] = TextGen.render(working)
     working._has_aura = -1
@@ -329,6 +376,11 @@ func _refresh_preview() -> void:
         c.queue_free()
     _preview_holder.add_child(UiTheme.label("Preview", 14, UiTheme.GOLD))
     _preview_holder.add_child(CardView.create(working, 300.0))
+    var art_status := ArtLibrary.describe(working.data.get("art", {}))
+    var loaded := ArtLibrary.has_image(working.data.get("art", {})) \
+        and ArtLibrary.texture_for(working.data.get("art", {})) != null
+    _preview_holder.add_child(UiTheme.wrapped(art_status, 11,
+        UiTheme.GOOD if loaded else UiTheme.TEXT_DIM))
     _show_messages(working.validate(), false)
 
 

@@ -16,6 +16,10 @@ extends RefCounted
 const AFFINITIES := ["devotion", "passion", "will", "vigilance", "purpose", "harmony", "silence"]
 const CARD_TYPES := ["hero", "companion", "skill", "equipment", "location", "taahma"]
 const TAGS := ["reaction", "martial", "magic", "melee", "ranged"]
+## Tags that describe a character's attack, printed on its attack line.
+## Separate from card TAGS because Martial and Magic are Skill tags: a Hero is
+## not a Martial card, but its attack can be a Martial Melee attack.
+const ATTACK_TAGS := ["martial", "magic", "melee", "ranged"]
 const RARITIES := ["common", "uncommon", "rare", "legendary"]
 const DURATIONS := ["step", "round", "permanent"]
 const WHO := ["self", "opponent"]

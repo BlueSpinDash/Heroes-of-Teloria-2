@@ -24,6 +24,9 @@ func run(t: TestHarness) -> void:
     test_decks_legal(t)
     test_starter_grant_plays(t)
     test_ai_deck_themes(t)
+    test_parfait(t)
+    test_art_assets(t)
+    test_authored_flag(t)
     test_edit_preserves_references(t)
     test_edit_reports_illegality(t)
     test_active_match_freezes_definitions(t)
@@ -112,11 +115,15 @@ func test_all_validate(t: TestHarness) -> void:
                 unknown.append("%s uses unimplemented trigger '%s'" % [def.id, String(on.get("kind", ""))])
     t.empty(unknown, "no definition claims an effect the engine cannot execute")
 
-    var placeholders := 0
+    # Proxies must say so. A card that has been authored for real is exempt,
+    # which is how the catalog can be replaced one card at a time.
+    var mislabelled: Array = []
     for def in _catalog().all_defs():
-        if def.placeholder:
-            placeholders += 1
-    t.eq(placeholders, 300, "every definition is marked as placeholder content")
+        if not def.authored and not def.placeholder:
+            mislabelled.append("%s is neither placeholder nor authored" % def.id)
+        if def.authored and def.placeholder:
+            mislabelled.append("%s is marked both authored and placeholder" % def.id)
+    t.empty(mislabelled, "every definition is labelled either proxy or finished")
 
 
 func test_rarity_and_acquisition(t: TestHarness) -> void:
@@ -274,6 +281,188 @@ func test_ai_deck_themes(t: TestHarness) -> void:
             if def != null and def.has_affinity(affinity):
                 on_theme += int((d["cards"] as Dictionary)[def_id])
         t.ge(float(on_theme), 30.0, "%s uses at least 30 on-Affinity cards (%d)" % [affinity, on_theme])
+
+
+## The first proxy replaced by a real card. She is also the blueprint's
+## confirmed timing example, so the shipped definition is pinned here in
+## addition to the engine fixture in the rules suite.
+func test_parfait(t: TestHarness) -> void:
+    t.begin("Parfait, the Unyielding Flame")
+    var cat := _catalog()
+    var def := cat.get_def("PAS_HERO_01")
+    if not t.ne(def, null, "PAS_HERO_01 exists"):
+        return
+
+    t.eq(def.name, "Parfait, the Unyielding Flame", "she has her printed name")
+    t.eq(def.short_name, "Parfait", "and a short name for her own rules text")
+    t.ok(def.authored, "she is marked as a finished card")
+    t.ok(not def.placeholder, "and is no longer placeholder content")
+    t.ok(def.has_type("hero"), "she is a Hero")
+    t.ok(def.has_affinity("passion"), "with the Passion Affinity")
+    t.eq(def.affinities.size(), 1, "and only that Affinity")
+    t.eq(def.rarity, "legendary", "printed at Legendary")
+    t.ok(def.unique, "Unique, as every Hero is")
+    t.eq(def.character_id, "parfait", "with her own named-character identity")
+    t.eq(cat.collection_cap("PAS_HERO_01"), 1, "so she caps at one owned copy")
+
+    t.eq(def.hero_max_energy, 4, "maximum Energy 4")
+    t.eq(def.attack, 3, "Attack 3")
+    t.eq(def.defense, 1, "Defense 1")
+    t.eq(def.attack_cost, 1, "her attack costs 1 Energy")
+    t.eq(def.attack_tags, ["martial", "melee"], "and is a Martial Melee attack")
+    t.eq(def.cost_kind(), "none", "a Hero has no play cost")
+
+    t.eq(def.triggers.size(), 1, "she has exactly one printed ability")
+    if def.triggers.size() == 1:
+        var on: Dictionary = (def.triggers[0] as Dictionary).get("on", {})
+        t.eq(String(on.get("kind", "")), "affinity_card_resolved", "it watches cards resolving")
+        t.eq(String(on.get("affinity", "")), "passion", "specifically Passion cards")
+        t.eq(String(on.get("scope", "")), "either", "from either player")
+        var fx: Array = (def.triggers[0] as Dictionary).get("effects", [])
+        t.eq(fx.size(), 1, "and does one thing")
+        if fx.size() == 1:
+            t.eq(String((fx[0] as Dictionary).get("op", "")), "energy_gain", "it returns Energy")
+            t.eq(int((fx[0] as Dictionary).get("amount", 0)), 1, "one Energy")
+
+    t.eq(def.text, "Whenever a Passion card resolves while Parfait is in the Action Sequence, "
+        + "you gain 1 Energy.", "her generated text names her and matches her ability")
+    t.ok(ArtLibrary.has_image(def.art), "she carries a supplied art file")
+    t.ne(ArtLibrary.texture_for(def.art), null,
+        "and it loads: %s" % ArtLibrary.describe(def.art))
+    t.empty(def.validate(), "her definition validates")
+
+    # Replacing the proxy kept her id, so the authored decks still find her.
+    var starter := {}
+    for d in DeckLibrary.starters():
+        if String((d as Dictionary).get("affinity", "")) == "passion":
+            starter = d
+    t.eq(String(starter.get("hero", "")), "PAS_HERO_01", "the Passion starter still names her as its Hero")
+
+    # Her ability works with the shipped card, not only with the test fixture:
+    # her own Passion attack refunds its Energy before she leaves the Sequence.
+    var rules := RulesProfile.load_from()
+    var st := GameEngine.start_match(cat, rules, [starter, DeckLibrary.ai_deck_for("devotion")],
+        20260916, "parfait_check", ["You", "Opponent"], [false, true], ["", "devotion"])
+    st.first_player = 0
+    st.action_priority = 0
+    var parfait_iid := st.player(0).hero_iid
+    t.eq(st.def_of(parfait_iid).id, "PAS_HERO_01", "she is in the Hero Zone")
+    t.eq(st.player(0).energy_current, 4, "she starts at her printed maximum Energy")
+
+    var r := GameEngine.submit(st, {"cmd": "commit_attack", "player": 0,
+        "attacker_iid": parfait_iid, "target_iid": st.player(1).hero_iid})
+    if not t.ok(r["ok"], "her attack was committed: %s" % str(r["error"])):
+        return
+    t.eq(st.player(0).energy_current, 3, "she paid one Energy on commitment")
+    t.ok(st.sequence_members.has(parfait_iid), "she is in the Action Sequence from commitment")
+
+    GameEngine.submit(st, {"cmd": "pass_actions", "player": 1})
+    GameEngine.submit(st, {"cmd": "pass_actions", "player": 0})
+    var guard := 0
+    while st.result == null and st.round_number == 1 and guard < 200:
+        guard += 1
+        if st.pending is Dictionary:
+            GameEngine.submit(st, MatchRunner._passive_command(st,
+                int((st.pending as Dictionary).get("player", 0))))
+        else:
+            GameEngine.advance(st)
+
+    # Round End refreshes Energy anyway, so the refund is read from the log,
+    # where its position relative to her leaving the Sequence is visible.
+    var refunded := false
+    var refund_before_exit := false
+    for e in st.events:
+        var kind := String((e as Dictionary).get("kind", ""))
+        if kind == "energy_gained" and int((e as Dictionary).get("player", -1)) == 0 \
+                and String((e as Dictionary).get("reason", "")).contains("Parfait"):
+            refunded = true
+        if kind == "left_sequence" and String((e as Dictionary).get("iid", "")) == parfait_iid \
+                and refunded:
+            refund_before_exit = true
+    t.ok(refunded, "her own Passion attack refunded her Energy")
+    t.ok(refund_before_exit, "and it happened before she left the Action Sequence")
+
+
+func test_art_assets(t: TestHarness) -> void:
+    t.begin("supplied art files")
+    ArtLibrary.clear_cache()
+
+    # A bare filename resolves into the art folder; a full path is left alone.
+    t.eq(ArtLibrary.resolve_path("hero.png"), "res://assets/art/hero.png",
+        "a bare filename is looked for in assets/art")
+    t.eq(ArtLibrary.resolve_path("user://elsewhere/hero.png"), "user://elsewhere/hero.png",
+        "a full path is used exactly as written")
+    t.eq(ArtLibrary.resolve_path(""), "", "an empty path resolves to nothing")
+    t.ok(not ArtLibrary.has_image({}), "a card with no art entry has no image")
+    t.ok(not ArtLibrary.has_image({"image": "   "}), "whitespace is not an art path")
+
+    # A real image file loads and is reported as loaded.
+    var img := Image.create(64, 36, false, Image.FORMAT_RGB8)
+    img.fill(Color(0.8, 0.2, 0.3))
+    var path := "user://test_card_art.png"
+    t.eq(img.save_png(path), OK, "a test image was written")
+    var art := {"image": path, "fit": "cover"}
+    var tex := ArtLibrary.texture_for(art)
+    t.ne(tex, null, "the image loaded as a texture")
+    if tex != null:
+        t.eq(tex.get_width(), 64, "at its real width")
+        t.eq(tex.get_height(), 36, "and its real height")
+    t.ok(ArtLibrary.describe(art).contains("Art loaded"), "the editor reports it as loaded")
+
+    # The portrait uses it instead of the generated sigil.
+    var portrait := CardArt.new()
+    portrait.setup(art)
+    t.ne(portrait.texture, null, "the card portrait picked up the supplied image")
+    t.eq(portrait.fit, "cover", "and its fit setting")
+    portrait.free()
+
+    # A missing file falls back rather than failing.
+    ArtLibrary.clear_cache()
+    var absent := {"image": "user://definitely_not_here.png"}
+    t.eq(ArtLibrary.texture_for(absent), null, "a missing art file loads nothing")
+    t.ok(ArtLibrary.describe(absent).contains("not found"),
+        "the editor says the file was not found: %s" % ArtLibrary.describe(absent))
+    var fallback := CardArt.new()
+    fallback.setup(absent)
+    t.eq(fallback.texture, null, "the portrait falls back to its generated sigil")
+    t.ok(fallback.sigil_points >= 4, "and the sigil is still configured")
+    fallback.free()
+
+    # A definition carrying an art file still validates, and a bad art block
+    # does not.
+    var base := _catalog().get_def("PAS_SKILL_01").duplicate_def()
+    base.data["art"] = {"image": "emberfall.png", "fit": "contain", "hue": 350, "seed": 1}
+    t.empty(base.validate(), "a definition naming an art file validates even before the file exists")
+
+    var bad_fit := _catalog().get_def("PAS_SKILL_01").duplicate_def()
+    bad_fit.data["art"] = {"image": "x.png", "fit": "stretch"}
+    t.ok(not bad_fit.validate().is_empty(), "an unknown art fit is rejected")
+
+    var bad_image := _catalog().get_def("PAS_SKILL_01").duplicate_def()
+    bad_image.data["art"] = {"image": 12}
+    t.ok(not bad_image.validate().is_empty(), "a non-text art path is rejected")
+
+    # Nothing in the shipped catalog points at art that cannot be read.
+    t.empty(ArtLibrary.missing_for(_catalog()),
+        "no shipped definition references an art file that is missing")
+    ArtLibrary.clear_cache()
+
+
+func test_authored_flag(t: TestHarness) -> void:
+    t.begin("finished cards are set aside from the proxy generator")
+    var def := _catalog().get_def("WIL_SKILL_01").duplicate_def()
+    t.ok(not def.authored, "a shipped proxy is not marked finished")
+    t.ok(def.placeholder, "and is marked placeholder")
+
+    def.data["authored"] = true
+    t.ok(not def.validate().is_empty(), "marking it finished while still placeholder is rejected")
+    def.data["placeholder"] = false
+    def.data["text"] = TextGen.render(def)
+    t.empty(def.validate(), "a finished card that is no longer placeholder validates")
+    t.ok(def.authored, "and reports itself as finished")
+
+    def.data["authored"] = "yes"
+    t.ok(not def.validate().is_empty(), "a non-boolean finished flag is rejected")
 
 
 func test_edit_preserves_references(t: TestHarness) -> void:

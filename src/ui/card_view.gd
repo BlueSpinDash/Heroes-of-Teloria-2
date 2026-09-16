@@ -12,7 +12,7 @@ extends PanelContainer
 signal pressed(def_id: String)
 
 const BASE_WIDTH := 300.0
-const BASE_HEIGHT := 430.0
+const BASE_HEIGHT := 452.0
 
 var def: CardDef = null
 var card_width: float = BASE_WIDTH
@@ -40,6 +40,8 @@ func set_card(card: CardDef) -> void:
 func _build() -> void:
     var scale_factor := card_width / BASE_WIDTH
     custom_minimum_size = Vector2(card_width, BASE_HEIGHT * scale_factor)
+    size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+    clip_contents = true
     mouse_filter = Control.MOUSE_FILTER_STOP if clickable else Control.MOUSE_FILTER_PASS
     tooltip_text = "%s — %s" % [def.name, def.text if def.text != "" else "No rules text."]
 
@@ -52,22 +54,30 @@ func _build() -> void:
 
     root.add_child(_banner(UiTheme.type_banner(def), int(13 * scale_factor)))
 
-    # --- portrait with the stat bubbles overlaid on its left -----------------
+    # --- stat bubbles in a left gutter, portrait to their right --------------
+    # The template runs the Energy, Attack and Defense bubbles down the left of
+    # the card rather than over the artwork, so they get their own column here
+    # and never sit on top of a character's face.
+    var art_row := UiTheme.hbox(int(4 * scale_factor))
+    art_row.custom_minimum_size = Vector2(0, 200 * scale_factor)
+    art_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    root.add_child(art_row)
+
+    var bubbles := UiTheme.vbox(int(4 * scale_factor))
+    bubbles.custom_minimum_size = Vector2(46 * scale_factor, 0)
+    bubbles.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    art_row.add_child(bubbles)
+
     var art_holder := Control.new()
-    art_holder.custom_minimum_size = Vector2(0, 168 * scale_factor)
     art_holder.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-    root.add_child(art_holder)
+    art_holder.size_flags_vertical = Control.SIZE_EXPAND_FILL
+    art_row.add_child(art_holder)
 
     var art := CardArt.new()
     art.setup(def.art)
     art.set_anchors_preset(Control.PRESET_FULL_RECT)
     art.mouse_filter = Control.MOUSE_FILTER_IGNORE
     art_holder.add_child(art)
-
-    var bubbles := UiTheme.vbox(int(4 * scale_factor))
-    bubbles.position = Vector2(4 * scale_factor, 4 * scale_factor)
-    bubbles.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    art_holder.add_child(bubbles)
 
     var energy_caption := "Max Energy" if def.has_type("hero") else "Energy"
     var energy_value := str(def.hero_max_energy) if def.has_type("hero") else UiTheme.cost_text(def)
@@ -96,12 +106,19 @@ func _build() -> void:
     if tags != "":
         meta.append(tags)
     if def.is_character() and def.attack_cost > 0:
-        meta.append("Attack: %d Energy" % def.attack_cost)
+        var attack_line := "Attack: %d Energy" % def.attack_cost
+        if not def.attack_tags.is_empty():
+            var at_bits: Array = []
+            for at in def.attack_tags:
+                at_bits.append(String(at).capitalize())
+            attack_line += " — " + " • ".join(at_bits)
+        meta.append(attack_line)
     if def.has_type("companion") and def.energy_contribution > 0:
         meta.append("+%d max Energy" % def.energy_contribution)
     if not meta.is_empty():
-        text_box.add_child(UiTheme.label(" • ".join(meta), int(10 * scale_factor), UiTheme.GOLD_DIM,
-            HORIZONTAL_ALIGNMENT_CENTER))
+        var meta_label := UiTheme.wrapped(" • ".join(meta), int(10 * scale_factor), UiTheme.GOLD_DIM)
+        meta_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+        text_box.add_child(meta_label)
     var body := def.text if def.text.strip_edges() != "" else "No rules text."
     var body_label := UiTheme.wrapped(body, int(11.5 * scale_factor), UiTheme.INK)
     body_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -120,7 +137,10 @@ func _build() -> void:
 
     # --- footer --------------------------------------------------------------
     var footer := UiTheme.hbox(4)
-    footer.add_child(UiTheme.label("PROXY • %s" % def.id, int(9 * scale_factor), UiTheme.PARCHMENT_DARK))
+    var id_label := UiTheme.label("%s%s" % ["" if def.authored else "PROXY • ", def.id],
+        int(9 * scale_factor), UiTheme.PARCHMENT_DARK)
+    id_label.clip_text = true
+    footer.add_child(id_label)
     var gap := Control.new()
     gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     footer.add_child(gap)
@@ -129,8 +149,10 @@ func _build() -> void:
         restriction = " • NAMED"
     elif def.unique:
         restriction = " • UNIQUE"
-    footer.add_child(UiTheme.label(UiTheme.rarity_line(def) + restriction, int(9 * scale_factor),
-        UiTheme.RARITY_COLOR.get(def.rarity, UiTheme.TEXT_DIM)))
+    var rarity_label := UiTheme.label(UiTheme.rarity_line(def) + restriction, int(9 * scale_factor),
+        UiTheme.RARITY_COLOR.get(def.rarity, UiTheme.TEXT_DIM))
+    rarity_label.clip_text = true
+    footer.add_child(rarity_label)
     root.add_child(footer)
 
     _badge_row = UiTheme.hbox(4)
@@ -147,6 +169,9 @@ func _banner(text: String, font_size: int, big: bool = false) -> PanelContainer:
     l.clip_text = not big
     l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART if big else TextServer.AUTOWRAP_OFF
     l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    # Never let long text push the card past the width it was created at.
+    l.custom_minimum_size = Vector2(0, 0)
+    l.clip_text = l.clip_text or not big
     p.add_child(l)
     return p
 
@@ -172,7 +197,13 @@ func add_badge(text: String, colour: Color = UiTheme.GOLD) -> void:
     if _badge_row == null:
         return
     var p := UiTheme.panel(UiTheme.BG_PANEL, colour, 1, 3)
-    p.add_child(UiTheme.label(text, 10, colour, HORIZONTAL_ALIGNMENT_CENTER))
+    var l := UiTheme.label(text, 10, colour, HORIZONTAL_ALIGNMENT_CENTER)
+    # Clipped so a long badge cannot widen the card it sits on. The full text
+    # is still available as the card's tooltip.
+    l.clip_text = true
+    l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    p.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    p.add_child(l)
     _badge_row.add_child(p)
 
 

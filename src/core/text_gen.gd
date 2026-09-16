@@ -265,13 +265,15 @@ static func render_trigger(trig: Dictionary, def: CardDef) -> String:
             elif scope == "opponent":
                 whose = " your opponent controls"
             if def.is_character():
-                lead = "Whenever %s%s resolves while this character is in the Action Sequence," % [what, whose]
+                lead = "Whenever %s%s resolves while %s is in the Action Sequence," % [
+                    what, whose, _self_name(def, "this character")]
             else:
-                lead = "Whenever %s%s resolves while this card is in play," % [what, whose]
+                lead = "Whenever %s%s resolves while %s is in play," % [
+                    what, whose, _self_name(def, "this card")]
         "self_deployed":
-            lead = "When this Companion enters play,"
+            lead = "When %s enters play," % _self_name(def, "this Companion")
         "self_attack_resolved":
-            lead = "When this character's attack resolves,"
+            lead = "When %s's attack resolves," % _self_name(def, "this character")
         "own_companion_deployed":
             lead = "Whenever a Companion you control enters play,"
         "round_end":
@@ -281,7 +283,7 @@ static func render_trigger(trig: Dictionary, def: CardDef) -> String:
         "opponent_hero_damaged":
             lead = "Whenever the opposing Hero is damaged,"
         "self_leaves_play":
-            lead = "When this card leaves play,"
+            lead = "When %s leaves play," % _self_name(def, "this card")
         "attack_resolved":
             var scope2 := String(on.get("scope", "either"))
             if scope2 == "controller":
@@ -379,6 +381,11 @@ static func _duration_suffix(duration: String) -> String:
         "round": return " for the round"
         "permanent": return " permanently"
     return ""
+
+
+## What a card calls itself in its own text.
+static func _self_name(def: CardDef, fallback: String) -> String:
+    return def.short_name if def.short_name.strip_edges() != "" else fallback
 
 
 static func _is_negative(amount) -> bool:

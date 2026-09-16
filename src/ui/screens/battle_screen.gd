@@ -76,12 +76,18 @@ func _build() -> void:
 
     var centre := UiTheme.vbox(6)
     centre.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-    centre.size_flags_vertical = Control.SIZE_EXPAND_FILL
-    cols.add_child(centre)
+    var centre_scroll := ScrollContainer.new()
+    centre_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    centre_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+    centre_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+    centre_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+    centre.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    centre_scroll.add_child(centre)
+    cols.add_child(centre_scroll)
 
     centre.add_child(UiTheme.label("Opponent's Companions", 12, UiTheme.TEXT_DIM))
     _opp_board = UiTheme.hbox(6)
-    centre.add_child(_fixed_scroll(_opp_board, 118))
+    centre.add_child(_fixed_scroll(_opp_board, 88))
 
     var mid := UiTheme.hbox(10)
     mid.size_flags_vertical = Control.SIZE_FILL
@@ -97,12 +103,12 @@ func _build() -> void:
     seq_head.add_child(_chain_label)
     centre.add_child(seq_head)
     _sequence_row = UiTheme.hbox(6)
-    centre.add_child(_fixed_scroll(_sequence_row, 128))
+    centre.add_child(_fixed_scroll(_sequence_row, 102))
     centre.add_child(UiTheme.separator())
 
     centre.add_child(UiTheme.label("Your Companions", 12, UiTheme.TEXT_DIM))
     _own_board = UiTheme.hbox(6)
-    centre.add_child(_fixed_scroll(_own_board, 118))
+    centre.add_child(_fixed_scroll(_own_board, 88))
 
     _prompt = UiTheme.wrapped("", 13, UiTheme.GOLD)
     centre.add_child(_prompt)
@@ -113,7 +119,7 @@ func _build() -> void:
     centre.add_child(UiTheme.label("Your hand", 12, UiTheme.TEXT_DIM))
     _hand_row = UiTheme.hbox(6)
     var hand_scroll := UiTheme.scroll(_hand_row, true)
-    hand_scroll.custom_minimum_size = Vector2(0, 268)
+    hand_scroll.custom_minimum_size = Vector2(0, 282)
     centre.add_child(hand_scroll)
 
     var log_panel := UiTheme.panel(UiTheme.BG_PANEL, UiTheme.GOLD_DIM, 1, 6)
@@ -358,45 +364,54 @@ func _refresh_hand() -> void:
         _hand_row.add_child(UiTheme.label("your hand is empty", 11, UiTheme.TEXT_DIM))
     for iid in st.player(0).hand:
         var d := st.def_of(String(iid))
-        var view := CardView.create(d, 168.0)
+        var view := CardView.create(d, 142.0, true)
         var playable := false
         var why := ""
         if reaction_window:
             playable = d.allows_reaction_timing()
-            why = "Playable now as a Reaction." if playable else "Not a Reaction card."
+            why = "Playable as a Reaction" if playable else "Not a Reaction card"
         elif _can_act():
             playable = d.allows_action_timing()
-            why = "" if playable else "Reaction only; wait for a Reaction window."
+            why = "" if playable else "Reaction only"
         elif st.player(0).passed_actions:
-            why = "You passed this round."
+            why = "You passed this round"
         elif st.phase == "action":
-            why = "Not your turn yet."
+            why = "Not your turn yet"
         else:
-            why = "Wait for the %s Phase to finish." % st.phase.capitalize()
+            why = "Wait for the %s Phase" % st.phase.capitalize()
         if playable:
             var cost: int = d.fixed_cost() if d.cost_kind() == "fixed" else d.x_min()
             if st.player(0).energy_current < cost:
                 playable = false
-                why = "Costs %d Energy; you have %d." % [cost, st.player(0).energy_current]
+                why = "Needs %d Energy" % cost
         if playable and d.target_spec is Dictionary:
             var kind := String((d.target_spec as Dictionary).get("kind", ""))
             var optional := bool((d.target_spec as Dictionary).get("optional", false))
             if not optional and Targeting.legal_targets(st, kind, 0).is_empty():
                 playable = false
-                why = "Needs a target and there is none available."
+                why = "No legal target"
 
+        var card_iid := String(iid)
         if playable:
             view.add_badge("Eligible", UiTheme.GOOD)
-            var b := UiTheme.button("Play as Reaction" if reaction_window else "Commit")
-            b.pressed.connect(func(): _begin_play(String(iid), reaction_window))
+            view.tooltip_text = "Click to play %s." % d.name
+            view.pressed.connect(func(_id): _begin_play(card_iid, reaction_window))
+            var b := UiTheme.primary_button("Play as Reaction" if reaction_window else "Commit")
+            b.pressed.connect(func(): _begin_play(card_iid, reaction_window))
+            # The button sits above the card so it is always the first thing in
+            # the hand strip, never pushed below the visible area.
             var holder := UiTheme.vbox(2)
-            holder.add_child(view)
             holder.add_child(b)
+            holder.add_child(view)
             _hand_row.add_child(holder)
         else:
             view.add_badge(why if why != "" else "Not playable now", UiTheme.TEXT_DIM)
-            view.modulate = Color(1, 1, 1, 0.65)
-            _hand_row.add_child(view)
+            view.tooltip_text = why
+            view.modulate = Color(1, 1, 1, 0.6)
+            var holder2 := UiTheme.vbox(2)
+            holder2.add_child(UiTheme.spacer(34))
+            holder2.add_child(view)
+            _hand_row.add_child(holder2)
 
 
 func _refresh_controls() -> void:

@@ -114,7 +114,7 @@ func _header() -> Control:
 func _filters() -> Control:
     var row := UiTheme.hbox(6)
     _search = LineEdit.new()
-    _search.placeholder_text = "Search cards"
+    _search.placeholder_text = "Search card names"
     _search.add_theme_font_size_override("font_size", 13)
     _search.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     _search.text_changed.connect(func(_t): _refresh_available())
@@ -159,7 +159,7 @@ func _refresh_available() -> void:
     var shown := 0
     for def in app.catalog.deck_eligible():
         var d: CardDef = def
-        if query != "" and not ("%s %s %s" % [d.name.to_lower(), d.text.to_lower(), d.id.to_lower()]).contains(query):
+        if query != "" and not ("%s %s" % [d.name.to_lower(), d.id.to_lower()]).contains(query):
             continue
         var t := _type_filter.get_selected_id()
         if t > 0 and not d.has_type(["", "companion", "skill", "equipment", "location", "taahma"][t]):

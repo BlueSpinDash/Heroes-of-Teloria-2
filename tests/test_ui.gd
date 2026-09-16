@@ -42,6 +42,7 @@ func run(t: TestHarness) -> void:
         return
     _every_screen_builds(t)
     _play_a_starter(t)
+    await _play_cards_from_hand(t)
     _finish_and_reward(t)
     _buy_and_reveal(t)
     _add_card_to_deck(t)
@@ -155,6 +156,158 @@ func _play_a_starter(t: TestHarness) -> void:
 ## real result and pays once, not that it goes the distance, so the human side
 ## simply passes and the run is bounded. Full-length AI matches are covered by
 ## the ai suite.
+## Cards must be playable from the hand, through the real controls.
+##
+## This covers the three shapes a hand card can take (no target, a chosen
+## target, an X cost) and, just as importantly, asserts that every play button
+## is actually inside the visible hand strip. A card the engine offers but the
+## screen renders off the bottom of the window is unplayable in practice.
+func _play_cards_from_hand(t: TestHarness) -> void:
+    t.begin("cards can be played from the hand")
+    # Use the Passion starter on purpose: it is the one granted deck that holds
+    # a card of each shape this check needs, including an X cost.
+    var deck: Dictionary = {}
+    for d in app.profile.decks():
+        if String((d as Dictionary).get("affinity", "")) == "passion":
+            deck = d
+    if not t.ok(not deck.is_empty(), "the Passion starter is available"):
+        return
+    app.end_match()
+    var err := app.start_match(String(deck.get("deck_id", "")), "devotion")
+    if not t.eq(err, "", "a match started for the hand check: %s" % err):
+        return
+    var st: GameState = app.match_state
+    app.goto("battle")
+    await _frames(t, 3)
+    var screen := _screen()
+    if not t.ne(screen, null, "the battle screen built"):
+        return
+
+    # Drive the match to a point where this player is on priority.
+    st.first_player = 0
+    st.action_priority = 0
+    st.player(0).passed_actions = false
+    st.pending = null
+    st.phase = "action"
+
+    # --- a card with no target -------------------------------------------
+    _force_hand(st, 0, ["PAS_SKILL_01"])
+    screen.call("_refresh")
+    await _frames(t, 2)
+    _assert_buttons_reachable(t, screen)
+    var energy_before := st.player(0).energy_current
+    var slots_before := st.sequence.size()
+    t.ok(_press_first_play_button(screen), "the hand offered a play button")
+    await _frames(t, 2)
+    t.eq(st.sequence.size(), slots_before + 1, "a card with no target committed straight away")
+    t.eq(st.player(0).energy_current, energy_before - 1, "and its cost was paid")
+
+    # --- a card that chooses a target -------------------------------------
+    st.action_priority = 0
+    _force_hand(st, 0, ["PAS_SKILL_06"])
+    screen.call("_refresh")
+    await _frames(t, 2)
+    _assert_buttons_reachable(t, screen)
+    slots_before = st.sequence.size()
+    t.ok(_press_first_play_button(screen), "the targeted card offered a play button")
+    await _frames(t, 2)
+    t.eq(String(screen.get("_mode")), "pick_card_target",
+        "pressing it asks for a target rather than committing blindly")
+    t.eq(st.sequence.size(), slots_before, "nothing is committed until a target is chosen")
+    var kind := String(screen.get("_target_kind"))
+    var options := Targeting.legal_targets(st, kind, 0)
+    t.ge(float(options.size()), 1.0, "there is a legal target to choose")
+    if options.size() > 0:
+        screen.call("_choose_target", String(options[0]))
+        await _frames(t, 2)
+        t.eq(st.sequence.size(), slots_before + 1, "choosing a target committed the card")
+        t.eq(String(screen.get("_mode")), "idle", "and the screen returned to normal")
+
+    # --- a card with an X cost --------------------------------------------
+    st.action_priority = 0
+    st.player(0).energy_current = 4
+    _force_hand(st, 0, ["PAS_SKILL_07"])
+    screen.call("_refresh")
+    await _frames(t, 2)
+    slots_before = st.sequence.size()
+    t.ok(_press_first_play_button(screen), "the X-cost card offered a play button")
+    await _frames(t, 2)
+    t.eq(st.sequence.size(), slots_before, "an X cost is asked for before committing")
+    var spin = screen.get("_x_spin")
+    if t.ne(spin, null, "the screen asked how much Energy to spend"):
+        (spin as SpinBox).value = 3
+        t.ok(_press_button_labelled(screen.get("_controls"), "Continue"), "the amount was confirmed")
+        await _frames(t, 2)
+        t.eq(st.sequence.size(), slots_before + 1, "the X-cost card committed")
+        if st.sequence.size() > slots_before:
+            t.eq((st.sequence[st.sequence.size() - 1] as ActionSlot).x_paid, 3,
+                "with the X the player actually chose")
+        t.eq(st.player(0).energy_current, 1, "and three Energy was spent")
+
+
+## Put exactly these cards in a player's hand, so a test controls what is on
+## offer without depending on the shuffle.
+func _force_hand(st: GameState, player: int, def_ids: Array) -> void:
+    for iid in st.player(player).hand.duplicate():
+        st.move_to_pile(String(iid), "hit")
+    for def_id in def_ids:
+        for iid in st.player(player).hit:
+            if (st.instances[iid] as CardInstance).def_id == String(def_id):
+                st.move_to_pile(String(iid), "hand")
+                break
+
+
+func _hand_buttons(screen: Control) -> Array:
+    var out: Array = []
+    var row = screen.get("_hand_row")
+    if row == null:
+        return out
+    for child in (row as Control).get_children():
+        for sub in (child as Control).get_children():
+            if sub is Button:
+                out.append(sub)
+    return out
+
+
+func _press_first_play_button(screen: Control) -> bool:
+    var buttons := _hand_buttons(screen)
+    if buttons.is_empty():
+        return false
+    (buttons[0] as Button).emit_signal("pressed")
+    return true
+
+
+func _press_button_labelled(container, label: String) -> bool:
+    if container == null:
+        return false
+    for child in (container as Control).get_children():
+        if child is Button and String((child as Button).text) == label:
+            (child as Button).emit_signal("pressed")
+            return true
+    return false
+
+
+## Every play button must sit inside the visible hand strip. This is what
+## catches a hand rendered off the bottom of the window.
+func _assert_buttons_reachable(t: TestHarness, screen: Control) -> void:
+    var row = screen.get("_hand_row")
+    if row == null:
+        return
+    var strip := (row as Control).get_parent() as Control
+    if strip == null:
+        return
+    var visible := strip.get_global_rect()
+    if visible.size.y <= 0.0:
+        return  # not laid out in this environment; the geometry check needs a frame
+    var unreachable: Array = []
+    for b in _hand_buttons(screen):
+        var r: Rect2 = (b as Button).get_global_rect()
+        if not visible.encloses(r):
+            unreachable.append("%s at %s outside the hand strip %s" % [
+                (b as Button).text, str(r), str(visible)])
+    t.empty(unreachable, "every play button is inside the visible hand strip")
+
+
 func _finish_match(st: GameState) -> void:
     MatchRunner.drive(st, ["pass", "ai"], WALKTHROUGH_ROUND_LIMIT)
     if st.result == null:

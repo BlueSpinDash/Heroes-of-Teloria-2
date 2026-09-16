@@ -17,6 +17,19 @@ func _init(d: Dictionary = {}) -> void:
     data = d.duplicate(true)
 
 
+## Imported card data is not trusted to hold the right types, so a flag is
+## read leniently here. Validation is what rejects the wrong type, and it must
+## be able to run without a getter throwing first.
+static func _truthy(value) -> bool:
+    if value is bool:
+        return value
+    if value is int or value is float:
+        return float(value) != 0.0
+    if value is String:
+        return ["true", "1", "yes"].has(String(value).strip_edges().to_lower())
+    return false
+
+
 static func from_dict(d: Dictionary) -> CardDef:
     return CardDef.new(d)
 
@@ -40,14 +53,24 @@ var revision: int:
 var name: String:
     get: return String(data.get("name", ""))
 
+## How the card refers to itself in its own rules text, such as "Parfait" for
+## "Parfait, the Unyielding Flame". Falls back to "this card" when unset.
+var short_name: String:
+    get: return String(data.get("short_name", ""))
+
 var placeholder: bool:
-    get: return bool(data.get("placeholder", true))
+    get: return _truthy(data.get("placeholder", true))
+
+## True once a real card has replaced the proxy. The catalog generator carries
+## an authored definition across untouched instead of regenerating it.
+var authored: bool:
+    get: return _truthy(data.get("authored", false))
 
 var rarity: String:
     get: return String(data.get("rarity", "common"))
 
 var unique: bool:
-    get: return bool(data.get("unique", false))
+    get: return _truthy(data.get("unique", false))
 
 ## Non-empty when this card is a specific named character. Two definitions
 ## sharing a character_id can never both appear in one deck, which is what
@@ -67,6 +90,11 @@ var affinities: Array:
 
 var patterns: Array:
     get: return data.get("patterns", [])
+
+## Tags describing this character's attack, such as Martial and Melee. Printed
+## on the attack line. Display only for now: no card in the catalog reads them.
+var attack_tags: Array:
+    get: return data.get("attack_tags", [])
 
 
 func has_type(t: String) -> bool:
@@ -343,6 +371,39 @@ func validate() -> Array:
         errs.append("%s: an effect uses X but the card has no X cost" % p)
     if cost_kind() == "x" and not _references_x():
         errs.append("%s: has an X cost but no effect uses X" % p)
+
+    var art_block: Variant = data.get("art", null)
+    if art_block != null:
+        if not (art_block is Dictionary):
+            errs.append("%s: 'art' must be an object" % p)
+        else:
+            var ab: Dictionary = art_block
+            if ab.has("image") and not (ab["image"] is String):
+                errs.append("%s: art.image must be a file path written as text" % p)
+            if ab.has("fit") and not ["cover", "contain"].has(String(ab["fit"])):
+                errs.append("%s: art.fit must be 'cover' or 'contain'" % p)
+    # A missing art file is deliberately not an error: the card falls back to
+    # its placeholder sigil, so a catalog stays playable while art is in
+    # progress. The card editor reports the missing file instead.
+
+    if data.has("short_name") and not (data["short_name"] is String):
+        errs.append("%s: 'short_name' must be text" % p)
+
+    if not attack_tags.is_empty():
+        if not is_character():
+            errs.append("%s: only a Hero or Companion has attack tags" % p)
+        var seen_attack_tags: Dictionary = {}
+        for at in attack_tags:
+            if not EffectSchema.ATTACK_TAGS.has(String(at)):
+                errs.append("%s: '%s' is not an attack tag" % [p, str(at)])
+            if seen_attack_tags.has(at):
+                errs.append("%s: duplicate attack tag '%s'" % [p, str(at)])
+            seen_attack_tags[at] = true
+
+    if data.has("authored") and not (data["authored"] is bool):
+        errs.append("%s: 'authored' must be true or false" % p)
+    if authored and placeholder:
+        errs.append("%s: a finished card should not also be marked placeholder" % p)
 
     if patterns.is_empty():
         errs.append("%s: needs at least one behaviour pattern tag for catalog coverage" % p)
