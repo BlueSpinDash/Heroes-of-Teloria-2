@@ -22,6 +22,8 @@ func _defaults() -> void:
         "schema": SaveStore.SCHEMA_VERSION,
         "profile_id": "",
         "created_at": "",
+        "display_name": "",
+        "starter_affinity": "",
         "gold": 0,
         "owned": {},
         "decks": [],
@@ -41,40 +43,86 @@ func _defaults() -> void:
             raw[k] = defaults[k]
 
 
-## A brand-new profile: starting gold, the seven starter decks, and the union
-## of cards needed to actually play all of them.
-static func create_new(catalog: Catalog, economy: EconomyConfig) -> PlayerProfile:
+## A brand-new save: starting gold, one chosen starter deck, and exactly the
+## cards that deck needs.
+##
+## The Affinity you begin in is the whole of your collection. Everything else
+## in the catalog is earned, so the shop and the packs are the progression
+## rather than decoration on a collection you already have.
+static func create_new(catalog: Catalog, economy: EconomyConfig, affinity: String,
+        display_name: String = "") -> PlayerProfile:
+    var starter := DeckLibrary.starter_for(affinity)
+    if starter.is_empty():
+        var available := DeckLibrary.starter_affinities()
+        push_warning("No starter deck for Affinity '%s'; falling back to '%s'." % [
+            affinity, String(available[0]) if not available.is_empty() else ""])
+        if available.is_empty():
+            return PlayerProfile.new()
+        affinity = String(available[0])
+        starter = DeckLibrary.starter_for(affinity)
+
     var p := PlayerProfile.new()
     p.raw["profile_id"] = Ids.unique("profile")
     p.raw["created_at"] = Time.get_datetime_string_from_system(true)
+    p.raw["starter_affinity"] = affinity
+    p.raw["display_name"] = display_name if display_name.strip_edges() != "" \
+        else "%s save" % affinity.capitalize()
     p.raw["gold"] = economy.starting_gold
     var rng := RandomNumberGenerator.new()
     rng.randomize()
     p.raw["pack_seed"] = rng.randi() & 0x7FFFFFFF
 
-    var grant := DeckLibrary.starter_grant()
+    var grant := DeckLibrary.starter_grant_for(affinity)
     var owned: Dictionary = {}
     for def_id in grant.keys():
         owned[String(def_id)] = min(int(grant[def_id]), catalog.collection_cap(String(def_id)))
     p.raw["owned"] = owned
 
-    var decks: Array = []
-    for s in DeckLibrary.starters():
-        var src: Dictionary = s
-        decks.append({
-            "deck_id": String(src.get("deck_id", Ids.unique("deck"))),
-            "name": String(src.get("name", "Starter")),
-            "hero": String(src.get("hero", "")),
-            "cards": (src.get("cards", {}) as Dictionary).duplicate(),
-            "starter": true,
-            "affinity": String(src.get("affinity", "")),
-        })
-    p.raw["decks"] = decks
+    p.raw["decks"] = [{
+        "deck_id": String(starter.get("deck_id", Ids.unique("deck"))),
+        "name": String(starter.get("name", "Starter")),
+        "hero": String(starter.get("hero", "")),
+        "cards": (starter.get("cards", {}) as Dictionary).duplicate(),
+        "starter": true,
+        "affinity": affinity,
+    }]
     return p
+
+
+## What a save-select list needs to show without loading the whole save.
+static func summarise(raw: Dictionary) -> Dictionary:
+    var owned: Dictionary = raw.get("owned", {}) if raw.get("owned") is Dictionary else {}
+    var copies := 0
+    for k in owned:
+        copies += int(owned[k])
+    var decks: Array = raw.get("decks", []) if raw.get("decks") is Array else []
+    var records: Array = raw.get("match_records", []) if raw.get("match_records") is Array else []
+    return {
+        "display_name": String(raw.get("display_name", "Save")),
+        "affinity": String(raw.get("starter_affinity", "")),
+        "gold": int(raw.get("gold", 0)),
+        "definitions": owned.size(),
+        "copies": copies,
+        "decks": decks.size(),
+        "matches": records.size(),
+        "created_at": String(raw.get("created_at", "")),
+        "saved_at": String(raw.get("saved_at", "")),
+        "in_match": raw.get("active_match") != null,
+    }
 
 
 func to_dict() -> Dictionary:
     return raw.duplicate(true)
+
+
+var display_name: String:
+    get: return String(raw.get("display_name", ""))
+    set(value): raw["display_name"] = value
+
+
+## The Affinity this save began in. Empty on a save made before saves chose one.
+var starter_affinity: String:
+    get: return String(raw.get("starter_affinity", ""))
 
 
 # ---------------------------------------------------------------------- gold ---

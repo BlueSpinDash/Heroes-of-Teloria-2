@@ -5,6 +5,10 @@ extends RefCounted
 static var _cat: Catalog = null
 
 
+## A slot the tests own, so running them never disturbs a real save.
+const TEST_SLOT := SaveStore.MAX_SLOTS
+
+
 func suite_name() -> String:
     return "progression"
 
@@ -23,11 +27,12 @@ func run(t: TestHarness) -> void:
     test_duplicate_conversion(t)
     test_save_round_trip(t)
     test_save_rejects_bad_import(t)
+    test_save_slots_are_separate_games(t)
     test_wounds_do_not_touch_collection(t)
 
 
 func _profile() -> PlayerProfile:
-    return PlayerProfile.create_new(_catalog(), EconomyConfig.load_from())
+    return PlayerProfile.create_new(_catalog(), EconomyConfig.load_from(), "passion")
 
 
 func test_reward_is_idempotent(t: TestHarness) -> void:
@@ -118,9 +123,9 @@ func test_pack_reveal_resume(t: TestHarness) -> void:
 
     # Simulate a refresh: persist, reload, and ask to open again.
     var store := SaveStore.new()
-    var err := store.commit(p.to_dict())
+    var err := store.commit(TEST_SLOT, p.to_dict())
     t.eq(err, "", "the purchase was committed durably before any reveal")
-    var reloaded := PlayerProfile.new(store.load_raw())
+    var reloaded := PlayerProfile.new(store.load_slot(TEST_SLOT))
     t.eq(reloaded.gold, gold_after_purchase, "the reload shows the gold already spent, spent once")
     t.ok(reloaded.pending_reveal() is Dictionary, "the un-acknowledged reveal is still pending")
 
@@ -223,16 +228,17 @@ func test_save_round_trip(t: TestHarness) -> void:
         "Custom Renamed Skill", "the override's contents survived")
 
     # A committed save reloads identically.
-    t.eq(store.commit(p.to_dict()), "", "the save committed")
-    var loaded := PlayerProfile.new(store.load_raw())
+    t.eq(store.commit(TEST_SLOT, p.to_dict()), "", "the save committed")
+    var loaded := PlayerProfile.new(store.load_slot(TEST_SLOT))
     t.eq(loaded.gold, p.gold, "the committed save reloads with the same gold")
     t.eq(loaded.decks().size(), p.decks().size(), "the committed save reloads with the same decks")
     t.eq(store.last_load_problem, "", "no load problem was reported")
 
     # Committing twice keeps a recoverable previous save.
     p.gold = p.gold + 7
-    t.eq(store.commit(p.to_dict()), "", "the second commit succeeded")
-    t.ok(FileAccess.file_exists(SaveStore.BACKUP_PATH), "the previous save was kept as a backup")
+    t.eq(store.commit(TEST_SLOT, p.to_dict()), "", "the second commit succeeded")
+    t.ok(FileAccess.file_exists(SaveStore._backup_path(TEST_SLOT)),
+        "the previous save was kept as a backup")
 
 
 func test_save_rejects_bad_import(t: TestHarness) -> void:
@@ -258,6 +264,64 @@ func test_save_rejects_bad_import(t: TestHarness) -> void:
     f3.close()
     var r3 := store.read_import(path)
     t.ok(not bool(r3["ok"]), "a save missing its collection is refused")
+
+
+## Slots are separate games. Starting one, playing it or deleting it must never
+## reach into another, and a delete has to stay recoverable.
+func test_save_slots_are_separate_games(t: TestHarness) -> void:
+    t.begin("save slots hold separate games")
+    var cat := _catalog()
+    var economy := EconomyConfig.load_from()
+    var store := SaveStore.new()
+
+    # Two slots the test owns, left clean afterwards.
+    var a := SaveStore.MAX_SLOTS - 1
+    var b := SaveStore.MAX_SLOTS
+    for slot in [a, b]:
+        store.delete_slot(slot)
+    t.ok(not store.exists(a), "the first test slot starts empty")
+
+    var devotion := PlayerProfile.create_new(cat, economy, "devotion", "First")
+    var silence := PlayerProfile.create_new(cat, economy, "silence", "Second")
+    t.eq(store.commit(a, devotion.to_dict()), "", "the first save committed")
+    t.eq(store.commit(b, silence.to_dict()), "", "the second save committed")
+
+    var back_a := PlayerProfile.new(store.load_slot(a))
+    var back_b := PlayerProfile.new(store.load_slot(b))
+    t.eq(back_a.starter_affinity, "devotion", "the first slot reloads its own Affinity")
+    t.eq(back_b.starter_affinity, "silence", "the second slot reloads its own Affinity")
+    t.eq(back_a.display_name, "First", "and its own name")
+    t.eq(back_b.owned_count("DEV_SKILL_01"), 0,
+        "a Silence save owns none of the Devotion save's cards")
+
+    # Writing one slot leaves the other alone.
+    back_a.gold = back_a.gold + 250
+    t.eq(store.commit(a, back_a.to_dict()), "", "the first slot was written again")
+    t.eq(PlayerProfile.new(store.load_slot(b)).gold, silence.gold,
+        "writing one slot did not touch the other")
+
+    # The list shows what a save-select screen needs without loading a save.
+    var rows := store.list_slots()
+    t.eq(rows.size(), SaveStore.MAX_SLOTS, "every slot is listed, used or not")
+    var listed_a: Dictionary = {}
+    for row in rows:
+        if int((row as Dictionary).get("slot", 0)) == a:
+            listed_a = row
+    t.ok(bool(listed_a.get("used", false)), "the first slot is listed as used")
+    t.eq(String(listed_a.get("affinity", "")), "devotion", "with its Affinity")
+    t.eq(int(listed_a.get("gold", 0)), back_a.gold, "and its gold as last written")
+    t.eq(int(listed_a.get("decks", 0)), 1, "and its one starter deck")
+
+    # A delete is recoverable: the file moves to its backup rather than going.
+    t.eq(store.delete_slot(a), "", "the first slot deleted")
+    t.ok(not store.exists(a), "the slot is empty afterwards")
+    t.ok(FileAccess.file_exists(SaveStore._backup_path(a)),
+        "the deleted save is still on disk as its backup")
+    t.ok(store.exists(b), "deleting one slot left the other alone")
+    t.eq(PlayerProfile.new(store.load_slot(b)).display_name, "Second",
+        "and the other slot still reads back")
+
+    store.delete_slot(b)
 
 
 func test_wounds_do_not_touch_collection(t: TestHarness) -> void:

@@ -145,7 +145,23 @@ You do not need Python to play, to edit cards in the app, or to run the tests.
 
 ## Saves
 
-Progress is stored in Godot's `user://` directory:
+There are six save slots, each its own game with its own collection, decks and
+gold. Starting one never writes over another, and the game opens on the save
+list unless exactly one save exists, in which case it goes straight into it.
+
+**A new save chooses the Affinity it begins in.** It starts with that
+Affinity's starter deck and exactly the cards that deck needs — 46 copies
+across 16 definitions — and nothing else in the catalog is unlocked. The other
+284 definitions are earned with gold and opened from packs, so the shop is the
+progression rather than decoration on a collection the save already has. You
+can play against all seven Affinity opponents from the first match.
+
+Settings offers Export save, Import save (which writes into the slot you are
+playing), Switch save, and Start this save over, which begins the same slot
+again in the same Affinity and keeps the previous game as that slot's backup.
+
+Progress is stored in Godot's `user://` directory, one file per slot under
+`saves/`:
 
 * Linux: `~/.local/share/godot/app_userdata/Heroes of Teloria/`
 * Windows: `%APPDATA%\Godot\app_userdata\Heroes of Teloria\`
@@ -153,9 +169,11 @@ Progress is stored in Godot's `user://` directory:
 
 A save is written as a temporary file and then renamed over the live save, so
 an interrupted write leaves either the old save or the new one, never half of
-each. The previous version is kept as `*.backup.json`. A save that cannot be
-read is copied aside rather than deleted, and a save written by a newer build is
-refused with an explanation rather than overwritten.
+each. The previous version is kept as `slot_N.backup.json`. Deleting a save
+moves it to that backup rather than erasing it. A save that cannot be read is
+copied aside rather than deleted, and a save written by a newer build is
+refused with an explanation rather than overwritten. A single save file from an
+earlier build is adopted into slot 1 on first run instead of being stranded.
 
 **Saves are specific to one device and one installation.** Nothing is
 synchronised to a server. Use Settings → Export save to write a save file you
