@@ -43,6 +43,7 @@ func run(t: TestHarness) -> void:
     _every_screen_builds(t)
     _play_a_starter(t)
     await _play_cards_from_hand(t)
+    await _drag_and_drop(t)
     _finish_and_reward(t)
     _buy_and_reveal(t)
     _add_card_to_deck(t)
@@ -243,6 +244,169 @@ func _play_cards_from_hand(t: TestHarness) -> void:
             t.eq((st.sequence[st.sequence.size() - 1] as ActionSlot).x_paid, 3,
                 "with the X the player actually chose")
         t.eq(st.player(0).energy_current, 1, "and three Energy was spent")
+
+
+## Cards and characters can be dragged onto where they belong.
+##
+## Godot's own mouse plumbing is not simulated here. The test drives the exact
+## entry points that plumbing calls: _get_drag_data on the source, then
+## _can_drop_data and _drop_data on the target. That covers every decision this
+## game makes about what may be dropped where.
+func _drag_and_drop(t: TestHarness) -> void:
+    t.begin("cards and characters can be dragged onto their targets")
+    var deck: Dictionary = {}
+    for d in app.profile.decks():
+        if String((d as Dictionary).get("affinity", "")) == "passion":
+            deck = d
+    app.end_match()
+    if not t.eq(app.start_match(String(deck.get("deck_id", "")), "devotion"), "",
+            "a match started for the drag check"):
+        return
+    var st: GameState = app.match_state
+    app.goto("battle")
+    await _frames(t, 3)
+    var screen := _screen()
+    if not t.ne(screen, null, "the battle screen built"):
+        return
+    st.first_player = 0
+    st.action_priority = 0
+    st.player(0).passed_actions = false
+    st.pending = null
+    st.phase = "action"
+
+    # --- a hand card offers drag data ------------------------------------
+    _force_hand(st, 0, ["PAS_SKILL_01"])
+    screen.call("_refresh")
+    await _frames(t, 2)
+    var card := _first_draggable_card(screen)
+    if not t.ne(card, null, "a playable hand card can be picked up"):
+        return
+    var payload = card.call("_get_drag_data", Vector2.ZERO)
+    t.ok(payload is Dictionary, "dragging it produces a payload")
+    if not (payload is Dictionary):
+        return
+    t.eq(String((payload as Dictionary).get("kind", "")), "card", "the payload describes a card")
+
+    # --- a card with no target drops onto the Action Sequence -------------
+    var zone: Control = screen.get("_sequence_zone")
+    if not t.ne(zone, null, "the Action Sequence is a drop zone"):
+        return
+    t.ok(zone.call("_can_drop_data", Vector2.ZERO, payload),
+        "a card that needs no target may be dropped on the Sequence")
+    var slots_before := st.sequence.size()
+    var energy_before := st.player(0).energy_current
+    zone.call("_drop_data", Vector2.ZERO, payload)
+    await _frames(t, 2)
+    t.eq(st.sequence.size(), slots_before + 1, "dropping it committed the card")
+    t.eq(st.player(0).energy_current, energy_before - 1, "and paid its cost")
+
+    # --- a targeted card drops onto a legal character --------------------
+    st.action_priority = 0
+    _force_hand(st, 0, ["PAS_SKILL_06"])
+    screen.call("_refresh")
+    await _frames(t, 2)
+    var card2 := _first_draggable_card(screen)
+    if not t.ne(card2, null, "the targeted card can be picked up"):
+        return
+    var payload2 = card2.call("_get_drag_data", Vector2.ZERO)
+    var own_hero := _chip_for(screen, st.player(0).hero_iid)
+    var enemy_hero := _chip_for(screen, st.player(1).hero_iid)
+    if not t.ne(own_hero, null, "your Hero is a drop target"):
+        return
+    t.ok(own_hero.call("_can_drop_data", Vector2.ZERO, payload2),
+        "a card targeting your own character may be dropped on your Hero")
+    t.ok(not zone.call("_can_drop_data", Vector2.ZERO, payload2),
+        "and may not be dropped on the Sequence, because it needs a target")
+    if enemy_hero != null:
+        t.ok(not enemy_hero.call("_can_drop_data", Vector2.ZERO, payload2),
+            "nor onto a character it cannot legally target")
+    slots_before = st.sequence.size()
+    own_hero.call("_drop_data", Vector2.ZERO, payload2)
+    await _frames(t, 2)
+    t.eq(st.sequence.size(), slots_before + 1, "dropping it on a legal target committed it")
+    if st.sequence.size() > slots_before:
+        var slot: ActionSlot = st.sequence[st.sequence.size() - 1]
+        t.eq(slot.targets, [st.player(0).hero_iid], "against the character it was dropped on")
+
+    # --- a character is dragged onto what it attacks ----------------------
+    st.action_priority = 0
+    st.player(0).energy_current = 4
+    st.player(0).committed_characters = []
+    screen.call("_refresh")
+    await _frames(t, 2)
+    var attacker := _chip_for(screen, st.player(0).hero_iid)
+    if not t.ne(attacker, null, "your Hero chip is present"):
+        return
+    var attack_payload = attacker.call("_get_drag_data", Vector2.ZERO)
+    t.ok(attack_payload is Dictionary, "your Hero can be picked up to attack")
+    if attack_payload is Dictionary:
+        t.eq(String((attack_payload as Dictionary).get("kind", "")), "attack",
+            "the payload describes an attack")
+        var target_chip := _chip_for(screen, st.player(1).hero_iid)
+        if t.ne(target_chip, null, "the opposing Hero is a drop target"):
+            t.ok(target_chip.call("_can_drop_data", Vector2.ZERO, attack_payload),
+                "an attack may be dropped on the opposing Hero")
+            t.ok(not attacker.call("_can_drop_data", Vector2.ZERO, attack_payload),
+                "but not on your own character")
+            t.ok(not zone.call("_can_drop_data", Vector2.ZERO, attack_payload),
+                "and not on the Sequence, because an attack needs a target")
+            slots_before = st.sequence.size()
+            target_chip.call("_drop_data", Vector2.ZERO, attack_payload)
+            await _frames(t, 2)
+            t.eq(st.sequence.size(), slots_before + 1, "dropping it committed the attack")
+            if st.sequence.size() > slots_before:
+                t.eq((st.sequence[st.sequence.size() - 1] as ActionSlot).kind, "attack",
+                    "as an attack, not a card")
+
+    # --- an X cost is still asked for after a drop -----------------------
+    st.action_priority = 0
+    st.player(0).energy_current = 4
+    _force_hand(st, 0, ["PAS_SKILL_07"])
+    screen.call("_refresh")
+    await _frames(t, 2)
+    var xcard := _first_draggable_card(screen)
+    if xcard != null:
+        var xpayload = xcard.call("_get_drag_data", Vector2.ZERO)
+        slots_before = st.sequence.size()
+        zone.call("_drop_data", Vector2.ZERO, xpayload)
+        await _frames(t, 2)
+        t.eq(st.sequence.size(), slots_before, "an X cost is asked for before the card commits")
+        var spin = screen.get("_x_spin")
+        if t.ne(spin, null, "dropping an X-cost card asks how much Energy to spend"):
+            (spin as SpinBox).value = 2
+            t.ok(_press_button_labelled(screen.get("_controls"), "Continue"),
+                "the amount was confirmed")
+            await _frames(t, 2)
+            t.eq(st.sequence.size(), slots_before + 1, "and then it committed")
+
+    # --- nothing is draggable when it is not your turn -------------------
+    st.action_priority = 1
+    screen.call("_refresh")
+    await _frames(t, 2)
+    t.eq(_first_draggable_card(screen), null, "no card can be picked up on the opponent's turn")
+
+
+func _first_draggable_card(screen: Control) -> Control:
+    var row = screen.get("_hand_row")
+    if row == null:
+        return null
+    for child in (row as Control).get_children():
+        for sub in (child as Control).get_children():
+            if sub is CardView and (sub as CardView).drag_payload != null:
+                return sub as Control
+    return null
+
+
+func _chip_for(screen: Control, iid: String) -> Control:
+    for board_name in ["_own_board", "_opp_board"]:
+        var row = screen.get(board_name)
+        if row == null:
+            continue
+        for child in (row as Control).get_children():
+            if child is BattleDropTarget and (child as BattleDropTarget).has_meta("iid") \
+                    and String((child as BattleDropTarget).get_meta("iid")) == iid:
+                return child as Control
+    return null
 
 
 ## Put exactly these cards in a player's hand, so a test controls what is on

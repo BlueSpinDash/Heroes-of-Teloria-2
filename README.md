@@ -18,8 +18,8 @@ establish no Teloria lore or final balance.
 | Opponents | Seven Affinity AI profiles sharing one legal-command API, with a restricted observation model. |
 | Progression | Gold, boosters, duplicate conversion, idempotent rewards, durable pack transactions. |
 | Persistence | Versioned save with atomic writes, backup rotation, export and import. |
-| Interface | Home, Collection, Deck builder, Opponent selection, Battle, Results, Shop, Card editor, Settings. |
-| Tests | 781 assertions across five suites, all passing. |
+| Interface | Home, Collection, Deck builder, Opponent selection, Battle, Results, Shop, Card editor, Settings. Cards and attacks can be dragged onto their targets or played by clicking. |
+| Tests | 811 assertions across five suites, all passing. |
 
 ## Requirements
 
@@ -152,5 +152,10 @@ docs/            Effect-schema guide and architecture notes
 * **The card editor edits data, not mechanics.** Any effect outside the
   vocabulary in `docs/EFFECT_SCHEMA.md` needs the engine extended first, and the
   editor will refuse to save a definition the interpreter cannot run.
+* **Dragging is an addition, not a replacement.** Every action in a match can
+  be taken by clicking, so the game stays usable on a trackpad or a
+  touchscreen. The drag system is tested through the same entry points Godot's
+  own input calls, and with a simulated mouse drag, but it has not been tried
+  on a touchscreen.
 * **No multiplayer.** The blueprint's first release is single-player against AI,
   and that is what this is.
