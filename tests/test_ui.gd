@@ -41,6 +41,9 @@ func run(t: TestHarness) -> void:
     if app == null:
         return
     _every_screen_builds(t)
+    _hero_cards_use_the_frame(t)
+    await _layout_editor_moves_card_parts(t)
+    await _start_a_new_save_through_the_screen(t)
     _play_a_starter(t)
     await _play_cards_from_hand(t)
     await _drag_and_drop(t)
@@ -69,12 +72,14 @@ func _launch(t: TestHarness) -> void:
         return
     # Start from a brand-new profile so the walkthrough matches a first launch.
     app.catalog = Catalog.load_bundled()
-    app.profile = PlayerProfile.create_new(app.catalog, app.economy)
+    app.slot = SaveStore.MAX_SLOTS
+    app.profile = PlayerProfile.create_new(app.catalog, app.economy, "passion", "Walkthrough")
     app.match_state = null
     app.match_context = {}
     app.save_profile()
     app.goto("home")
-    t.eq(app.profile.decks().size(), 7, "a fresh launch grants all seven starter decks")
+    t.eq(app.profile.decks().size(), 1, "a new save grants the one starter deck it chose")
+    t.eq(app.profile.starter_affinity, "passion", "and records the Affinity it began in")
     t.eq(app.profile.gold, app.economy.starting_gold, "and the configured starting gold")
     t.ok(not app.has_active_match(), "no match is in progress at launch")
 
@@ -87,7 +92,7 @@ func _screen() -> Control:
 
 func _every_screen_builds(t: TestHarness) -> void:
     t.begin("every screen builds")
-    for name in ["home", "collection", "decks", "opponents", "shop", "editor", "settings"]:
+    for name in ["saves", "home", "collection", "decks", "opponents", "shop", "editor", "layout", "settings"]:
         app.goto(String(name))
         var s := _screen()
         t.ne(s, null, "the %s screen was created" % name)
@@ -95,6 +100,79 @@ func _every_screen_builds(t: TestHarness) -> void:
             t.ok(s.get_child_count() > 0, "the %s screen has content" % name)
     app.goto("deck_builder", {"deck_id": String((app.profile.decks()[0] as Dictionary).get("deck_id", ""))})
     t.ne(_screen(), null, "the deck builder opens on an existing deck")
+
+
+## Starting a save has to work through the real save screen, and the save it
+## makes has to be one Affinity's starter deck and nothing else. This is the
+## whole progression: a new game that already owned the catalog would have
+## nothing left to earn.
+func _start_a_new_save_through_the_screen(t: TestHarness) -> void:
+    t.begin("a new save is started from the save screen in one Affinity")
+    var was_profile := app.profile
+    var was_slot := app.slot
+
+    app.goto("saves")
+    await _frames(t, 2)
+    var screen := _screen()
+    if not t.ne(screen, null, "the save screen built"):
+        return
+
+    # Only an empty slot offers this, so whichever one the screen picks is a
+    # slot the test is free to write and then clear away.
+    var new_btn := _button_titled(screen, "New save")
+    if not t.ne(new_btn, null, "an empty slot offers a new save"):
+        return
+    (new_btn as Button).pressed.emit()
+    await _frames(t, 2)
+    var target := int(screen.get("_choosing_slot"))
+    t.ge(float(target), 1.0, "the screen is starting a save in a real slot")
+    t.ok(not app.store.exists(target), "and that slot is empty to begin with")
+
+    var begin := _button_titled(screen, "Begin in Will")
+    if not t.ne(begin, null, "the picker offers every Affinity to begin in"):
+        return
+    (begin as Button).pressed.emit()
+    await _frames(t, 2)
+
+    t.eq(app.slot, target, "the new save went into the slot that was chosen")
+    t.eq(app.profile.starter_affinity, "will", "it began in the Affinity that was picked")
+    t.eq(app.profile.decks().size(), 1, "with one deck")
+    t.eq(app.current_screen_name(), "home", "and the game opened")
+
+    var starter := DeckLibrary.starter_for("will")
+    var outside: Array = []
+    for def_id in app.profile.owned().keys():
+        if not (starter["cards"] as Dictionary).has(def_id) \
+                and String(def_id) != String(starter.get("hero", "")):
+            outside.append(String(def_id))
+    t.empty(outside, "and owns nothing outside that starter deck")
+    t.eq(app.profile.owned_count("DEV_SKILL_01"), 0, "no other Affinity's cards are unlocked")
+    t.ok(app.store.exists(target), "the new save was written to disk straight away")
+
+    # It is legal to play, which is the point of granting the deck at all.
+    var check := DeckValidator.validate(app.catalog, app.rules,
+        app.profile.decks()[0], app.profile.owned())
+    t.ok(check["ok"], "the granted deck is legal and fully owned: %s" % str(check["errors"]))
+
+    # Put the walkthrough's own save back and leave the slot as it was found.
+    app.store.delete_slot(target)
+    app.profile = was_profile
+    app.slot = was_slot
+    app.catalog = Catalog.load_bundled()
+    app.catalog.set_overrides(app.profile.overrides())
+    app.goto("home")
+    await _frames(t, 2)
+
+
+## The first Button anywhere under `node` whose label starts with `text`.
+func _button_titled(node: Node, text: String) -> Button:
+    for child in node.get_children():
+        if child is Button and (child as Button).text.begins_with(text):
+            return child as Button
+        var found := _button_titled(child, text)
+        if found != null:
+            return found
+    return null
 
 
 func _starter_deck() -> Dictionary:
@@ -196,6 +274,8 @@ func _play_cards_from_hand(t: TestHarness) -> void:
     screen.call("_refresh")
     await _frames(t, 2)
     _assert_buttons_reachable(t, screen)
+    _assert_board_zones_visible(t, screen)
+    await _card_zoom_reads_cards(t, screen)
     var energy_before := st.player(0).energy_current
     var slots_before := st.sequence.size()
     t.ok(_press_first_play_button(screen), "the hand offered a play button")
@@ -386,6 +466,198 @@ func _drag_and_drop(t: TestHarness) -> void:
     t.eq(_first_draggable_card(screen), null, "no card can be picked up on the opponent's turn")
 
 
+## Hero cards are drawn on the painted Hero frame, and a card that opts out
+## keeps the face it shipped with.
+func _hero_cards_use_the_frame(t: TestHarness) -> void:
+    t.begin("Hero cards are drawn on the Hero frame")
+    var heroes: Array = []
+    var plain: Array = []
+    var wrong: Array = []
+    for d in app.catalog.all_defs():
+        var card: CardDef = d
+        if not card.has_type("hero"):
+            if CardView._frame_for(card) != "":
+                wrong.append("%s is not a Hero but asked for a frame" % card.id)
+            continue
+        heroes.append(card.id)
+        if card.frame == "plain":
+            plain.append(card.id)
+            if CardView._frame_for(card) != "":
+                wrong.append("%s opted out but was framed anyway" % card.id)
+        elif CardView._frame_for(card) != CardView.FRAMES["hero"]:
+            wrong.append("%s is a Hero but was not framed" % card.id)
+    t.ge(float(heroes.size()), 7.0, "there is a Hero for every Affinity")
+    t.empty(wrong, "every Hero is on the frame, and only Heroes are")
+    t.empty(plain, "no Hero opts out of the frame")
+
+    # The opt-out still works, for a card finished before its type has a frame.
+    var opted := CardDef.from_dict(app.catalog.get_def("PAS_HERO_01").data.duplicate(true))
+    opted.data["frame"] = "plain"
+    t.eq(CardView._frame_for(opted), "", "a card can still ask for the plain face")
+
+    # Framed or plain, a card is still a trading card.
+    for id in ["DEV_HERO_01", "PAS_HERO_01"]:
+        var view := CardView.create(app.catalog.get_def(String(id)), 300.0)
+        _root.add_child(view)
+        var want := 300.0 * CardView.BASE_HEIGHT / CardView.BASE_WIDTH
+        t.le(absf(view.get_combined_minimum_size().y - want), 1.0,
+            "%s keeps trading-card proportions (%.1f, wanted %.1f)" % [
+                id, view.get_combined_minimum_size().y, want])
+        view.queue_free()
+
+
+## The Layout screen has to actually move what a card draws, and a layout has
+## to survive being saved and loaded, or it is a toy.
+func _layout_editor_moves_card_parts(t: TestHarness) -> void:
+    t.begin("the Layout screen moves the pieces of a card")
+    var path := "user://layout_test.json"
+    var was := Layout.rect("hero_card", "art")
+    t.ok(not Layout.is_changed("hero_card", "art"), "the art window starts at its shipped value")
+
+    # A card draws the slot it is given, so moving the slot moves the art.
+    var def := app.catalog.get_def("PAS_HERO_01")
+    var before := CardView.create(def, 300.0)
+    _root.add_child(before)
+    await _frames(t, 2)
+    var art_before := _art_rect(before)
+    t.ne(art_before, Rect2(), "the card drew its art somewhere")
+
+    var moved := Rect2(was.position.x + 0.05, was.position.y + 0.03, was.size.x, was.size.y)
+    Layout.set_rect("hero_card", "art", moved)
+    t.ok(Layout.is_changed("hero_card", "art"), "the change is reported against the shipped value")
+    var after := CardView.create(def, 300.0)
+    _root.add_child(after)
+    await _frames(t, 2)
+    var art_after := _art_rect(after)
+    t.ok(absf(art_after.position.x - art_before.position.x - 0.05 * 300.0) < 1.5,
+        "the art moved across by what the slot moved (%s then %s)" % [
+            str(art_before.position), str(art_after.position)])
+    before.queue_free()
+    after.queue_free()
+
+    # A number is clamped to its stated range rather than accepted blindly.
+    var bounds := Layout.limits("battle_board", "hand_card_w")
+    Layout.set_num("battle_board", "hand_card_w", bounds.y + 500.0)
+    t.eq(Layout.num("battle_board", "hand_card_w"), bounds.y,
+        "a number past its maximum is held at the maximum")
+
+    # Saved and loaded, the values come back.
+    t.ok(Layout.save_to(path), "the layout saved")
+    Layout.reset_all()
+    t.ok(not Layout.is_changed("hero_card", "art"), "resetting put the shipped value back")
+    t.ok(Layout.load_from(path), "the saved layout loaded")
+    t.ok(Layout.rect("hero_card", "art").is_equal_approx(moved),
+        "and the moved art window came back as it was saved")
+    t.eq(Layout.num("battle_board", "hand_card_w"), bounds.y, "as did the number")
+
+    # --- the stack ---------------------------------------------------------
+    # A card is drawn back to front in the order the layout gives, and the
+    # frame is one of the pieces: art moved behind it has to actually end up
+    # behind it, not merely be listed that way.
+    Layout.reset_all()
+    var order := Layout.layer_order("hero_card")
+    t.ok(order.find("frame") < order.find("art"),
+        "the frame starts behind the artwork")
+    var drawn := _piece_order(def)
+    t.ok(drawn.find("frame") < drawn.find("art"),
+        "and the card draws it that way: %s" % str(drawn))
+
+    Layout.move_layer("hero_card", "art", -1)
+    t.ok(Layout.layer_order("hero_card").find("art")
+            < Layout.layer_order("hero_card").find("frame"),
+        "sending the artwork back puts it behind the frame")
+    t.ok(Layout.layers_changed("hero_card"), "and that counts as a change")
+    var redrawn := _piece_order(def)
+    t.ok(redrawn.find("art") < redrawn.find("frame"),
+        "and the card is rebuilt with the artwork behind the frame: %s" % str(redrawn))
+
+    # Moving past the end does nothing rather than falling off.
+    var back := String(Layout.layer_order("hero_card")[0])
+    Layout.move_layer("hero_card", String(back), -5)
+    t.eq(Layout.layer_order("hero_card")[0], back, "the hindmost piece cannot go further back")
+
+    Layout.reset_layers("hero_card")
+    t.ok(not Layout.layers_changed("hero_card"), "resetting the order restores it")
+
+    # Leave the game as it was found.
+    Layout.reset_all()
+    DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+    t.ok(Layout.rect("hero_card", "art").is_equal_approx(was),
+        "the test left the layout as it found it")
+
+
+## Which pieces a built card holds, in the order it draws them.
+func _piece_order(def: CardDef) -> Array:
+    var view := CardView.create(def, 300.0)
+    var out: Array = []
+    for host in view.get_children():
+        for piece in (host as Node).get_children():
+            if piece is CardArt:
+                out.append("art")
+            elif piece is TextureRect:
+                out.append("frame")
+    view.queue_free()
+    return out
+
+
+## Where a built card actually drew its art, in the card's own coordinates.
+func _art_rect(view: CardView) -> Rect2:
+    for layer in view.get_children():
+        for child in (layer as Node).get_children():
+            if child is CardArt:
+                return Rect2((child as Control).position, (child as Control).size)
+    return Rect2()
+
+
+## Resting the pointer on a small card has to bring up a readable one.
+##
+## The hand and the board draw cards small enough to fit the table, which
+## leaves the rules text too small to read, so this is the only way to read a
+## card during a match.
+func _card_zoom_reads_cards(t: TestHarness, screen: Control) -> void:
+    t.begin("hovering a card shows it at a readable size")
+    var zoom = screen.get("_zoom")
+    if not t.ok(zoom != null, "the battle screen has a card reader"):
+        return
+    t.ok(not zoom.call("showing"), "nothing is being read to start with")
+
+    var card := _first_draggable_card(screen)
+    if not t.ne(card, null, "there is a card in hand to hover"):
+        return
+    var want: CardDef = (card as CardView).def
+    (card as CardView).mouse_entered.emit()
+    # The reader waits a beat before appearing so that sweeping the pointer
+    # across the board does not flash a card for every chip it crosses.
+    zoom.call("_process", CardZoom.HOVER_DELAY + 0.1)
+    await _frames(t, 2)
+    t.ok(zoom.call("showing"), "resting on a hand card brings up a reader")
+    t.eq(zoom.call("shown_card"), want, "and it is the card that was hovered")
+
+    var shown: Rect2 = zoom.call("shown_rect")
+    t.ge(float(shown.size.x), float((card as CardView).card_width) + 1.0,
+        "the reader is larger than the card in hand")
+    var window := Rect2(Vector2.ZERO, Vector2(screen.get_viewport().get_visible_rect().size))
+    t.ok(window.encloses(shown),
+        "the reader %s is fully inside the window %s" % [str(shown), str(window)])
+
+    (card as CardView).mouse_exited.emit()
+    await _frames(t, 2)
+    t.ok(not zoom.call("showing"), "moving off the card takes the reader away")
+
+    # A card on the board is read the same way, and a refresh clears the reader
+    # because the chip it was reading has been rebuilt.
+    var st: GameState = app.match_state
+    var hero := _chip_for(screen, st.player(0).hero_iid)
+    if hero != null:
+        (hero as Control).mouse_entered.emit()
+        zoom.call("_process", CardZoom.HOVER_DELAY + 0.1)
+        await _frames(t, 2)
+        t.ok(zoom.call("showing"), "a Hero on the board can be read too")
+        screen.call("_refresh")
+        await _frames(t, 2)
+        t.ok(not zoom.call("showing"), "a refresh clears the reader with the chips")
+
+
 func _first_draggable_card(screen: Control) -> Control:
     var row = screen.get("_hand_row")
     if row == null:
@@ -397,15 +669,14 @@ func _first_draggable_card(screen: Control) -> Control:
     return null
 
 
+## The board keeps a lookup of every chip by instance id, which is also what
+## the animation layer uses to find things on screen.
 func _chip_for(screen: Control, iid: String) -> Control:
-    for board_name in ["_own_board", "_opp_board"]:
-        var row = screen.get(board_name)
-        if row == null:
-            continue
-        for child in (row as Control).get_children():
-            if child is BattleDropTarget and (child as BattleDropTarget).has_meta("iid") \
-                    and String((child as BattleDropTarget).get_meta("iid")) == iid:
-                return child as Control
+    var chips = screen.get("_chips")
+    if chips is Dictionary and (chips as Dictionary).has(iid):
+        var chip = (chips as Dictionary)[iid]
+        if is_instance_valid(chip):
+            return chip as Control
     return null
 
 
@@ -471,6 +742,40 @@ func _assert_buttons_reachable(t: TestHarness, screen: Control) -> void:
                 (b as Button).text, str(r), str(visible)])
     t.empty(unreachable, "every play button is inside the visible hand strip")
 
+    # The strip itself has to be on screen. Twice now a taller board has pushed
+    # the hand below the window, which makes the whole hand unplayable even
+    # though every button is correctly placed inside it.
+    var window := Rect2(Vector2.ZERO, Vector2(screen.get_viewport().get_visible_rect().size))
+    t.ok(visible.position.y >= window.position.y - 1.0
+            and visible.end.y <= window.end.y + 1.0,
+        "the hand strip %s sits inside the window %s" % [str(visible), str(window)])
+
+
+## The board reads as two mirrored halves around a shared middle. Every zone
+## has to be laid out and on screen, or part of the match is invisible.
+func _assert_board_zones_visible(t: TestHarness, screen: Control) -> void:
+    var window := Rect2(Vector2.ZERO, Vector2(screen.get_viewport().get_visible_rect().size))
+    var zones := {
+        "your Companion Zone": screen.get("_own_companion_zone"),
+        "the opponent's Companion Zone": screen.get("_opp_companion_zone"),
+        "the Location zone": screen.get("_location_zone"),
+        "the Action Sequence": screen.get("_sequence_zone"),
+        "your decks and Hero": screen.get("_own_piles"),
+        "the opponent's decks and Hero": screen.get("_opp_piles"),
+    }
+    var missing: Array = []
+    for name in zones:
+        var c = zones[name]
+        if c == null or not (c is Control):
+            missing.append("%s was never built" % name)
+            continue
+        var r: Rect2 = (c as Control).get_global_rect()
+        if r.size.x <= 0.0 or r.size.y <= 0.0:
+            missing.append("%s has no size" % name)
+        elif not window.intersects(r):
+            missing.append("%s at %s is off screen %s" % [name, str(r), str(window)])
+    t.empty(missing, "every board zone is laid out and on screen")
+
 
 func _finish_match(st: GameState) -> void:
     MatchRunner.drive(st, ["pass", "ai"], WALKTHROUGH_ROUND_LIMIT)
@@ -523,7 +828,7 @@ func _buy_and_reveal(t: TestHarness) -> void:
         "the price was deducted once and duplicate conversions credited")
 
     # The purchase is durable before anything is revealed.
-    var reloaded := PlayerProfile.new(app.store.load_raw())
+    var reloaded := PlayerProfile.new(app.store.load_slot(app.slot))
     t.eq(reloaded.gold, app.profile.gold, "the committed save already shows the purchase")
     t.ok(reloaded.pending_reveal() is Dictionary, "a reload mid-reveal still has the same result waiting")
 
@@ -584,7 +889,7 @@ func _add_card_to_deck(t: TestHarness) -> void:
     t.eq(int(check["count"]), 45, "it still holds exactly 45 cards")
     app.profile.save_deck(deck)
     app.save_profile()
-    t.eq(app.profile.decks().size(), 8, "the new deck was saved alongside the starters")
+    t.eq(app.profile.decks().size(), 2, "the new deck was saved alongside the starter")
     t.ok(app.profile.owned_count(donor) >= int((app.profile.deck_by_id("walkthrough_deck")["cards"] as Dictionary).get(donor, 0)),
         "saving a deck did not consume any cards")
 
@@ -596,7 +901,7 @@ func _save_and_reload(t: TestHarness) -> void:
     var owned := app.profile.owned_count("NEU_SKILL_01")
     t.eq(app.save_profile(), "", "the save committed")
 
-    var reloaded := PlayerProfile.new(app.store.load_raw())
+    var reloaded := PlayerProfile.new(app.store.load_slot(app.slot))
     t.eq(reloaded.gold, gold, "gold survived the reload")
     t.eq(reloaded.decks().size(), deck_count, "every deck survived the reload")
     t.eq(reloaded.owned_count("NEU_SKILL_01"), owned, "owned counts survived the reload")

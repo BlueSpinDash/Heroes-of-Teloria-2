@@ -246,27 +246,47 @@ func test_decks_legal(t: TestHarness) -> void:
 
 
 func test_starter_grant_plays(t: TestHarness) -> void:
-    t.begin("a new profile can actually play all seven starters")
+    t.begin("a new save can play the starter it chose, and owns nothing else")
     var cat := _catalog()
     var rules := RulesProfile.load_from()
     var economy := EconomyConfig.load_from()
-    var profile := PlayerProfile.create_new(cat, economy)
-    t.eq(profile.gold, economy.starting_gold, "the profile starts with the configured gold")
-    t.eq(profile.decks().size(), 7, "all seven starter decks are saved")
+    var affinities := DeckLibrary.starter_affinities()
+    t.eq(affinities.size(), 7, "a save can begin in any of the seven Affinities")
 
-    for deck in profile.decks():
-        var d: Dictionary = deck
-        var r := DeckValidator.validate(cat, rules, d, profile.owned())
-        t.ok(r["ok"], "%s is legal and fully owned: %s" % [String(d.get("name", "?")), str(r["errors"])])
+    for a in affinities:
+        var affinity := String(a)
+        var profile := PlayerProfile.create_new(cat, economy, affinity)
+        t.eq(profile.gold, economy.starting_gold, "%s starts with the configured gold" % affinity)
+        t.eq(profile.starter_affinity, affinity, "%s records the Affinity it began in" % affinity)
+        t.eq(profile.decks().size(), 1, "%s starts with one deck, not all seven" % affinity)
 
-    # The grant takes the highest requirement per definition, not the sum.
-    var grant := DeckLibrary.starter_grant()
-    var over_cap: Array = []
-    for def_id in grant.keys():
-        if int(grant[def_id]) > cat.collection_cap(String(def_id)):
-            over_cap.append(String(def_id))
-    t.empty(over_cap, "no granted definition exceeds its collection cap")
-    t.eq(profile.owned_count("PAS_SKILL_01"), 3, "a shared starter card was granted at three copies, not six")
+        var deck: Dictionary = profile.decks()[0]
+        var r := DeckValidator.validate(cat, rules, deck, profile.owned())
+        t.ok(r["ok"], "the %s starter is legal and fully owned: %s" % [affinity, str(r["errors"])])
+
+        # Nothing outside that deck is unlocked: the rest of the catalog is the
+        # progression, not the starting position.
+        var extra: Array = []
+        for def_id in profile.owned().keys():
+            if not (deck["cards"] as Dictionary).has(def_id) \
+                    and String(def_id) != String(deck.get("hero", "")):
+                extra.append(String(def_id))
+        t.empty(extra, "a new %s save owns only what its starter deck needs" % affinity)
+        for def_id in profile.owned().keys():
+            if profile.owned_count(String(def_id)) > cat.collection_cap(String(def_id)):
+                t.ok(false, "%s was granted past its collection cap" % String(def_id))
+
+    # A save that begins in one Affinity owns none of another's cards.
+    var devotion := PlayerProfile.create_new(cat, economy, "devotion")
+    t.eq(devotion.owned_count("PAS_SKILL_01"), 0,
+        "a Devotion save owns no Passion cards")
+    t.eq(devotion.owned_count("DEV_SKILL_01"), 3,
+        "and owns its own starter cards at three copies")
+
+    # An Affinity with no starter deck is reported by falling back, never by
+    # producing a save with nothing in it.
+    var fallback := PlayerProfile.create_new(cat, economy, "not_an_affinity")
+    t.eq(fallback.decks().size(), 1, "an unknown Affinity still produces a playable save")
 
 
 func test_ai_deck_themes(t: TestHarness) -> void:
@@ -470,7 +490,7 @@ func test_edit_preserves_references(t: TestHarness) -> void:
     var cat := Catalog.load_bundled()
     var rules := RulesProfile.load_from()
     var economy := EconomyConfig.load_from()
-    var profile := PlayerProfile.create_new(cat, economy)
+    var profile := PlayerProfile.create_new(cat, economy, "devotion")
     var deck: Dictionary = profile.decks()[0]
     var target_id := String((deck["cards"] as Dictionary).keys()[0])
     var owned_before := profile.owned_count(target_id)
@@ -501,7 +521,7 @@ func test_edit_reports_illegality(t: TestHarness) -> void:
     var cat := Catalog.load_bundled()
     var rules := RulesProfile.load_from()
     var economy := EconomyConfig.load_from()
-    var profile := PlayerProfile.create_new(cat, economy)
+    var profile := PlayerProfile.create_new(cat, economy, "devotion")
     var deck: Dictionary = profile.decks()[0]
     var ids: Array = (deck["cards"] as Dictionary).keys()
     ids.sort()
@@ -521,7 +541,7 @@ func test_edit_reports_illegality(t: TestHarness) -> void:
         if String(e).contains("limit is 3"):
             mentions_limit = true
     t.ok(mentions_limit, "the error names the exact problem: %s" % str(r["errors"]))
-    t.eq(profile.decks().size(), 7, "the deck was not deleted")
+    t.eq(profile.decks().size(), 1, "the deck was not deleted")
     t.ok((deck["cards"] as Dictionary).has(a), "its card list is intact")
 
 

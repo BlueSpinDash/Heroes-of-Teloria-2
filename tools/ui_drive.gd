@@ -27,7 +27,8 @@ func _run() -> void:
 
     # A clean profile, so the walkthrough starts where a new player would.
     app.catalog = Catalog.load_bundled()
-    app.profile = PlayerProfile.create_new(app.catalog, app.economy)
+    app.profile = PlayerProfile.create_new(app.catalog, app.economy, "devotion")
+    app.slot = 1
     app.save_profile()
     app.goto("home")
     await _shot("01_home")
@@ -39,7 +40,7 @@ func _run() -> void:
     app.goto("decks")
     await _shot("03_decks")
 
-    var starter: Dictionary = app.profile.decks()[1]
+    var starter: Dictionary = app.profile.decks()[0]
     app.goto("deck_builder", {"deck_id": String(starter.get("deck_id", ""))})
     await _settle(4)
     await _shot("04_deck_builder")

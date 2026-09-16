@@ -31,6 +31,16 @@ var _dragging: bool = false
 var _thinker: AiThinker = null
 var _ai_pause: float = 0.0
 
+# Layout metrics, budgeted against the window rather than left to grow. The
+# board is painted art, so each zone is sized to the plate behind it. These are
+# editable: the Layout screen changes them and writes them to data/layout.json.
+var HAND_CARD_W: float = Layout.num("battle_board", "hand_card_w")
+var HAND_STRIP_H: float = Layout.num("battle_board", "hand_strip_h")
+var COMPANION_STRIP_H: float = Layout.num("battle_board", "companion_strip_h")
+var DECK_PLATE_H: float = Layout.num("battle_board", "deck_plate_h")
+var MIDDLE_H: float = Layout.num("battle_board", "middle_h")
+var LOCATION_W: float = Layout.num("battle_board", "location_w")
+
 # Layout handles.
 var _top: HBoxContainer
 var _sequence_row: HBoxContainer
@@ -40,10 +50,26 @@ var _hand_row: HBoxContainer
 var _controls: HBoxContainer
 var _prompt: Label
 var _log_box: VBoxContainer
-var _location_holder: HBoxContainer
 var _chain_label: Label
 var _x_spin: SpinBox
 var _sequence_zone: BattleDropTarget
+var _location_zone: BattleDropTarget
+var _location_holder: VBoxContainer
+var _opp_piles: HBoxContainer
+var _own_piles: HBoxContainer
+var _own_companion_zone: BattleDropTarget
+var _opp_companion_zone: BattleDropTarget
+
+## Board chips by instance id, so effects know where things are on screen.
+var _chips: Dictionary = {}
+var _pile_chips: Dictionary = {}
+
+## Cosmetic feedback for events that have already resolved.
+var _effects: BoardEffects
+var _events_seen: int = 0
+
+## A full-size card face, shown while the pointer rests on a small one.
+var _zoom: CardZoom
 
 
 func setup(application: App, _args: Dictionary = {}) -> void:
@@ -58,94 +84,174 @@ func setup(application: App, _args: Dictionary = {}) -> void:
         add_child(v)
         return
     st = app.match_state
+    # Everything already in the log happened before this screen opened, so it
+    # is not replayed as animation.
+    _events_seen = st.events.size()
     _build()
     _refresh()
 
 
-## A horizontally scrolling strip of a fixed height, so the board and the
-## Sequence never squeeze the hand off the bottom of the screen.
-func _fixed_scroll(child: Control, height: int) -> ScrollContainer:
-    var s := UiTheme.scroll(child, true)
-    s.custom_minimum_size = Vector2(0, height)
-    s.size_flags_vertical = Control.SIZE_FILL
-    return s
-
-
+## The board is one painted field. Every zone on it is a plate sliced from the
+## same artwork, laid out as two mirrored halves around a shared middle, with
+## the hand pinned along the bottom.
 func _build() -> void:
-    var root := UiTheme.vbox(6)
+    # The painted board itself, dimmed, behind everything. Its ornate frame and
+    # banners are what the edges of the screen show.
+    var field := BoardArt.plate("board_full", BoardArt.FIELD_TINT)
+    field.set_anchors_preset(Control.PRESET_FULL_RECT)
+    add_child(field)
+
+    var root := UiTheme.vbox(3)
     root.set_anchors_preset(Control.PRESET_FULL_RECT)
     add_child(root)
 
     _top = UiTheme.hbox(10)
     root.add_child(_top)
 
-    var cols := UiTheme.hbox(10)
+    var cols := UiTheme.hbox(8)
     cols.size_flags_vertical = Control.SIZE_EXPAND_FILL
     root.add_child(cols)
 
-    var centre := UiTheme.vbox(6)
+    var centre := UiTheme.vbox(2)
     centre.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     var centre_scroll := ScrollContainer.new()
     centre_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     centre_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
     centre_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
     centre_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-    centre.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     centre_scroll.add_child(centre)
     cols.add_child(centre_scroll)
 
-    centre.add_child(UiTheme.label("Opponent's Companions", 12, UiTheme.TEXT_DIM))
-    _opp_board = UiTheme.hbox(6)
-    centre.add_child(_fixed_scroll(_opp_board, 88))
+    # Two mirrored halves. The rules give the two players one Action Sequence
+    # and one Location between them, not one apiece, so those sit once in the
+    # shared middle rather than being mirrored with everything else.
+    centre.add_child(_make_companion_zone(1))
+    centre.add_child(_make_deck_row(1))
+    centre.add_child(_make_middle())
+    centre.add_child(_make_deck_row(0))
+    centre.add_child(_make_companion_zone(0))
 
-    var mid := UiTheme.hbox(10)
-    mid.size_flags_vertical = Control.SIZE_FILL
-    mid.add_child(UiTheme.label("Location:", 12, UiTheme.TEXT_DIM))
-    _location_holder = UiTheme.hbox(6)
-    mid.add_child(_location_holder)
-    centre.add_child(mid)
-
-    centre.add_child(UiTheme.separator())
-    var seq_head := UiTheme.hbox(8)
-    seq_head.add_child(UiTheme.label("Action Sequence (resolves left to right)", 12, UiTheme.GOLD))
-    _chain_label = UiTheme.label("", 11, UiTheme.TEXT_DIM)
-    seq_head.add_child(_chain_label)
-    centre.add_child(seq_head)
-    _sequence_row = UiTheme.hbox(6)
-    # The Sequence doubles as the drop zone for a card that needs no target.
-    _sequence_zone = BattleDropTarget.new()
-    _sequence_zone.style(UiTheme.BG, UiTheme.GOLD_DIM, 1, 5)
-    _sequence_zone.drop_hint = "Commit to the Action Sequence"
-    _sequence_zone.accepts_check = func(payload): return _accepts_on_sequence(payload)
-    _sequence_zone.dropped.connect(func(payload): _drop_on_sequence(payload))
-    _sequence_zone.add_child(_fixed_scroll(_sequence_row, 102))
-    centre.add_child(_sequence_zone)
-    centre.add_child(UiTheme.separator())
-
-    centre.add_child(UiTheme.label("Your Companions", 12, UiTheme.TEXT_DIM))
-    _own_board = UiTheme.hbox(6)
-    centre.add_child(_fixed_scroll(_own_board, 88))
-
-    _prompt = UiTheme.wrapped("", 13, UiTheme.GOLD)
-    centre.add_child(_prompt)
-
-    _controls = UiTheme.hbox(8)
-    centre.add_child(_controls)
-
-    centre.add_child(UiTheme.label("Your hand", 12, UiTheme.TEXT_DIM))
-    _hand_row = UiTheme.hbox(6)
-    var hand_scroll := UiTheme.scroll(_hand_row, true)
-    hand_scroll.custom_minimum_size = Vector2(0, 282)
-    centre.add_child(hand_scroll)
-
-    var log_panel := UiTheme.panel(UiTheme.BG_PANEL, UiTheme.GOLD_DIM, 1, 6)
-    log_panel.custom_minimum_size = Vector2(330, 0)
+    var log_panel := UiTheme.panel(UiTheme.BG_PANEL.darkened(0.2), UiTheme.GOLD_DIM, 1, 6)
+    log_panel.custom_minimum_size = Vector2(268, 0)
     _log_box = UiTheme.vbox(1)
     log_panel.add_child(UiTheme.scroll(_log_box))
     cols.add_child(log_panel)
 
+    # The prompt, the controls and the hand are pinned below the scrolling
+    # board. However tall the board grows, they stay on screen, so the cards
+    # you can play are always reachable.
+    var action_panel := UiTheme.panel(UiTheme.BG_PANEL.darkened(0.35), UiTheme.GOLD_DIM, 1, 4)
+    var action_bar := UiTheme.hbox(10)
+    _controls = UiTheme.hbox(8)
+    action_bar.add_child(_controls)
+    _prompt = UiTheme.wrapped("", 12, UiTheme.GOLD)
+    _prompt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    _prompt.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+    action_bar.add_child(_prompt)
+    action_panel.add_child(action_bar)
+    root.add_child(action_panel)
 
-# --------------------------------------------------------------- AI driving ---
+    _hand_row = UiTheme.hbox(6)
+    var hand_zone := PanelContainer.new()
+    var hand_box := BoardArt.back(hand_zone, "panel_hand", UiTheme.GOLD, 2)
+    var hand_scroll := UiTheme.scroll(_hand_row, true)
+    hand_scroll.custom_minimum_size = Vector2(0, HAND_STRIP_H)
+    hand_scroll.size_flags_vertical = Control.SIZE_FILL
+    hand_box.add_child(hand_scroll)
+    hand_zone.size_flags_vertical = Control.SIZE_SHRINK_END
+    root.add_child(hand_zone)
+
+    # Added last so they draw over the board. Neither takes input.
+    _effects = BoardEffects.new()
+    add_child(_effects)
+    _zoom = CardZoom.new()
+    add_child(_zoom)
+
+
+## The shared middle: the Action Sequence, with the Location plate beside it,
+## the way the two sit side by side on the painted board.
+func _make_middle() -> Control:
+    var row := UiTheme.hbox(6)
+    row.custom_minimum_size = Vector2(0, MIDDLE_H)
+    var seq := _make_sequence_zone()
+    seq.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    row.add_child(seq)
+    var loc := _make_location_zone()
+    loc.custom_minimum_size = Vector2(LOCATION_W, 0)
+    row.add_child(loc)
+    return row
+
+
+## One player's decks and Hero, on the plates painted for them. Player 0 reads
+## Hit, Hero, Exhaust, Wound from the left; the opponent's row is mirrored.
+func _make_deck_row(player: int) -> Control:
+    var row := UiTheme.hbox(6)
+    row.alignment = BoxContainer.ALIGNMENT_CENTER
+    row.custom_minimum_size = Vector2(0, DECK_PLATE_H)
+    if player == 0:
+        _own_piles = row
+    else:
+        _opp_piles = row
+    return row
+
+
+func _make_companion_zone(player: int) -> Control:
+    var target := BattleDropTarget.new()
+    var v := BoardArt.back(target, "panel_companion", UiTheme.GOLD, 2)
+    v.add_child(BoardArt.caption(
+        "Your Companion Zone" if player == 0 else "Opponent's Companion Zone", 10))
+    var row := UiTheme.hbox(6)
+    row.alignment = BoxContainer.ALIGNMENT_CENTER
+    var row_scroll := UiTheme.scroll(row, true)
+    row_scroll.custom_minimum_size = Vector2(0, COMPANION_STRIP_H)
+    row_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+    v.add_child(row_scroll)
+    if player == 0:
+        _own_board = row
+        _own_companion_zone = target
+        target.drop_hint = "Deploy here"
+        target.accepts_check = func(payload): return _accepts_on_companion_zone(payload)
+        target.dropped.connect(func(payload): _drop_on_sequence(payload))
+    else:
+        _opp_board = row
+        _opp_companion_zone = target
+    return target
+
+
+## The Location plate. Its painted caption reads "Terrain", so it is cropped
+## out of the artwork and the game's own word is drawn here instead.
+func _make_location_zone() -> Control:
+    _location_zone = BattleDropTarget.new()
+    var v := BoardArt.back(_location_zone, "panel_location", UiTheme.GOLD, 2)
+    _location_zone.drop_hint = "Play here"
+    _location_zone.accepts_check = func(payload): return _accepts_on_location(payload)
+    _location_zone.dropped.connect(func(payload): _drop_on_location(payload))
+    v.add_child(BoardArt.caption("Location", 12))
+    _location_holder = UiTheme.vbox(2)
+    _location_holder.alignment = BoxContainer.ALIGNMENT_CENTER
+    _location_holder.size_flags_vertical = Control.SIZE_EXPAND_FILL
+    v.add_child(_location_holder)
+    return _location_zone
+
+
+func _make_sequence_zone() -> Control:
+    _sequence_zone = BattleDropTarget.new()
+    var v := BoardArt.back(_sequence_zone, "panel_sequence", UiTheme.GOLD, 2)
+    _sequence_zone.drop_hint = "Commit to the Action Sequence"
+    _sequence_zone.accepts_check = func(payload): return _accepts_on_sequence(payload)
+    _sequence_zone.dropped.connect(func(payload): _drop_on_sequence(payload))
+    var head := UiTheme.hbox(8)
+    head.alignment = BoxContainer.ALIGNMENT_CENTER
+    head.add_child(BoardArt.caption("Action Sequence — resolves left to right", 10))
+    _chain_label = UiTheme.label("", 10, UiTheme.GOLD)
+    head.add_child(_chain_label)
+    v.add_child(head)
+    _sequence_row = UiTheme.hbox(6)
+    var seq_scroll := UiTheme.scroll(_sequence_row, true)
+    seq_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+    v.add_child(seq_scroll)
+    return _sequence_zone
+
 
 func _process(delta: float) -> void:
     _update_drag_state()
@@ -190,6 +296,8 @@ func _update_drag_state() -> void:
     if now == _dragging:
         return
     _dragging = now
+    if now and _zoom != null and is_instance_valid(_zoom):
+        _zoom.dismiss()
     var payload = vp.gui_get_drag_data() if now else null
     for tgt in _drop_targets:
         if tgt is BattleDropTarget and is_instance_valid(tgt):
@@ -210,49 +318,66 @@ func _after_command() -> void:
 func _refresh() -> void:
     if st == null:
         return
+    # Chips are rebuilt every refresh, so the lookups that depend on them are
+    # rebuilt first.
+    _chips = {}
+    _pile_chips = {}
+    _drop_targets = []
+    # The thing being read is about to be freed, so nothing is being read.
+    if _zoom != null and is_instance_valid(_zoom):
+        _zoom.dismiss()
+    for zone in [_sequence_zone, _location_zone, _own_companion_zone]:
+        if zone != null:
+            _drop_targets.append(zone)
+
     _refresh_top()
+    _refresh_piles()
     _refresh_boards()
+    _refresh_location()
     _refresh_sequence()
     _refresh_hand()
     _refresh_controls()
     _refresh_log()
+    # Positions are only known once the new layout has been measured.
+    call_deferred("_play_new_events")
 
 
 func _refresh_top() -> void:
     for c in _top.get_children():
+        _top.remove_child(c)
         c.queue_free()
     _top.add_child(UiTheme.stat_chip("Round", str(st.round_number)))
     _top.add_child(UiTheme.stat_chip("Phase", st.phase.capitalize()))
     var priority := "You" if st.action_priority == 0 else "Opponent"
     _top.add_child(UiTheme.stat_chip("Priority", priority if st.phase == "action" else "—"))
 
-    for i in [0, 1]:
+    for i in [1, 0]:
         var p := st.player(i)
         var hero := st.def_of(p.hero_iid)
-        var who := "You" if i == 0 else "Opponent"
         var panel := UiTheme.panel(UiTheme.BG_PANEL,
             UiTheme.GOLD if i == 0 else UiTheme.GOLD_DIM, 1, 5)
-        var v := UiTheme.vbox(2)
-        v.add_child(UiTheme.label("%s — %s" % [who, hero.name if hero != null else "?"],
-            13, UiTheme.GOLD if i == 0 else UiTheme.TEXT))
         var row := UiTheme.hbox(6)
-        row.add_child(UiTheme.label("Hero %d/%d" % [
-            st.current_attack(p.hero_iid), st.current_defense(p.hero_iid)], 12, UiTheme.TEXT))
+        row.add_child(UiTheme.label("You" if i == 0 else "Opponent", 13,
+            UiTheme.GOLD if i == 0 else UiTheme.TEXT))
+        row.add_child(UiTheme.label(hero.name if hero != null else "?", 12, UiTheme.TEXT_DIM))
         row.add_child(UiTheme.label("Energy %d/%d" % [p.energy_current, st.energy_max(i)],
             12, UiTheme.ENERGY.lightened(0.4)))
-        row.add_child(UiTheme.label("Hit %d" % p.hit.size(), 11, UiTheme.TEXT_DIM))
-        row.add_child(UiTheme.label("Exhaust %d" % p.exhaust.size(), 11, UiTheme.TEXT_DIM))
-        row.add_child(UiTheme.label("Wound %d" % p.wound.size(), 11, UiTheme.DANGER))
         row.add_child(UiTheme.label("Hand %d" % p.hand.size(), 11, UiTheme.TEXT_DIM))
+        if i == 1:
+            # The opponent's hand is face down: only its size is public.
+            for _b in min(p.hand.size(), 10):
+                var back := UiTheme.panel(UiTheme.FRAME["hero"], UiTheme.GOLD_DIM, 1, 3)
+                back.custom_minimum_size = Vector2(14, 20)
+                back.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+                row.add_child(back)
         if p.passed_actions:
             row.add_child(UiTheme.label("passed", 11, UiTheme.GOLD))
-        v.add_child(row)
-        var shield := st.inst(p.hero_iid).shield_total()
-        if shield > 0:
-            v.add_child(UiTheme.label("Prevents the next %d damage" % shield, 11, UiTheme.GOOD))
-        panel.add_child(v)
+        panel.add_child(row)
         _top.add_child(panel)
 
+    var gap := Control.new()
+    gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    _top.add_child(gap)
     var quit_btn := UiTheme.button("Concede", "Ends the match immediately. A concession pays no gold.")
     quit_btn.pressed.connect(func():
         GameEngine.submit(st, {"cmd": "concede", "player": 0})
@@ -260,63 +385,141 @@ func _refresh_top() -> void:
     _top.add_child(quit_btn)
 
 
+func _refresh_piles() -> void:
+    # Mirrored: your row reads Hit, Hero, Exhaust, Wound from the left, so the
+    # opponent's reads the same order from their side of the board.
+    _fill_piles(_own_piles, 0, ["hit", "hero", "exhaust", "wound"])
+    _fill_piles(_opp_piles, 1, ["wound", "exhaust", "hero", "hit"])
+
+
+func _fill_piles(row: HBoxContainer, player: int, order: Array) -> void:
+    for c in row.get_children():
+        row.remove_child(c)
+        c.queue_free()
+    for kind in order:
+        if String(kind) == "hero":
+            row.add_child(_character_chip(st.player(player).hero_iid, player, true))
+        else:
+            row.add_child(_pile_chip(player, String(kind)))
+
+
+const PILE_LABEL := {"hit": "Hit Deck", "exhaust": "Exhaust Deck", "wound": "Wound Deck"}
+## Each deck plate's own proportions, so it is never stretched out of shape.
+const PILE_ASPECT := {"hit": 330.0 / 162.0, "exhaust": 253.0 / 162.0, "wound": 218.0 / 162.0}
+
+
+## A deck, on the plate painted for it. The plate already carries the deck's
+## name, so the only thing drawn over it is how many cards are in it.
+func _pile_chip(player: int, kind: String) -> Control:
+    var p := st.player(player)
+    var count := p.pile(kind).size()
+    var chip := PanelContainer.new()
+    var v := BoardArt.back(chip, "deck_" + kind, UiTheme.GOLD_DIM, 1)
+    chip.custom_minimum_size = Vector2(
+        DECK_PLATE_H * float(PILE_ASPECT.get(kind, 2.0)), DECK_PLATE_H)
+    var key := "%d_%s" % [player, kind]
+    chip.set_meta("pile", key)
+    _pile_chips[key] = chip
+    var count_label := UiTheme.label(str(count), 24,
+        UiTheme.DANGER.lightened(0.35) if kind == "wound" else UiTheme.PARCHMENT,
+        HORIZONTAL_ALIGNMENT_CENTER)
+    count_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.95))
+    count_label.add_theme_constant_override("shadow_offset_x", 1)
+    count_label.add_theme_constant_override("shadow_offset_y", 1)
+    v.add_child(count_label)
+    var gap := Control.new()
+    gap.size_flags_vertical = Control.SIZE_EXPAND_FILL
+    gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    v.add_child(gap)
+    chip.tooltip_text = "%s: %d card%s" % [String(PILE_LABEL.get(kind, kind)), count,
+        "" if count == 1 else "s"]
+    return chip
+
+
 func _refresh_boards() -> void:
-    # Chips are rebuilt each refresh, so the highlight list is rebuilt with
-    # them. The Sequence zone is persistent and is re-added here.
-    _drop_targets = []
-    if _sequence_zone != null:
-        _drop_targets.append(_sequence_zone)
     _fill_board(_opp_board, 1)
     _fill_board(_own_board, 0)
+
+
+func _refresh_location() -> void:
     for c in _location_holder.get_children():
         _location_holder.remove_child(c)
         c.queue_free()
-    var loc_chip := BattleDropTarget.new()
-    loc_chip.style(UiTheme.FRAME["location"] if st.location_iid != "" else UiTheme.BG_PANEL,
-        UiTheme.GOLD_DIM, 1, 4)
-    loc_chip.custom_minimum_size = Vector2(190, 0)
-    loc_chip.set_meta("iid", st.location_iid)
-    loc_chip.drop_hint = "Play here"
-    loc_chip.accepts_check = func(payload): return _accepts_on_location(payload)
-    loc_chip.dropped.connect(func(payload): _drop_on_location(payload))
-    _drop_targets.append(loc_chip)
-    var lv := UiTheme.vbox(0)
     if st.location_iid == "":
-        lv.add_child(UiTheme.label("none", 12, UiTheme.TEXT_DIM))
-    else:
-        var d := st.def_of(st.location_iid)
-        var owner := st.inst(st.location_iid).owner
-        lv.add_child(UiTheme.label("%s (P%d)" % [d.name, owner + 1], 12, UiTheme.TEXT))
-        lv.add_child(UiTheme.label(d.text, 10, UiTheme.TEXT_DIM))
-    loc_chip.add_child(lv)
-    loc_chip.claim_mouse()
-    _location_holder.add_child(loc_chip)
-    if st.location_iid != "" and _mode == "pick_card_target" and _target_kind == "location":
+        _location_holder.add_child(BoardArt.caption("none in play", 10))
+        return
+    var d := st.def_of(st.location_iid)
+    var owner := st.inst(st.location_iid).owner
+    var chip := BattleDropTarget.new()
+    chip.style(UiTheme.FRAME["location"], UiTheme.GOLD, 1, 4)
+    chip.set_meta("iid", st.location_iid)
+    chip.accepts_check = func(payload): return _accepts_on_location(payload)
+    chip.dropped.connect(func(payload): _drop_on_location(payload))
+    _chips[st.location_iid] = chip
+    _drop_targets.append(chip)
+    # The Location plate is narrow and upright, so the card reads down it.
+    var lv := UiTheme.vbox(1)
+    var name_label := UiTheme.label("%s (P%d)" % [d.name, owner + 1], 11, UiTheme.TEXT,
+        HORIZONTAL_ALIGNMENT_CENTER)
+    name_label.clip_text = true
+    lv.add_child(name_label)
+    var txt := UiTheme.wrapped(d.text, 9, UiTheme.TEXT_DIM)
+    txt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    lv.add_child(txt)
+    chip.add_child(lv)
+    chip.claim_mouse()
+    _readable(chip, d)
+    _location_holder.add_child(chip)
+    if _mode == "pick_card_target" and _target_kind == "location":
         _location_holder.add_child(_target_button(st.location_iid))
 
 
 func _fill_board(row: HBoxContainer, player: int) -> void:
     for c in row.get_children():
+        row.remove_child(c)
         c.queue_free()
     var p := st.player(player)
-    row.add_child(_character_chip(p.hero_iid, player, true))
     if p.companions.is_empty():
         row.add_child(UiTheme.label("no Companions", 11, UiTheme.TEXT_DIM))
     for iid in p.companions:
         row.add_child(_character_chip(String(iid), player, false))
 
 
+## A Hero or a Companion on the board.
+##
+## A Hero sits on the gold plate painted for it, which is light, so its text is
+## inked dark. A Companion is a dark chip standing on the Companion Zone art.
 func _character_chip(iid: String, player: int, is_hero: bool) -> Control:
     var d := st.def_of(iid)
     var ci := st.inst(iid)
     var committed := st.player(player).committed_characters.has(iid)
     var in_sequence := st.sequence_members.has(iid)
-    var border := UiTheme.GOLD if in_sequence else (UiTheme.GOLD_DIM if not committed else UiTheme.TEXT_DIM)
+    var border := UiTheme.GOLD if in_sequence else (
+        UiTheme.GOLD_DIM if not committed else UiTheme.TEXT_DIM)
 
     var p := BattleDropTarget.new()
-    p.style(UiTheme.BG_RAISED, border, 2 if in_sequence else 1, 5)
-    p.custom_minimum_size = Vector2(170, 0)
+    var v: VBoxContainer
+    var ink := UiTheme.TEXT
+    var dim := UiTheme.TEXT_DIM
+    if is_hero:
+        # The Hero plate is painted light, so its text is inked dark and sits on
+        # a parchment scrim: the sigil behind it would otherwise read through.
+        var plate_box := BoardArt.back(p, "deck_hero", border, 2 if in_sequence else 1, 1.0)
+        p.custom_minimum_size = Vector2(DECK_PLATE_H * (405.0 / 162.0), DECK_PLATE_H)
+        var scrim := UiTheme.panel(Color(0.94, 0.90, 0.79, 0.84), Color(0, 0, 0, 0), 0, 4)
+        scrim.size_flags_vertical = Control.SIZE_EXPAND_FILL
+        plate_box.add_child(scrim)
+        v = UiTheme.vbox(1)
+        scrim.add_child(v)
+        ink = UiTheme.INK
+        dim = UiTheme.INK.lightened(0.3)
+    else:
+        p.style(UiTheme.BG_RAISED, border, 2 if in_sequence else 1, 5)
+        p.custom_minimum_size = Vector2(190, 0)
+        v = UiTheme.vbox(1)
+        p.add_child(v)
     p.set_meta("iid", iid)
+    _chips[iid] = p
     p.accepts_check = func(payload): return _accepts_on_character(iid, payload)
     p.dropped.connect(func(payload): _drop_on_character(iid, payload))
     # Your own characters can be picked up and dragged onto what they attack.
@@ -327,13 +530,18 @@ func _character_chip(iid: String, player: int, is_hero: bool) -> Control:
         p.tooltip_text = "Drag onto a target to attack, or use the button."
     _drop_targets.append(p)
 
-    var v := UiTheme.vbox(2)
-    v.add_child(UiTheme.label("%s%s" % ["Hero: " if is_hero else "", d.name], 12, UiTheme.TEXT))
+    var name_label := UiTheme.label(d.name, 11, ink, HORIZONTAL_ALIGNMENT_CENTER)
+    name_label.clip_text = true
+    v.add_child(name_label)
+
     var stats := UiTheme.hbox(5)
-    stats.add_child(UiTheme.label("%d ATK" % st.current_attack(iid), 12, UiTheme.ATTACK.lightened(0.4)))
-    stats.add_child(UiTheme.label("%d DEF" % st.current_defense(iid), 12, UiTheme.DEFENSE.lightened(0.4)))
+    stats.alignment = BoxContainer.ALIGNMENT_CENTER
+    stats.add_child(UiTheme.label("%d ATK" % st.current_attack(iid), 11,
+        UiTheme.ATTACK if is_hero else UiTheme.ATTACK.lightened(0.4)))
+    stats.add_child(UiTheme.label("%d DEF" % st.current_defense(iid), 11,
+        UiTheme.DEFENSE if is_hero else UiTheme.DEFENSE.lightened(0.4)))
     if d.attack_cost > 0:
-        stats.add_child(UiTheme.label("%dE to attack" % d.attack_cost, 10, UiTheme.TEXT_DIM))
+        stats.add_child(UiTheme.label("%dE to attack" % d.attack_cost, 10, dim))
     v.add_child(stats)
 
     var notes: Array = []
@@ -350,8 +558,19 @@ func _character_chip(iid: String, player: int, is_hero: bool) -> Control:
     for a_iid in st.attachments_of(iid):
         var ad := st.def_of(String(a_iid))
         notes.append("%s: %s" % [UiTheme.primary_type(ad).capitalize(), ad.name])
-    for n in notes:
-        v.add_child(UiTheme.label(String(n), 10, UiTheme.TEXT_DIM))
+    # A Hero's plate has no room for notes, and a Companion gets one, so a
+    # chip's height stays predictable and its action button is never pushed out
+    # of its zone. The rest are in the tooltip either way.
+    if not is_hero and not notes.is_empty():
+        var note_label := UiTheme.label(String(notes[0])
+            + ("  +%d" % (notes.size() - 1) if notes.size() > 1 else ""),
+            10, dim, HORIZONTAL_ALIGNMENT_CENTER)
+        note_label.clip_text = true
+        v.add_child(note_label)
+    if not notes.is_empty():
+        var hint := p.tooltip_text
+        p.tooltip_text = "%s\n%s%s" % [d.name, "\n".join(notes),
+            "\n" + hint if hint != "" else ""]
 
     # Action affordances.
     if _mode == "pick_attack_target" and player == 1:
@@ -360,17 +579,23 @@ func _character_chip(iid: String, player: int, is_hero: bool) -> Control:
         v.add_child(_target_button(iid))
     elif _mode == "idle" and player == 0 and _can_act() \
             and GameEngine._attack_candidates(st, 0).has(iid):
-        var b := UiTheme.button("Attack with this", "Costs %d Energy. You can also drag this character onto a target." % d.attack_cost)
+        var b := UiTheme.small_button("Attack with this",
+            "Costs %d Energy. You can also drag this character onto a target." % d.attack_cost)
         b.disabled = st.player(0).energy_current < d.attack_cost
         b.pressed.connect(func(): _begin_attack(iid))
         v.add_child(b)
-    p.add_child(v)
+    else:
+        var gap := Control.new()
+        gap.size_flags_vertical = Control.SIZE_EXPAND_FILL
+        gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        v.add_child(gap)
     p.claim_mouse()
+    _readable(p, d)
     return p
 
 
 func _target_button(iid: String) -> Button:
-    var b := UiTheme.button("Choose as target")
+    var b := UiTheme.small_button("Choose as target")
     b.pressed.connect(func(): _choose_target(iid))
     return b
 
@@ -415,6 +640,10 @@ func _refresh_sequence() -> void:
                 "" if not bool((r as Dictionary).get("resolved", false)) else " ✓"],
                 10, UiTheme.GOLD))
         p.add_child(v)
+        # A step stands for the card that was committed, or for the attacker.
+        var source := slot.card_iid if slot.kind == "card" else slot.attacker_iid
+        if source != "":
+            _readable(p, st.def_of(source))
         _sequence_row.add_child(p)
     var idx: int = st.current_step if st.phase == "resolve" else st.sequence.size() - 1
     _chain_label.text = AffinityChain.describe(st, idx)
@@ -428,7 +657,7 @@ func _refresh_hand() -> void:
         _hand_row.add_child(UiTheme.label("your hand is empty", 11, UiTheme.TEXT_DIM))
     for iid in st.player(0).hand:
         var d := st.def_of(String(iid))
-        var view := CardView.create(d, 142.0, true)
+        var view := CardView.create(d, HAND_CARD_W, true)
         var playable := false
         var why := ""
         if reaction_window:
@@ -456,6 +685,7 @@ func _refresh_hand() -> void:
                 why = "No legal target"
 
         var card_iid := String(iid)
+        _readable(view, d, true)
         if playable:
             view.add_badge("Eligible", UiTheme.GOOD)
             view.drag_payload = {"kind": "card", "iid": card_iid,
@@ -585,6 +815,20 @@ func _build_choice_controls(p: Dictionary) -> void:
                 _choice_selection = []
                 _after_command())
             _controls.add_child(confirm)
+        "choose_card_type":
+            var sd := st.def_of(String(p.get("source", "")))
+            _prompt.text = "Name a Card Type for %s." % (sd.name if sd != null else "this card")
+            for card_type in EffectSchema.CARD_TYPES:
+                var name := String(card_type)
+                var b := UiTheme.button(UiTheme.TYPE_LABEL.get(name, name.capitalize()))
+                b.pressed.connect(func():
+                    var r := GameEngine.submit(st, {"cmd": "choose_card_type", "player": 0,
+                        "card_type": name})
+                    if not bool(r["ok"]):
+                        app.toast(String(r["error"]), true)
+                        return
+                    _after_command())
+                _controls.add_child(b)
         "choose_deploy":
             _prompt.text = "You may put a Companion from your hand into play."
             for iid in GameEngine._deployable_from_hand(st, 0):
@@ -707,11 +951,31 @@ func _accepts_on_location(payload: Dictionary) -> bool:
     if not _card_playable_now(card_iid, bool(payload.get("as_reaction", false))):
         return false
     var d := st.def_of(card_iid)
-    if d == null or not (d.target_spec is Dictionary):
+    if d == null:
+        return false
+    # A Location card played from hand goes here.
+    if d.has_type("location") and not (d.target_spec is Dictionary):
+        return true
+    # So does a card that targets whatever Location is already in play.
+    if not (d.target_spec is Dictionary):
         return false
     if String((d.target_spec as Dictionary).get("kind", "")) != "location":
         return false
     return not Targeting.legal_targets(st, "location", 0).is_empty()
+
+
+## Your own Companion Zone takes a Companion straight from your hand, which
+## commits its deployment to the Sequence like any other Action.
+func _accepts_on_companion_zone(payload: Dictionary) -> bool:
+    if String(payload.get("kind", "")) != "card":
+        return false
+    var card_iid := String(payload.get("iid", ""))
+    if not _card_playable_now(card_iid, bool(payload.get("as_reaction", false))):
+        return false
+    var d := st.def_of(card_iid)
+    if d == null or not d.has_type("companion"):
+        return false
+    return not (d.target_spec is Dictionary)
 
 
 # --------------------------------------------------------------- drop actions ---
@@ -744,12 +1008,19 @@ func _drop_on_sequence(payload: Dictionary) -> void:
 
 
 func _drop_on_location(payload: Dictionary) -> void:
+    var card_iid := String(payload.get("iid", ""))
+    var d := st.def_of(card_iid)
+    if d == null:
+        return
+    var as_reaction := bool(payload.get("as_reaction", false))
+    if d.has_type("location") and not (d.target_spec is Dictionary):
+        _play_dragged(card_iid, [], as_reaction)  # a Location played from hand
+        return
     var legal := Targeting.legal_targets(st, "location", 0)
     if legal.is_empty():
         app.toast("There is no Location in play to target.", true)
         return
-    _play_dragged(String(payload.get("iid", "")), [String(legal[0])],
-        bool(payload.get("as_reaction", false)))
+    _play_dragged(card_iid, [String(legal[0])], as_reaction)
 
 
 ## Play a card whose target was already settled by where it was dropped. An X
@@ -767,6 +1038,136 @@ func _play_dragged(iid: String, targets: Array, as_reaction: bool) -> void:
         _ask_for_x(d)
         return
     _submit_card(targets)
+
+
+# ------------------------------------------------------------------ effects ---
+
+## Make a small thing on the board readable: resting the pointer on it brings
+## up the same card at a size meant for reading.
+##
+## Everything on the board stands for a card, so everything on the board can be
+## read this way — a card in hand, a Hero or Companion in play, a step in the
+## Action Sequence, the Location.
+func _readable(control: Control, def: CardDef, above: bool = false) -> void:
+    if def == null or _zoom == null:
+        return
+    control.mouse_entered.connect(func():
+        if not _dragging and is_instance_valid(_zoom):
+            _zoom.request(def, control.get_global_rect(), above))
+    control.mouse_exited.connect(func():
+        if is_instance_valid(_zoom):
+            _zoom.dismiss())
+
+
+## Where something is on screen.
+##
+## A card that has already left the board has no chip any more by the time the
+## effect plays, so it starts from the zone it left rather than from nowhere.
+func _screen_pos_of(iid: String) -> Vector2:
+    if _chips.has(iid) and is_instance_valid(_chips[iid]):
+        return (_chips[iid] as Control).get_global_rect().get_center()
+    var owner := _owner_of(iid, -1)
+    if owner == 0 and _own_companion_zone != null:
+        return _own_companion_zone.get_global_rect().get_center()
+    if owner == 1 and _opp_companion_zone != null:
+        return _opp_companion_zone.get_global_rect().get_center()
+    return get_global_rect().get_center()
+
+
+func _pile_pos(player: int, kind: String) -> Vector2:
+    var key := "%d_%s" % [player, kind]
+    if _pile_chips.has(key) and is_instance_valid(_pile_chips[key]):
+        return (_pile_chips[key] as Control).get_global_rect().get_center()
+    return get_global_rect().get_center()
+
+
+func _owner_of(iid: String, fallback: int) -> int:
+    var ci := st.inst(iid)
+    return ci.owner if ci != null else fallback
+
+
+## Show what the engine just did. Purely cosmetic: the state is already final
+## by the time any of this is drawn, and play never waits for it.
+func _play_new_events() -> void:
+    if st == null or _effects == null or not is_instance_valid(_effects):
+        return
+    var i := _events_seen
+    _events_seen = st.events.size()
+    var delay := 0.0
+    var shown := 0
+    while i < st.events.size() and shown < 24:
+        var e: Dictionary = st.events[i]
+        i += 1
+        var kind := String(e.get("kind", ""))
+        match kind:
+            "hero_damaged":
+                var pi := int(e.get("player", 0))
+                var amount := int(e.get("amount", 0))
+                _effects.float_text(_screen_pos_of(st.player(pi).hero_iid),
+                    "-%d" % amount, UiTheme.DAMAGE_TEXT, 30, delay)
+                var from_exhaust := int(e.get("from_exhaust", 0))
+                for k in min(from_exhaust, 4):
+                    _effects.fly_card(_pile_pos(pi, "exhaust"), _pile_pos(pi, "wound"),
+                        "Wounded", UiTheme.DAMAGE_TEXT, delay + 0.07 * float(k))
+                var from_hit := int(e.get("from_hit", 0))
+                for k in min(from_hit, 4):
+                    _effects.fly_card(_pile_pos(pi, "hit"), _pile_pos(pi, "wound"),
+                        "Wounded", UiTheme.DAMAGE_TEXT, delay + 0.07 * float(k + from_exhaust))
+                delay += 0.3
+                shown += 1
+            "companion_damaged":
+                var target := String(e.get("target", ""))
+                _effects.float_text(_screen_pos_of(target), "-%d" % int(e.get("amount", 0)),
+                    UiTheme.DAMAGE_TEXT, 26, delay)
+                delay += 0.2
+                shown += 1
+            "no_damage":
+                var t2 := String(e.get("target", ""))
+                if t2 != "":
+                    _effects.float_text(_screen_pos_of(t2), "0", UiTheme.TEXT_DIM, 22, delay)
+                    delay += 0.15
+                    shown += 1
+            "destroyed":
+                var iid := String(e.get("iid", ""))
+                _effects.fly_card(_screen_pos_of(iid),
+                    _pile_pos(_owner_of(iid, int(e.get("owner", 0))), "wound"),
+                    "Destroyed", UiTheme.DAMAGE_TEXT, delay)
+                delay += 0.2
+                shown += 1
+            "to_exhaust", "replaced", "attachment_released", "hand_exhausted":
+                var iid2 := String(e.get("iid", ""))
+                _effects.fly_card(_screen_pos_of(iid2), _pile_pos(_owner_of(iid2, 0), "exhaust"),
+                    "Exhausted", UiTheme.TEXT_DIM, delay)
+                delay += 0.12
+                shown += 1
+            "energy_gained":
+                var gained := int(e.get("gained", 0))
+                if gained > 0:
+                    _effects.float_text(_screen_pos_of(st.player(int(e.get("player", 0))).hero_iid),
+                        "+%d Energy" % gained, UiTheme.ENERGY_TEXT, 20, delay)
+                    delay += 0.15
+                    shown += 1
+            "energy_drained":
+                _effects.float_text(_screen_pos_of(st.player(int(e.get("player", 0))).hero_iid),
+                    "-%d Energy" % int(e.get("amount", 0)), UiTheme.ENERGY_TEXT.darkened(0.2),
+                    20, delay)
+                delay += 0.15
+                shown += 1
+            "shield_added":
+                _effects.float_text(_screen_pos_of(String(e.get("iid", ""))),
+                    "Shield %d" % int(e.get("amount", 0)), UiTheme.HEAL_TEXT, 20, delay)
+                delay += 0.15
+                shown += 1
+            "stat_modified":
+                _effects.float_text(_screen_pos_of(String(e.get("iid", ""))), "!",
+                    UiTheme.GOLD, 20, delay)
+                delay += 0.1
+                shown += 1
+            "deployed":
+                var iid3 := String(e.get("iid", ""))
+                _effects.float_text(_screen_pos_of(iid3), "Enters play", UiTheme.HEAL_TEXT, 18, delay)
+                delay += 0.15
+                shown += 1
 
 
 func _can_act() -> bool:

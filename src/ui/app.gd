@@ -12,6 +12,10 @@ var rules: RulesProfile
 var economy: EconomyConfig
 var store: SaveStore
 var profile: PlayerProfile
+## Which save slot `profile` came from, or 0 when no save is loaded. Nothing is
+## written to disk until a slot is chosen, so browsing the save list can never
+## overwrite a game.
+var slot: int = 0
 
 ## The live match, if one is in progress.
 var match_state: GameState = null
@@ -19,12 +23,16 @@ var match_context: Dictionary = {}
 
 var _body: Control
 var _header: Control
-var _gold_label: Label
+var _nav: HBoxContainer
+var _gold_holder: HBoxContainer
+var _save_label: Label
 var _toast: Label
 var _toast_timer: float = 0.0
 var _current_name: String = ""
 
 const SCREENS := {
+    "saves": "res://src/ui/screens/saves_screen.gd",
+    "layout": "res://src/ui/screens/layout_screen.gd",
     "home": "res://src/ui/screens/home_screen.gd",
     "collection": "res://src/ui/screens/collection_screen.gd",
     "decks": "res://src/ui/screens/decks_screen.gd",
@@ -42,28 +50,84 @@ func _ready() -> void:
     set_anchors_preset(Control.PRESET_FULL_RECT)
     _load_services()
     _build_chrome()
-    goto("home")
+    goto(_opening_screen())
 
 
 func _load_services() -> void:
+    Layout.load_saved()
     rules = RulesProfile.load_from()
     economy = EconomyConfig.load_from()
     catalog = Catalog.load_bundled()
     store = SaveStore.new()
-    var raw := store.load_raw()
+    store.adopt_legacy_save()
+
+
+## One save goes straight into it; none or several start at the save list. A
+## single-save player never has to pick their game out of a list of one.
+func _opening_screen() -> String:
+    var used: Array = []
+    for row in store.list_slots():
+        if bool((row as Dictionary).get("used", false)) \
+                and String((row as Dictionary).get("problem", "")) == "":
+            used.append(int((row as Dictionary)["slot"]))
+    if used.size() == 1 and load_save(int(used[0])) == "":
+        return "home"
+    return "saves"
+
+
+## Make a slot the live save. Returns "" on success or a message to show.
+func load_save(target: int) -> String:
+    var raw := store.load_slot(target)
     if raw.is_empty():
-        profile = PlayerProfile.create_new(catalog, economy)
-        save_profile()
-    else:
-        profile = PlayerProfile.new(raw)
+        return store.last_load_problem if store.last_load_problem != "" \
+            else "That save is empty."
+    _adopt(PlayerProfile.new(raw), target)
+    return ""
+
+
+## Begin a new save in `target`, in the Affinity the player chose. Everything
+## outside that Affinity's starter deck is theirs to earn.
+func start_new_save(target: int, affinity: String, display_name: String = "") -> String:
+    if not SaveStore.valid_slot(target):
+        return "Slot %d does not exist." % target
+    if store.exists(target):
+        return "Slot %d already holds a save." % target
+    _adopt(PlayerProfile.create_new(catalog, economy, affinity, display_name), target)
+    return save_profile()
+
+
+## Put the save list back in front of the player without touching what is on
+## disk. The live match is dropped, having already been saved with its slot.
+func close_save() -> void:
+    profile = null
+    slot = 0
+    match_state = null
+    match_context = {}
+    catalog = Catalog.load_bundled()
+    goto("saves")
+
+
+func _adopt(p: PlayerProfile, target: int) -> void:
+    profile = p
+    slot = target
+    match_state = null
+    match_context = {}
+    catalog = Catalog.load_bundled()
     catalog.set_overrides(profile.overrides())
     var errs := catalog.validate_all()
     if not errs.is_empty():
-        push_warning("Catalog reported %d problem(s); the first is: %s" % [errs.size(), String(errs[0])])
+        push_warning("Catalog reported %d problem(s); the first is: %s" % [
+            errs.size(), String(errs[0])])
+
+
+func has_save() -> bool:
+    return profile != null and slot > 0
 
 
 func save_profile() -> String:
-    var err := store.commit(profile.to_dict())
+    if not has_save():
+        return "No save is loaded."
+    var err := store.commit(slot, profile.to_dict())
     if err != "":
         toast("Save failed: %s" % err, true)
     return err
@@ -114,26 +178,42 @@ func _make_header() -> Control:
     gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     row.add_child(gap)
 
+    # The save's name, so it is always clear which game is being played.
+    _save_label = UiTheme.label("", 12, UiTheme.TEXT_DIM)
+    row.add_child(_save_label)
+
+    # Everything but Saves needs a loaded save, so the rest of the navigation
+    # is hidden until there is one.
+    _nav = UiTheme.hbox(10)
     for entry in [["Home", "home"], ["Collection", "collection"], ["Decks", "decks"],
-            ["Play", "opponents"], ["Shop", "shop"], ["Editor", "editor"], ["Settings", "settings"]]:
+            ["Play", "opponents"], ["Shop", "shop"], ["Editor", "editor"], ["Layout", "layout"], ["Settings", "settings"]]:
         var b := UiTheme.button(String(entry[0]))
         var target := String(entry[1])
         b.pressed.connect(func(): goto(target))
-        row.add_child(b)
+        _nav.add_child(b)
+    row.add_child(_nav)
 
-    _gold_label = UiTheme.label("", 15, UiTheme.GOLD)
-    row.add_child(UiTheme.stat_chip("Gold", "0", UiTheme.GOLD))
+    var saves_btn := UiTheme.button("Saves", "Choose, start or delete a save.")
+    saves_btn.pressed.connect(func(): goto("saves"))
+    row.add_child(saves_btn)
+
+    _gold_holder = UiTheme.hbox(0)
+    row.add_child(_gold_holder)
     bar.add_child(row)
     return bar
 
 
 func _refresh_header() -> void:
+    var loaded := has_save()
+    _nav.visible = loaded
+    _save_label.text = "" if not loaded else "%s — slot %d" % [
+        profile.display_name if profile.display_name != "" else "Save", slot]
     # The gold chip is rebuilt rather than mutated so the caption stays put.
-    var row: HBoxContainer = (_header.get_child(0) as HBoxContainer)
-    var chip := row.get_child(row.get_child_count() - 1)
-    row.remove_child(chip)
-    chip.queue_free()
-    row.add_child(UiTheme.stat_chip("Gold", str(profile.gold), UiTheme.GOLD))
+    for c in _gold_holder.get_children():
+        _gold_holder.remove_child(c)
+        c.queue_free()
+    if loaded:
+        _gold_holder.add_child(UiTheme.stat_chip("Gold", str(profile.gold), UiTheme.GOLD))
 
 
 func toast(message: String, is_error: bool = false) -> void:
@@ -239,7 +319,9 @@ func resume_match() -> bool:
 
 
 func has_active_match() -> bool:
-    return match_state != null or (profile.active_match() is Dictionary)
+    if match_state != null:
+        return true
+    return has_save() and (profile.active_match() is Dictionary)
 
 
 func end_match() -> void:

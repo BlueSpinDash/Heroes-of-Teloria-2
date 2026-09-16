@@ -102,13 +102,19 @@ func _save_section() -> Control:
         11, UiTheme.TEXT_DIM))
 
     var row := UiTheme.hbox(8)
-    var export_btn := UiTheme.button("Export save")
+    var export_btn := UiTheme.button("Export save", "Writes the save in this slot to that path.")
     export_btn.pressed.connect(_export)
     row.add_child(export_btn)
-    var import_btn := UiTheme.button("Import save")
+    var import_btn := UiTheme.button("Import save",
+        "Reads that file into this slot. The save already here is kept as its backup.")
     import_btn.pressed.connect(_import)
     row.add_child(import_btn)
+    var switch_btn := UiTheme.button("Switch save", "Go back to the save list.")
+    switch_btn.pressed.connect(func(): app.goto("saves"))
+    row.add_child(switch_btn)
     v.add_child(row)
+    v.add_child(UiTheme.label("Importing writes into slot %d, the save you are playing."
+        % app.slot, 11, UiTheme.TEXT_DIM))
 
     if app.store.last_load_problem != "":
         v.add_child(UiTheme.wrapped("Last load: %s" % app.store.last_load_problem, 12, UiTheme.DANGER))
@@ -156,7 +162,8 @@ func _import() -> void:
     var err := app.save_profile()
     if err != "":
         return
-    app.toast("Save imported. The previous save was kept as a recoverable backup.")
+    app.toast("Save imported into slot %d. The save that was there is kept as its backup."
+        % app.slot)
     app.goto("home")
 
 
@@ -216,7 +223,9 @@ func _developer_section() -> Control:
     _sim_output = UiTheme.wrapped("", 11, UiTheme.TEXT_DIM)
     v.add_child(_sim_output)
 
-    var danger := UiTheme.button("Reset progress", "Deletes decks, gold and collection.")
+    var danger := UiTheme.button("Start this save over",
+        "Begins slot %d again in %s, its starting Affinity. The previous save is kept as its backup."
+        % [app.slot, app.profile.starter_affinity.capitalize()])
     danger.pressed.connect(_reset)
     v.add_child(danger)
     return pair[0]
@@ -228,14 +237,21 @@ var _reset_armed := false
 func _reset() -> void:
     if not _reset_armed:
         _reset_armed = true
-        app.toast("Press Reset progress again to confirm. Export a save first if you want it back.", true)
+        app.toast("Press it again to start slot %d over. The previous save is kept as its backup."
+            % app.slot, true)
         return
-    app.profile = PlayerProfile.create_new(app.catalog, app.economy)
+    _reset_armed = false
+    var affinity := app.profile.starter_affinity
+    var save_name := app.profile.display_name
+    var target := app.slot
+    app.profile = PlayerProfile.create_new(app.catalog, app.economy, affinity, save_name)
     app.catalog = Catalog.load_bundled()
+    app.catalog.set_overrides(app.profile.overrides())
     app.match_state = null
     app.match_context = {}
     app.save_profile()
-    app.toast("Progress reset. The previous save is still in the backup file.")
+    app.toast("Slot %d started over in %s. The previous save is still in its backup file."
+        % [target, affinity.capitalize()])
     app.goto("home")
 
 

@@ -151,6 +151,9 @@ func _play_out_round(clone: GameState) -> void:
                         "iids": pool2.slice(0, n)})
                 "choose_deploy":
                     GameEngine.submit(clone, {"cmd": "choose_deploy", "player": who, "card_iid": ""})
+                "choose_card_type":
+                    GameEngine.submit(clone, {"cmd": "choose_card_type", "player": who,
+                        "card_type": AiPolicy._best_card_type(clone, who)})
                 _:
                     clone.pending = null
                     GameEngine.advance(clone)

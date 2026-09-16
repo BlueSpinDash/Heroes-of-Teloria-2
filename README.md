@@ -40,6 +40,99 @@ godot --path .
 # Or open project.godot in the Godot editor and press Play.
 ```
 
+## The battle board
+
+The board reads as two mirrored halves around a shared middle.
+
+```
+              opponent's Companion Zone
+   Wound | Exhaust | Hero | Hit          (the opponent's decks, mirrored)
+  ------------------------------------------------------------------
+   Action Sequence  (resolves left to right)        |  Location
+  ------------------------------------------------------------------
+   Hit | Hero | Exhaust | Wound          (your decks)
+              your Companion Zone
+                        your hand  (pinned to the bottom)
+```
+
+The screen is built from one painted board, sliced into plates by
+`tools/slice_board.gd`. Each zone is one of those plates, scaled to cover its
+place on screen and clipped rather than squashed, so the artwork and the
+caption painted onto it stay true at any size.
+
+Each player has their own Hero, their three decks (Hit, Exhaust and Wound) and
+their own Companion Zone. The Action Sequence and the Location sit once in the
+middle because the rules give the two players one of each between them, not one
+apiece. Your hand is pinned below the board and never scrolls away, so a card
+the engine will accept is always reachable. Cards are drawn at standard
+trading-card proportions, 2.5 by 3.5.
+
+## Card faces
+
+A card type can have a painted frame. Heroes have one: `assets/frames/` holds
+the painted template and the frame built from it by
+`tools/prepare_hero_frame.gd`, which paints out the placeholder name, stat
+numbers and lorem rules text so the game can fill them in, and leaves
+everything that is the same on every Hero — the HERO banner, the MAX ENERGY,
+ATTACK and DEFENSE captions, the ornament. The live card then anchors each
+value over the region the template painted for it, as a fraction of the card,
+so the whole face scales together.
+
+Rebuild the frame after replacing the template:
+
+```sh
+godot --headless --path . --script tools/prepare_hero_frame.gd
+```
+
+A card can opt out with `"frame": "plain"` in its data, which is how a card
+finished before its type had a frame can keep the look it shipped with. No card
+uses it at the moment: every Hero, Parfait included, is on the frame.
+
+Cards on the table are drawn small enough to fit it, which leaves their rules
+text too small to read, so resting the pointer on one brings the same card up
+at a size meant for reading. It works on everything that stands for a card: a
+card in hand, a Hero or Companion in play, a step in the Action Sequence, the
+Location. Over the hand the reader appears above the row, so it never covers
+the cards next to the one being read. It is a reader, not a control — it takes
+no input and never touches match state.
+
+Resolution is not silent. When something takes damage the number floats off it,
+and the cards it loses fly from the deck they leave into the Wound Deck, so the
+count you see tick up has a visible cause. Destruction, exhaustion, shields,
+Energy gains and drains, and deployments all get the same treatment. The
+animations are cosmetic: they replay what the engine already decided and can
+never change an outcome.
+
+## Adjusting the layout
+
+Positions, sizes and stacking order the interface reads — where each piece sits
+on a Hero card, the type sizes on a card face, the heights of the board's zones
+— are not constants in the screens. They live in `src/ui/layout.gd` as named
+values, and the **Layout** screen edits them against a live card: drag a box to
+move it, drag its corner to resize, nudge with the arrow keys, or type exact
+fractions.
+
+A card is drawn back to front in the order the layout gives, and the painted
+frame is one of the pieces rather than a backdrop. The stacking list moves any
+piece forward or back, so artwork can be sent behind the frame, a number
+brought in front of a banner, and so on.
+
+### Where a layout change goes
+
+Saving writes `data/layout.json`, which the game loads at launch. That file is
+part of the project, so:
+
+* run from source, saving changes the project on that machine straight away;
+* **committing that file is what carries the change to anyone else.** A layout
+  saved and not committed stays local;
+* an exported build cannot write to itself, so it saves beside the save files
+  instead and applies only on that machine. The screen says which happened.
+
+"Copy as code" puts the values on the clipboard as GDScript, for folding back
+into the defaults in `src/ui/layout.gd` once a layout has settled. No
+`data/layout.json` is committed at the moment, so the values the game ships
+with are the defaults in that file.
+
 ## Running the tests
 
 ```sh
@@ -82,7 +175,23 @@ You do not need Python to play, to edit cards in the app, or to run the tests.
 
 ## Saves
 
-Progress is stored in Godot's `user://` directory:
+There are six save slots, each its own game with its own collection, decks and
+gold. Starting one never writes over another, and the game opens on the save
+list unless exactly one save exists, in which case it goes straight into it.
+
+**A new save chooses the Affinity it begins in.** It starts with that
+Affinity's starter deck and exactly the cards that deck needs — 46 copies
+across 16 definitions — and nothing else in the catalog is unlocked. The other
+284 definitions are earned with gold and opened from packs, so the shop is the
+progression rather than decoration on a collection the save already has. You
+can play against all seven Affinity opponents from the first match.
+
+Settings offers Export save, Import save (which writes into the slot you are
+playing), Switch save, and Start this save over, which begins the same slot
+again in the same Affinity and keeps the previous game as that slot's backup.
+
+Progress is stored in Godot's `user://` directory, one file per slot under
+`saves/`:
 
 * Linux: `~/.local/share/godot/app_userdata/Heroes of Teloria/`
 * Windows: `%APPDATA%\Godot\app_userdata\Heroes of Teloria\`
@@ -90,9 +199,11 @@ Progress is stored in Godot's `user://` directory:
 
 A save is written as a temporary file and then renamed over the live save, so
 an interrupted write leaves either the old save or the new one, never half of
-each. The previous version is kept as `*.backup.json`. A save that cannot be
-read is copied aside rather than deleted, and a save written by a newer build is
-refused with an explanation rather than overwritten.
+each. The previous version is kept as `slot_N.backup.json`. Deleting a save
+moves it to that backup rather than erasing it. A save that cannot be read is
+copied aside rather than deleted, and a save written by a newer build is
+refused with an explanation rather than overwritten. A single save file from an
+earlier build is adopted into slot 1 on first run instead of being stranded.
 
 **Saves are specific to one device and one installation.** Nothing is
 synchronised to a server. Use Settings → Export save to write a save file you

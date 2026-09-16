@@ -123,6 +123,15 @@ static func exec_one(state: GameState, e: Dictionary, ctx: Dictionary) -> void:
                         state.current_attack(String(t)), state.current_defense(String(t)),
                         "" if duration == "permanent" else " (%s)" % duration]})
 
+        "choose_card_type":
+            var who := int(ctx["controller"])
+            if String(e.get("chooser", "controller")) == "opponent":
+                who = state.opponent_of(who)
+            var src_iid := String(ctx.get("source_iid", ""))
+            if state.inst(src_iid) != null:
+                _defer_choice(state, {
+                    "kind": "choose_card_type", "player": who, "source": src_iid})
+
         "prevent_damage":
             var amt2 := _amount(state, e.get("amount"), ctx)
             for t in _resolve_targets(state, e.get("target"), ctx):
@@ -300,6 +309,20 @@ static func _source_label(state: GameState, ctx: Dictionary) -> String:
 ## choice makes the referencing component do nothing; it never retargets,
 ## refunds Energy or restores an action allowance.
 static func _resolve_targets(state: GameState, ref, ctx: Dictionary) -> Array:
+    # A target may be narrowed: {"ref": ..., "affinity": ...} keeps only the
+    # cards carrying that Affinity.
+    if ref is Dictionary:
+        var spec: Dictionary = ref
+        var picked := _resolve_targets(state, spec.get("ref", "chosen"), ctx)
+        var want := String(spec.get("affinity", ""))
+        if want == "":
+            return picked
+        var kept: Array = []
+        for t in picked:
+            var td := state.def_of(String(t))
+            if td != null and td.affinities.has(want):
+                kept.append(String(t))
+        return kept
     var r := String(ref) if ref != null else "chosen"
     var controller: int = int(ctx["controller"])
     var opp := state.opponent_of(controller)
@@ -472,6 +495,22 @@ static func _trigger_matches(state: GameState, src: CardInstance, on: Dictionary
             if cd != null and cd.is_character():
                 return state.sequence_members.has(src.iid)
             return true
+        "chosen_type_card_resolved":
+            if ev_kind != "card_resolved":
+                return false
+            # Nothing has been named yet, so nothing matches. This is also what
+            # makes the trigger read "after": a type is named when the card
+            # resolves, so no earlier resolution can match it, and the name is
+            # forgotten at Round End. Unlike the Affinity trigger, this one does
+            # not need its source to still be in the Sequence — it is worded for
+            # the rest of the round, not for while the card is committed.
+            if src.chosen_type == "":
+                return false
+            var types: Array = ev.get("types", [])
+            if not types.has(src.chosen_type):
+                return false
+            return _scope_ok(state, String(on.get("scope", "either")), src.controller,
+                int(ev.get("controller", 0)))
         "self_deployed":
             return ev_kind == "companion_deployed" and String(ev.get("iid", "")) == src.iid
         "own_companion_deployed":

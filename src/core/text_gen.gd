@@ -173,6 +173,10 @@ static func render_effect(e: Dictionary, def: CardDef) -> String:
             var subj10 := "You may put a Companion from your hand into play" if who10 == "self" \
                 else "Your opponent puts a Companion from their hand into play"
             return "%s." % subj10
+        "choose_card_type":
+            var chooser := String(e.get("chooser", "controller"))
+            return "%s a Card Type." % ("You choose" if chooser == "controller"
+                else "Your opponent chooses")
         "conditional":
             var cnd := render_condition(e.get("cond", {}), def)
             var then_txt := _lower_first(render_effects(e.get("then", []), def))
@@ -270,6 +274,15 @@ static func render_trigger(trig: Dictionary, def: CardDef) -> String:
             else:
                 lead = "Whenever %s%s resolves while %s is in play," % [
                     what, whose, _self_name(def, "this card")]
+        "chosen_type_card_resolved":
+            var tscope := String(on.get("scope", "either"))
+            var twhose := ""
+            if tscope == "controller":
+                twhose = " you control"
+            elif tscope == "opponent":
+                twhose = " your opponent controls"
+            lead = "Whenever a card of the chosen type%s resolves after %s," % [
+                twhose, _self_name(def, "this card")]
         "self_deployed":
             lead = "When %s enters play," % _self_name(def, "this Companion")
         "self_attack_resolved":
@@ -298,6 +311,23 @@ static func render_trigger(trig: Dictionary, def: CardDef) -> String:
 # ------------------------------------------------------------------ helpers ---
 
 static func _target(ref, def: CardDef) -> String:
+    # A narrowed target reads as its own phrase with the Affinity worked into
+    # it: "each Vigilance Companion you control".
+    if ref is Dictionary:
+        var spec2: Dictionary = ref
+        var base := _target(spec2.get("ref", "chosen"), def)
+        var aff := String(spec2.get("affinity", ""))
+        if aff == "":
+            return base
+        var label := String(AFFINITY_LABEL.get(aff, aff))
+        # The Affinity goes in front of the noun the phrase is about, so
+        # "each Companion you control" reads "each Vigilance Companion you
+        # control" rather than trailing a clause.
+        for word in ["Companion", "character", "Equipment", "Ta'ahma", "Hero", "card"]:
+            var at := base.find(word)
+            if at >= 0:
+                return "%s%s %s" % [base.substr(0, at), label, base.substr(at)]
+        return "%s, if it is a %s card" % [base, label]
     var r := String(ref) if ref != null else "chosen"
     if r == "chosen":
         var spec = def.target_spec

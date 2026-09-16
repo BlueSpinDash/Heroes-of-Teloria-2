@@ -37,6 +37,11 @@ const TARGET_KINDS := [
 ]
 
 ## Symbolic target references usable inside effects.
+##
+## A target is either one of these names, or an object {"ref": name, ...} that
+## narrows it — currently only by Affinity, as in every Vigilance Companion you
+## control. Narrowing an already-single reference is allowed and simply makes
+## the effect do nothing when that card does not carry the Affinity.
 const TARGET_REFS := [
     "chosen", "self", "host",
     "self_hero", "opponent_hero",
@@ -75,6 +80,7 @@ const OPS := {
     "exhaust_from_hand": {"required": ["who", "amount", "chooser"], "optional": []},
     "random_exhaust_from_hand": {"required": ["who", "amount"], "optional": []},
     "deploy_from_hand": {"required": ["who"], "optional": []},
+    "choose_card_type": {"required": ["chooser"], "optional": []},
     "conditional": {"required": ["cond", "then"], "optional": ["otherwise"]},
     "chain_reward": {"required": ["require", "then"], "optional": []},
     "repeat": {"required": ["amount", "effects"], "optional": []},
@@ -107,6 +113,7 @@ const TRIGGERS := {
     "opponent_hero_damaged": [],
     "self_leaves_play": [],
     "attack_resolved": ["scope"],
+    "chosen_type_card_resolved": ["scope"],
 }
 
 const ATTACHMENT_OF := ["equipment", "taahma"]
@@ -173,8 +180,8 @@ static func validate_condition(cond, path: String) -> Array:
             errs.append("%s: condition affinity '%s' is not an Affinity" % [path, aff])
     if cond.has("scope") and not SCOPES.has(String(cond["scope"])):
         errs.append("%s: condition scope must be one of %s" % [path, str(SCOPES)])
-    if cond.has("target") and not TARGET_REFS.has(String(cond["target"])):
-        errs.append("%s: condition target '%s' is not a target reference" % [path, str(cond["target"])])
+    if cond.has("target"):
+        errs.append_array(validate_target_ref(cond["target"], path + ".target"))
     if cond.has("of") and kind == "has_attachment" and not ATTACHMENT_OF.has(String(cond["of"])):
         errs.append("%s: has_attachment 'of' must be equipment or taahma" % path)
     return errs
@@ -244,8 +251,8 @@ static func validate_effects(effects, path: String, allow_persistent_only: bool)
             errs.append("%s: 'chooser' must be controller or opponent" % p)
         if e.has("duration") and not DURATIONS.has(String(e["duration"])):
             errs.append("%s: 'duration' must be one of %s" % [p, str(DURATIONS)])
-        if e.has("target") and not TARGET_REFS.has(String(e["target"])):
-            errs.append("%s: target '%s' is not a target reference" % [p, str(e["target"])])
+        if e.has("target"):
+            errs.append_array(validate_target_ref(e["target"], p + ".target"))
         if e.has("scope") and op == "aura_stat_mod" and not AURA_SCOPES.has(String(e["scope"])):
             errs.append("%s: aura scope must be one of %s" % [p, str(AURA_SCOPES)])
         if e.has("amount"):
@@ -277,6 +284,24 @@ static func validate_effects(effects, path: String, allow_persistent_only: bool)
             errs.append_array(validate_effects(e.get("then", []), p + ".then", allow_persistent_only))
         if op == "repeat":
             errs.append_array(validate_effects(e.get("effects", []), p + ".effects", allow_persistent_only))
+    return errs
+
+
+## A target reference: a plain name, or {"ref": name, "affinity": ...}.
+static func validate_target_ref(ref, path: String) -> Array:
+    var errs: Array = []
+    if ref is Dictionary:
+        var d: Dictionary = ref
+        if not TARGET_REFS.has(String(d.get("ref", ""))):
+            errs.append("%s: target ref '%s' is not a target reference" % [path, str(d.get("ref", ""))])
+        for k in d.keys():
+            if not ["ref", "affinity"].has(String(k)):
+                errs.append("%s: target has unexpected field '%s'" % [path, str(k)])
+        if d.has("affinity") and not AFFINITIES.has(String(d["affinity"])):
+            errs.append("%s: target affinity '%s' is not an Affinity" % [path, str(d["affinity"])])
+        return errs
+    if not TARGET_REFS.has(String(ref)):
+        errs.append("%s: target '%s' is not a target reference" % [path, str(ref)])
     return errs
 
 

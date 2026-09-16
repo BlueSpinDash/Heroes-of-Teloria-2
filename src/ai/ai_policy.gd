@@ -185,6 +185,11 @@ static func answer_choice(state: GameState, player: int, w: Dictionary) -> Dicti
                 # Exhaust the least playable cards first.
                 ranked.sort_custom(func(a, b): return _cost_of(state, String(a)) > _cost_of(state, String(b)))
             return {"cmd": "choose_cards", "player": player, "iids": ranked.slice(0, want)}
+        "choose_card_type":
+            # Name the type that most of what is still to resolve carries, so
+            # the choice is worth something rather than arbitrary.
+            return {"cmd": "choose_card_type", "player": player,
+                "card_type": _best_card_type(state, player)}
         "choose_deploy":
             var pool2 := GameEngine._deployable_from_hand(state, player)
             if pool2.is_empty():
@@ -192,6 +197,36 @@ static func answer_choice(state: GameState, player: int, w: Dictionary) -> Dicti
             pool2.sort_custom(func(a, b): return _body_value(state, String(a)) > _body_value(state, String(b)))
             return {"cmd": "choose_deploy", "player": player, "card_iid": String(pool2[0])}
     return {}
+
+
+## The Card Type most represented among the Actions still to resolve this
+## round, falling back to what is in hand, and to Skill when neither says
+## anything. Naming a type nothing will carry is the one clearly bad answer.
+static func _best_card_type(state: GameState, player: int) -> String:
+    var counts: Dictionary = {}
+    for i in range(state.current_step + 1, state.sequence.size()):
+        var slot: ActionSlot = state.sequence[i]
+        if slot.card_iid == "":
+            continue
+        var d := state.def_of(slot.card_iid)
+        if d == null:
+            continue
+        for t in d.types:
+            counts[String(t)] = int(counts.get(String(t), 0)) + 2
+    for iid in state.player(player).hand:
+        var hd := state.def_of(String(iid))
+        if hd == null:
+            continue
+        for t in hd.types:
+            counts[String(t)] = int(counts.get(String(t), 0)) + 1
+    var best := "skill"
+    var best_score := -1
+    for t in EffectSchema.CARD_TYPES:
+        var score := int(counts.get(String(t), 0))
+        if score > best_score:
+            best_score = score
+            best = String(t)
+    return best
 
 
 static func _cost_of(state: GameState, iid: String) -> int:

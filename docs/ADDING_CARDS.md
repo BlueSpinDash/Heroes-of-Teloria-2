@@ -63,6 +63,15 @@ Unyielding Flame, taken from a supplied card face:
 * the id did not change, so the Passion starter deck and the Passion AI deck
   still reference her without any edit.
 
+`VIG_HERO_01` became Sorbet, the Undone Architect the same way, and needed the
+engine extended for it. Her ability names a Card Type and then pays off on it,
+which nothing in the vocabulary could say: it took a `choose_card_type` op, a
+`chosen_type_card_resolved` trigger, somewhere on the card to remember the
+answer for the round, and a way to write "each Vigilance Companion you control"
+as a target. Those are all in `docs/EFFECT_SCHEMA.md` now and are available to
+any future card. That is the shape of a card that needs engine work: the
+vocabulary grows once, deliberately, and the card is then ordinary data.
+
 ## What I will tell you back
 
 For each card I will report:
@@ -95,6 +104,63 @@ before the card itself is rewritten.
 
 You can set the flag yourself in the card editor with the "Finished card"
 checkbox, and I set it whenever I replace a card.
+
+## Which face a card is drawn on
+
+A card type can have a painted frame, and a card of that type is drawn on it
+automatically. Heroes have one. The frame carries everything that is the same
+on every card of its type — the type banner, the stat captions, the ornament —
+and the live card fills in the name, the numbers, the art, the rules text, the
+Affinity and the footer, each anchored over the region the template painted for
+it.
+
+A card opts out with `"frame": "plain"`, which draws the laid-out face instead.
+That is for a card finished before its type has a frame, so it can keep the look
+it shipped with. No card uses it at the moment.
+
+### Cropping the art
+
+A card's art is scaled to **cover** its frame's window and clipped, never
+squashed, so a crop of the wrong shape silently loses whatever is nearest the
+edges. The Hero frame's window is the `"art"` slot in `src/ui/layout.gd`, which the
+**Layout** screen edits: 0.617 of the card wide by 0.448 tall, which on a 5:7
+card is an aspect of **0.984** — very slightly taller than it is wide.
+
+When a supplied card face is the source, cut the portrait from **that card's own
+art window**, at that aspect:
+
+1. Find the window's inner edges on the supplied image. Crop a narrow strip
+   across each edge and read off where the ornate border stops — every card
+   face is a different size, so these cannot be assumed from another card.
+2. If the window is wider than 0.974, the full height fits and some width has
+   to go: choose which side deliberately. Sorbet reaches to the right of her
+   window, so her crop is taken flush with the window's right edge and gives up
+   background on the left.
+3. `tools/crop_art.gd` does the cut:
+   `godot --headless --path . --script tools/crop_art.gd -- SRC DST X Y W H`.
+
+The crops in use, for reference:
+
+| Card | Source window | Crop taken |
+| --- | --- | --- |
+| Parfait | x 217–933, y 170–890 | `221 170 708 720` |
+| Sorbet | x 232–975, y 150–875 | `262 150 713 725` |
+
+Measure the edges at magnification. `tools/crop_art.gd` takes a `SCALE`
+argument for exactly this: crop a 40-pixel strip straddling an edge at 7x and
+the boundary between the painted border and the artwork is unmistakable.
+Eyeballing a full-size card face is not good enough — it put the window 26
+pixels out, which showed as a pale strip of empty frame down one side of every
+Hero.
+
+Getting this wrong is not obvious from a thumbnail. Check it by rendering the
+card large and comparing against the supplied face — an arm or a hand reaching
+for the edge of the frame is exactly what a too-tight crop takes first.
+
+To give another type a frame: add the painted template to `assets/frames/`,
+teach `tools/prepare_hero_frame.gd` to paint its placeholder text out, and add
+the type and its slot rectangles to `FRAMES` and the slot table in
+`src/ui/card_view.gd`.
 
 ## Doing it yourself in the app
 

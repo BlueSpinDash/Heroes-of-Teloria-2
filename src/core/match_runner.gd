@@ -109,6 +109,8 @@ static func _passive_command(st: GameState, player: int) -> Dictionary:
                 return {"cmd": "choose_cards", "player": player, "iids": pool.slice(0, n)}
             "choose_deploy":
                 return {"cmd": "choose_deploy", "player": player, "card_iid": ""}
+            "choose_card_type":
+                return {"cmd": "choose_card_type", "player": player, "card_type": "skill"}
         return {}
     if st.phase == "action":
         return {"cmd": "pass_actions", "player": player}
