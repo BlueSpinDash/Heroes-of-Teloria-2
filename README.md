@@ -85,8 +85,8 @@ godot --headless --path . --script tools/prepare_hero_frame.gd
 ```
 
 A card can opt out with `"frame": "plain"` in its data, which is how a card
-finished before its type had a frame keeps the look it shipped with. Parfait,
-the Unyielding Flame is the one card that does.
+finished before its type had a frame can keep the look it shipped with. No card
+uses it at the moment: every Hero, Parfait included, is on the frame.
 
 Cards on the table are drawn small enough to fit it, which leaves their rules
 text too small to read, so resting the pointer on one brings the same card up

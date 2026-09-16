@@ -106,8 +106,13 @@ Affinity and the footer, each anchored over the region the template painted for
 it.
 
 A card opts out with `"frame": "plain"`, which draws the laid-out face instead.
-That is for a card finished before its type had a frame, so it keeps the look it
-shipped with. Parfait, the Unyielding Flame is the one card that uses it.
+That is for a card finished before its type has a frame, so it can keep the look
+it shipped with. No card uses it at the moment.
+
+A card's art should be cropped to the proportions of its frame's art window —
+for the Hero frame, the `"art"` slot in `src/ui/card_view.gd`, which is roughly
+5 wide to 5.4 tall. Art of another shape still works: it is scaled to cover the
+window and cropped, rather than squashed.
 
 To give another type a frame: add the painted template to `assets/frames/`,
 teach `tools/prepare_hero_frame.gd` to paint its placeholder text out, and add

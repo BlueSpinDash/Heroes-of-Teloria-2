@@ -35,8 +35,8 @@ const HERO_SLOTS := {
     "attack": Rect2(0.100, 0.294, 0.130, 0.050),
     "defense": Rect2(0.100, 0.448, 0.130, 0.050),
     "art": Rect2(0.279, 0.135, 0.561, 0.432),
-    "name": Rect2(0.262, 0.582, 0.576, 0.054),
-    "rules": Rect2(0.178, 0.666, 0.664, 0.160),
+    "name": Rect2(0.285, 0.582, 0.530, 0.054),
+    "rules": Rect2(0.178, 0.662, 0.664, 0.166),
     "affinity": Rect2(0.392, 0.916, 0.208, 0.034),
     "set": Rect2(0.075, 0.933, 0.290, 0.026),
     "rarity": Rect2(0.635, 0.933, 0.290, 0.026),
@@ -132,7 +132,13 @@ func _build_framed(frame_path: String) -> void:
         int(24 * scale_factor), Color.WHITE, true))
     layer.add_child(_slot(str(def.defense), HERO_SLOTS["defense"],
         int(24 * scale_factor), Color.WHITE, true))
-    layer.add_child(_slot(def.name, HERO_SLOTS["name"], int(13 * scale_factor), UiTheme.INK))
+    # The name banner is a fixed painted width, so the name is set to fit it
+    # rather than clipped: a Hero's name is the one thing on the card that
+    # must always read in full.
+    var name_slot: Rect2 = HERO_SLOTS["name"]
+    layer.add_child(_slot(def.name, name_slot,
+        _fit_font_size(def.name, int(15 * scale_factor), name_slot.size.x * card_width),
+        UiTheme.INK))
     # The banner and the footer lines are small painted spaces, so they carry
     # the short form: the Affinity, the card's id, its rarity. The rest of what
     # a card is stays in its tooltip and in the collection.
@@ -158,7 +164,7 @@ func _build_framed(frame_path: String) -> void:
         rules.add_child(meta_label)
     var body_label := UiTheme.wrapped(
         def.text if def.text.strip_edges() != "" else "No rules text.",
-        int(12 * scale_factor), UiTheme.INK)
+        int(11 * scale_factor), UiTheme.INK)
     body_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     body_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
     rules.add_child(body_label)
@@ -181,6 +187,23 @@ func _slot(text: String, where: Rect2, font_size: int, colour: Color,
         l.add_theme_constant_override("outline_size", maxi(2, int(font_size / 6)))
     _anchor(l, where)
     return l
+
+
+## The largest size at or below `base` at which `text` fits across `width`.
+##
+## Measured with the font the label itself will use, so the answer holds
+## whatever theme is in force.
+func _fit_font_size(text: String, base: int, width: float, floor_size: int = 8) -> int:
+    var font := get_theme_font("font", "Label")
+    if font == null:
+        font = ThemeDB.fallback_font
+    if font == null or text == "" or width <= 0.0:
+        return base
+    var size := base
+    while size > floor_size and font.get_string_size(
+            text, HORIZONTAL_ALIGNMENT_LEFT, -1, UiTheme.fs(size)).x > width:
+        size -= 1
+    return size
 
 
 static func _anchor(c: Control, where: Rect2) -> void:

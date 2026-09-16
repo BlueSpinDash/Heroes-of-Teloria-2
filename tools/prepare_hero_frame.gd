@@ -27,7 +27,7 @@ const PATCHES := [
     # of their own parchment at their own width, so the tone matches exactly
     # and the stretch leaves no seam down either side.
     [336, 872, 404, 10, 336, 878, 404, 68],
-    [192, 1160, 676, 12, 192, 1000, 676, 218],
+    [192, 1166, 676, 9, 192, 1000, 676, 218],
     # The word AFFINITY, patched from the clean top of its own banner.
     [438, 1360, 174, 9, 438, 1368, 174, 40],
     # The two footer lines, patched with the clean stone beside them.

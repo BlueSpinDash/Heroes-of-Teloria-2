@@ -411,8 +411,12 @@ func _hero_cards_use_the_frame(t: TestHarness) -> void:
             wrong.append("%s is a Hero but was not framed" % card.id)
     t.ge(float(heroes.size()), 7.0, "there is a Hero for every Affinity")
     t.empty(wrong, "every Hero is on the frame, and only Heroes are")
-    t.eq(plain, ["PAS_HERO_01"],
-        "Parfait is the one card keeping the face it was finished with")
+    t.empty(plain, "no Hero opts out of the frame")
+
+    # The opt-out still works, for a card finished before its type has a frame.
+    var opted := CardDef.from_dict(app.catalog.get_def("PAS_HERO_01").data.duplicate(true))
+    opted.data["frame"] = "plain"
+    t.eq(CardView._frame_for(opted), "", "a card can still ask for the plain face")
 
     # Framed or plain, a card is still a trading card.
     for id in ["DEV_HERO_01", "PAS_HERO_01"]:
