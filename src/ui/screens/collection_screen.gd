@@ -9,6 +9,7 @@ var _affinity: OptionButton
 var _rarity: OptionButton
 var _cost: OptionButton
 var _ownership: OptionButton
+var _search_rules: CheckBox
 var _grid: GridContainer
 var _summary: Label
 var _inspect_holder: VBoxContainer
@@ -73,11 +74,22 @@ func setup(application: App, _args: Dictionary = {}) -> void:
 func _filter_row() -> Control:
     var row := UiTheme.hbox(8)
     _search = LineEdit.new()
-    _search.placeholder_text = "Search name, rules text or id"
+    _search.placeholder_text = "Search card names"
     _search.add_theme_font_size_override("font_size", 13)
-    _search.custom_minimum_size = Vector2(240, 0)
+    _search.custom_minimum_size = Vector2(200, 0)
     _search.text_changed.connect(func(_t): _refilter())
     row.add_child(_search)
+
+    # Searching rules text as well is occasionally useful but very noisy: most
+    # cards mention "Hero", so it is off unless asked for.
+    _search_rules = CheckBox.new()
+    _search_rules.text = "in rules text"
+    _search_rules.tooltip_text = "Also match the words inside a card's rules text."
+    _search_rules.add_theme_font_size_override("font_size", 12)
+    _search_rules.toggled.connect(func(_p): _refilter())
+    row.add_child(_search_rules)
+
+    row.add_child(UiTheme.label("Type:", 12, UiTheme.TEXT_DIM))
 
     _type = _picker(["Any type", "Hero", "Companion", "Skill", "Equipment", "Location", "Ta'ahma"])
     row.add_child(_type)
@@ -96,6 +108,7 @@ func _filter_row() -> Control:
     var clear := UiTheme.button("Clear")
     clear.pressed.connect(func():
         _search.text = ""
+        _search_rules.button_pressed = false
         for p in [_type, _affinity, _rarity, _cost, _ownership]:
             (p as OptionButton).select(0)
         _refilter())
@@ -124,14 +137,20 @@ func _refilter() -> void:
     var owned_shown := 0
     for def in _matches:
         owned_shown += app.profile.owned_count((def as CardDef).id)
-    _summary.text = "%d of %d definitions match. You own %d cop%s of them." % [
-        _matches.size(), app.catalog.size(), owned_shown, "y" if owned_shown == 1 else "ies"]
+    var scope := "names and ids"
+    if _search_rules != null and _search_rules.button_pressed:
+        scope = "names, ids and rules text"
+    _summary.text = "%d of %d definitions match. You own %d cop%s of them. Searching %s — use the Type filter to list one card type on its own." % [
+        _matches.size(), app.catalog.size(), owned_shown,
+        "y" if owned_shown == 1 else "ies", scope]
     _render()
 
 
 func _passes(def: CardDef, query: String) -> bool:
     if query != "":
-        var haystack := "%s %s %s" % [def.name.to_lower(), def.text.to_lower(), def.id.to_lower()]
+        var haystack := "%s %s" % [def.name.to_lower(), def.id.to_lower()]
+        if _search_rules != null and _search_rules.button_pressed:
+            haystack += " " + def.text.to_lower()
         if not haystack.contains(query):
             return false
     var t := _type.get_selected_id()

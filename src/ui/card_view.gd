@@ -40,6 +40,8 @@ func set_card(card: CardDef) -> void:
 func _build() -> void:
     var scale_factor := card_width / BASE_WIDTH
     custom_minimum_size = Vector2(card_width, BASE_HEIGHT * scale_factor)
+    size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+    clip_contents = true
     mouse_filter = Control.MOUSE_FILTER_STOP if clickable else Control.MOUSE_FILTER_PASS
     tooltip_text = "%s — %s" % [def.name, def.text if def.text != "" else "No rules text."]
 
@@ -114,8 +116,9 @@ func _build() -> void:
     if def.has_type("companion") and def.energy_contribution > 0:
         meta.append("+%d max Energy" % def.energy_contribution)
     if not meta.is_empty():
-        text_box.add_child(UiTheme.label(" • ".join(meta), int(10 * scale_factor), UiTheme.GOLD_DIM,
-            HORIZONTAL_ALIGNMENT_CENTER))
+        var meta_label := UiTheme.wrapped(" • ".join(meta), int(10 * scale_factor), UiTheme.GOLD_DIM)
+        meta_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+        text_box.add_child(meta_label)
     var body := def.text if def.text.strip_edges() != "" else "No rules text."
     var body_label := UiTheme.wrapped(body, int(11.5 * scale_factor), UiTheme.INK)
     body_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -134,8 +137,10 @@ func _build() -> void:
 
     # --- footer --------------------------------------------------------------
     var footer := UiTheme.hbox(4)
-    footer.add_child(UiTheme.label("%s%s" % ["" if def.authored else "PROXY • ", def.id],
-        int(9 * scale_factor), UiTheme.PARCHMENT_DARK))
+    var id_label := UiTheme.label("%s%s" % ["" if def.authored else "PROXY • ", def.id],
+        int(9 * scale_factor), UiTheme.PARCHMENT_DARK)
+    id_label.clip_text = true
+    footer.add_child(id_label)
     var gap := Control.new()
     gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     footer.add_child(gap)
@@ -144,8 +149,10 @@ func _build() -> void:
         restriction = " • NAMED"
     elif def.unique:
         restriction = " • UNIQUE"
-    footer.add_child(UiTheme.label(UiTheme.rarity_line(def) + restriction, int(9 * scale_factor),
-        UiTheme.RARITY_COLOR.get(def.rarity, UiTheme.TEXT_DIM)))
+    var rarity_label := UiTheme.label(UiTheme.rarity_line(def) + restriction, int(9 * scale_factor),
+        UiTheme.RARITY_COLOR.get(def.rarity, UiTheme.TEXT_DIM))
+    rarity_label.clip_text = true
+    footer.add_child(rarity_label)
     root.add_child(footer)
 
     _badge_row = UiTheme.hbox(4)
@@ -162,6 +169,9 @@ func _banner(text: String, font_size: int, big: bool = false) -> PanelContainer:
     l.clip_text = not big
     l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART if big else TextServer.AUTOWRAP_OFF
     l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    # Never let long text push the card past the width it was created at.
+    l.custom_minimum_size = Vector2(0, 0)
+    l.clip_text = l.clip_text or not big
     p.add_child(l)
     return p
 
@@ -187,7 +197,13 @@ func add_badge(text: String, colour: Color = UiTheme.GOLD) -> void:
     if _badge_row == null:
         return
     var p := UiTheme.panel(UiTheme.BG_PANEL, colour, 1, 3)
-    p.add_child(UiTheme.label(text, 10, colour, HORIZONTAL_ALIGNMENT_CENTER))
+    var l := UiTheme.label(text, 10, colour, HORIZONTAL_ALIGNMENT_CENTER)
+    # Clipped so a long badge cannot widen the card it sits on. The full text
+    # is still available as the card's tooltip.
+    l.clip_text = true
+    l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    p.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    p.add_child(l)
     _badge_row.add_child(p)
 
 
