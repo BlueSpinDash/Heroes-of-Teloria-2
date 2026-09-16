@@ -240,7 +240,7 @@
       }
     ],
     "triggers": [],
-    "text": "Reaction (before the Action): Prevent the next 2 damage that would be dealt to the attack's target for the round.",
+    "text": "Reaction (before the Action): Reduce the next damage dealt to the attack's target by 2 for the round.",
     "flavor": "Placeholder flavour for Neutral Proxy Skill 05. Names, art and flavour are replaceable and never change mechanics.",
     "art": {
       "style": "abstract_sigil",
@@ -926,13 +926,16 @@
   },
   {
     "id": "NEU_EQUIP_02",
-    "revision": 1,
-    "placeholder": true,
-    "name": "Neutral Proxy Equipment 02",
+    "revision": 2,
+    "placeholder": false,
+    "name": "Blasting Bolts",
     "types": [
       "equipment"
     ],
-    "tags": [],
+    "tags": [
+      "ammunition",
+      "consumable"
+    ],
     "affinities": [],
     "rarity": "uncommon",
     "unique": false,
@@ -959,20 +962,43 @@
         "op": "aura_stat_mod",
         "scope": "host",
         "attack": 1,
-        "defense": 2
+        "cond": {
+          "kind": "host_attacks_with",
+          "tag": "ranged"
+        }
       }
     ],
-    "triggers": [],
-    "text": "While this card is in play, its host gets +1 Attack and +2 Defense.",
+    "triggers": [
+      {
+        "on": {
+          "kind": "host_attack_resolved"
+        },
+        "effects": [
+          {
+            "op": "mill",
+            "who": "opponent",
+            "amount": {
+              "from": "count",
+              "of": "characters_in_sequence",
+              "scope": "opponent"
+            }
+          }
+        ]
+      }
+    ],
+    "text": "While this card is in play and its host makes Ranged attacks, its host gets +1 Attack. After an attack by its host resolves, move up to a number of cards equal to the number of Heroes and Companions your opponent controls in the Action Sequence from the top of your opponent's Hit Deck to your opponent's Exhaust Deck.",
     "flavor": "Placeholder flavour for Neutral Proxy Equipment 02. Names, art and flavour are replaceable and never change mechanics.",
     "art": {
-      "style": "abstract_sigil",
-      "seed": 82231,
-      "hue": 210,
-      "saturation": 0.0
+      "style": "supplied",
+      "image": "res://assets/cards/blasting_bolts.png",
+      "fit": "contain",
+      "seed": 80203,
+      "hue": 30,
+      "saturation": 0.3
     },
     "patterns": [
-      "equipment_buff"
+      "equipment_buff",
+      "mill"
     ],
     "ai_hints": {
       "role": "flexible",
@@ -980,7 +1006,10 @@
       "patterns": [
         "equipment_buff"
       ]
-    }
+    },
+    "authored": true,
+    "short_name": "Blasting Bolts",
+    "frame": "printed"
   },
   {
     "id": "NEU_TAAHMA_01",

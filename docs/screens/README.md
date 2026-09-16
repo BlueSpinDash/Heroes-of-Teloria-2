@@ -31,6 +31,7 @@ xvfb-run -a godot --path . --resolution 1440x900 --script tools/ui_drive.gd
 | `21_burning_rush.png` | Burning Rush, the first authored Skill, on the Skill frame |
 | `22_skill_frame.png` | The Skill frame: an authored Skill, a proxy, and a Hero beside them |
 | `23_printed_faces.png` | Three cards drawn from the faces they were supplied as, beside one the game builds |
+| `25_supplied_cards.png` | Every card supplied as a finished face, drawn from that face |
 
 The battle screen's own artwork lives in `assets/board/`. `board_full.png` is
 the painted board; `tools/slice_board.gd` cuts the plates the screen uses out

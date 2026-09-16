@@ -172,6 +172,13 @@ plays. The generated text is kept in the definition and is what the rest of the
 interface quotes; the printed words are what the player reads on the face. They
 should say the same thing, and the generated line is the one that is checked.
 
+Every card supplied so far is drawn this way. They occupy proxy slots rather
+than being appended, because the catalog's shape — 300 cards, 40 per Affinity,
+5 Reaction Skills each, a fixed rarity spread — is a design constraint the
+generator asserts. A finished Reaction takes a Reaction slot, and a finished
+card keeps the rarity of the slot it replaces until a printed rarity says
+otherwise; the supplied faces all carry a placeholder `RARITY` line.
+
 ### The window is not a rectangle
 
 Each painted window has its corners cut back by a gothic arch, so artwork laid
@@ -215,7 +222,10 @@ The crops in use, for reference:
 | --- | --- | --- |
 | Parfait | x 217–933, y 170–890 | `221 170 708 720` |
 | Sorbet | x 232–975, y 150–875 | `262 150 713 725` |
-| Burning Rush | x 178–950, y 174–880 (667 wide near the top) | `310 266 607 574` |
+
+No card uses a cropped portrait at the moment: every finished card is drawn
+from the face it was supplied as. The measurements above are for a card that
+goes on a painted frame instead.
 
 Measure the edges at magnification. `tools/crop_art.gd` takes a `SCALE`
 argument for exactly this: crop a 40-pixel strip straddling an edge at 7x and

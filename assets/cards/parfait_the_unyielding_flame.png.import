@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dt8oxhqr0dhsk"
-path="res://.godot/imported/sorbet_the_undone_architect.png-4825815ebdc629a90afd8c0ca2d67ee9.ctex"
+uid="uid://od7dhpi3lois"
+path="res://.godot/imported/parfait_the_unyielding_flame.png-f62d0d250e6b1fa29cfbbac9a645ef5f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/art/sorbet_the_undone_architect.png"
-dest_files=["res://.godot/imported/sorbet_the_undone_architect.png-4825815ebdc629a90afd8c0ca2d67ee9.ctex"]
+source_file="res://assets/cards/parfait_the_unyielding_flame.png"
+dest_files=["res://.godot/imported/parfait_the_unyielding_flame.png-f62d0d250e6b1fa29cfbbac9a645ef5f.ctex"]
 
 [params]
 

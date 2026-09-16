@@ -216,9 +216,34 @@ static func deck(hero: String, spec: Dictionary = {}, filler: String = "FIX_FILL
     return {"deck_id": "fixture_" + hero.to_lower(), "hero": hero, "cards": cards}
 
 
-static func match_of(deck0: Dictionary, deck1: Dictionary, seed_value: int = 1234) -> GameState:
-    return GameEngine.start_match(catalog(), rules(), [deck0, deck1], seed_value,
-        "fixture_match", ["P1", "P2"], [false, false], ["", ""])
+static func match_of(deck0: Dictionary, deck1: Dictionary, seed_value: int = 1234,
+        cat: Catalog = null) -> GameState:
+    return GameEngine.start_match(cat if cat != null else catalog(), rules(),
+        [deck0, deck1], seed_value, "fixture_match", ["P1", "P2"], [false, false], ["", ""])
+
+
+## The fixture definitions plus named cards from the shipped catalog, so a test
+## can put a real card on a board it controls completely. A finished card is
+## worth testing as it ships rather than as a copy of itself.
+static func catalog_with(ids: Array) -> Catalog:
+    var defs := all_defs()
+    var bundled := Catalog.load_bundled()
+    for id in ids:
+        var d := bundled.get_def(String(id))
+        if d != null:
+            defs.append(d)
+    return Catalog.from_defs(defs)
+
+
+## A controlled board whose catalog also holds the named shipped cards.
+static func fresh_with(ids: Array, deck0: Dictionary, deck1: Dictionary,
+        seed_value: int = 7) -> GameState:
+    var st := match_of(deck0, deck1, seed_value, catalog_with(ids))
+    setup_action_phase(st)
+    clear_hands(st)
+    st.first_player = 0
+    st.action_priority = 0
+    return st
 
 
 ## A match already in the Action Phase with empty hands and P1 on priority,

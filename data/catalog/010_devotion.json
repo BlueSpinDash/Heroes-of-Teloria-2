@@ -156,7 +156,7 @@
       }
     ],
     "triggers": [],
-    "text": "Prevent the next 2 damage that would be dealt to target character you control for the round.",
+    "text": "Reduce the next damage dealt to target character you control by 2 for the round.",
     "flavor": "Placeholder flavour for Devotion Proxy Skill 01. Names, art and flavour are replaceable and never change mechanics.",
     "art": {
       "style": "abstract_sigil",
@@ -208,7 +208,7 @@
       }
     ],
     "triggers": [],
-    "text": "Prevent the next 2 damage that would be dealt to your Hero for the round.",
+    "text": "Reduce the next damage dealt to your Hero by 2 for the round.",
     "flavor": "Placeholder flavour for Devotion Proxy Skill 02. Names, art and flavour are replaceable and never change mechanics.",
     "art": {
       "style": "abstract_sigil",
@@ -531,7 +531,7 @@
       }
     ],
     "triggers": [],
-    "text": "Reaction (before the Action): Prevent the next 2 damage that would be dealt to the attack's target for the round.",
+    "text": "Reaction (before the Action): Reduce the next damage dealt to the attack's target by 2 for the round.",
     "flavor": "Placeholder flavour for Devotion Proxy Skill 08. Names, art and flavour are replaceable and never change mechanics.",
     "art": {
       "style": "abstract_sigil",
@@ -643,7 +643,7 @@
       }
     ],
     "triggers": [],
-    "text": "Reaction (before the Action): Prevent the next 3 damage that would be dealt to your Hero for the round.",
+    "text": "Reaction (before the Action): Reduce the next damage dealt to your Hero by 3 for the round.",
     "flavor": "Placeholder flavour for Devotion Proxy Skill 10. Names, art and flavour are replaceable and never change mechanics.",
     "art": {
       "style": "abstract_sigil",
@@ -865,7 +865,7 @@
       }
     ],
     "triggers": [],
-    "text": "Prevent the next 4 damage that would be dealt to target character you control for the round.",
+    "text": "Reduce the next damage dealt to target character you control by 4 for the round.",
     "flavor": "Placeholder flavour for Devotion Proxy Skill 14. Names, art and flavour are replaceable and never change mechanics.",
     "art": {
       "style": "abstract_sigil",
@@ -1437,7 +1437,7 @@
         ]
       }
     ],
-    "text": "When this Companion enters play, prevent the next 2 damage that would be dealt to your Hero for the round.",
+    "text": "When this Companion enters play, reduce the next damage dealt to your Hero by 2 for the round.",
     "flavor": "Placeholder flavour for Devotion Proxy Companion 04. Names, art and flavour are replaceable and never change mechanics.",
     "art": {
       "style": "abstract_sigil",

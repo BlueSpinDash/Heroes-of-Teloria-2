@@ -16,6 +16,9 @@ var _pending_card: String = ""
 var _pending_attacker: String = ""
 var _pending_x: int = 0
 var _target_kind: String = ""
+## The card's own target block, which may narrow the list further than its
+## kind does — a Ta'ahma written for one named character, for instance.
+var _target_filter: Dictionary = {}
 var _as_reaction: bool = false
 var _choice_selection: Array = []
 ## Targets already chosen by dropping a card onto them, so the X-cost prompt
@@ -575,7 +578,8 @@ func _character_chip(iid: String, player: int, is_hero: bool) -> Control:
     # Action affordances.
     if _mode == "pick_attack_target" and player == 1:
         v.add_child(_target_button(iid))
-    elif _mode == "pick_card_target" and Targeting.legal_targets(st, _target_kind, 0).has(iid):
+    elif _mode == "pick_card_target" \
+            and Targeting.legal_targets(st, _target_kind, 0, _target_filter).has(iid):
         v.add_child(_target_button(iid))
     elif _mode == "idle" and player == 0 and _can_act() \
             and GameEngine._attack_candidates(st, 0).has(iid):
@@ -1187,6 +1191,7 @@ func _cancel() -> void:
     _pending_attacker = ""
     _pending_x = 0
     _target_kind = ""
+    _target_filter = {}
     _pending_targets = []
     _targets_prechosen = false
     _refresh()
@@ -1234,6 +1239,7 @@ func _ask_for_x(d: CardDef) -> void:
 func _continue_play(d: CardDef) -> void:
     if d.target_spec is Dictionary:
         _target_kind = String((d.target_spec as Dictionary).get("kind", ""))
+        _target_filter = d.target_spec
         _mode = "pick_card_target"
         _refresh()
         return
@@ -1257,8 +1263,8 @@ func _choose_target(iid: String) -> void:
         _pending_attacker = ""
         _after_command()
         return
-    if not Targeting.is_valid(st, _target_kind, 0, iid):
-        app.toast(Targeting.explain_invalid(st, _target_kind, 0, iid), true)
+    if not Targeting.is_valid(st, _target_kind, 0, iid, _target_filter):
+        app.toast(Targeting.explain_invalid(st, _target_kind, 0, iid, _target_filter), true)
         return
     _submit_card([iid])
 
@@ -1279,6 +1285,7 @@ func _submit_card(targets: Array) -> void:
     _pending_card = ""
     _pending_x = 0
     _target_kind = ""
+    _target_filter = {}
     _pending_targets = []
     _targets_prechosen = false
     _after_command()

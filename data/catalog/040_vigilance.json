@@ -63,9 +63,9 @@
     "flavor": "",
     "art": {
       "style": "supplied",
-      "image": "sorbet_the_undone_architect.png",
-      "fit": "cover",
-      "seed": 52120,
+      "image": "res://assets/cards/sorbet_the_undone_architect.png",
+      "fit": "contain",
+      "seed": 40101,
       "hue": 150,
       "saturation": 0.45
     },
@@ -82,7 +82,8 @@
         "stat_buff",
         "hero"
       ]
-    }
+    },
+    "frame": "printed"
   },
   {
     "id": "VIG_HERO_02",
@@ -181,7 +182,7 @@
       }
     ],
     "triggers": [],
-    "text": "Prevent the next 2 damage that would be dealt to target character you control for the round.",
+    "text": "Reduce the next damage dealt to target character you control by 2 for the round.",
     "flavor": "Placeholder flavour for Vigilance Proxy Skill 01. Names, art and flavour are replaceable and never change mechanics.",
     "art": {
       "style": "abstract_sigil",
@@ -341,7 +342,7 @@
       }
     ],
     "triggers": [],
-    "text": "Prevent the next 3 damage that would be dealt to your Hero for the round.",
+    "text": "Reduce the next damage dealt to your Hero by 3 for the round.",
     "flavor": "Placeholder flavour for Vigilance Proxy Skill 04. Names, art and flavour are replaceable and never change mechanics.",
     "art": {
       "style": "abstract_sigil",
@@ -565,7 +566,7 @@
       }
     ],
     "triggers": [],
-    "text": "Reaction (before the Action): Prevent the next 3 damage that would be dealt to your Hero for the round.",
+    "text": "Reaction (before the Action): Reduce the next damage dealt to your Hero by 3 for the round.",
     "flavor": "Placeholder flavour for Vigilance Proxy Skill 08. Names, art and flavour are replaceable and never change mechanics.",
     "art": {
       "style": "abstract_sigil",
@@ -621,7 +622,7 @@
       }
     ],
     "triggers": [],
-    "text": "Reaction (before the Action): Prevent the next 3 damage that would be dealt to the attack's target for the round.",
+    "text": "Reaction (before the Action): Reduce the next damage dealt to the attack's target by 3 for the round.",
     "flavor": "Placeholder flavour for Vigilance Proxy Skill 09. Names, art and flavour are replaceable and never change mechanics.",
     "art": {
       "style": "abstract_sigil",
@@ -844,7 +845,7 @@
       }
     ],
     "triggers": [],
-    "text": "Prevent the next 5 damage that would be dealt to target character you control for the round.",
+    "text": "Reduce the next damage dealt to target character you control by 5 for the round.",
     "flavor": "Placeholder flavour for Vigilance Proxy Skill 13. Names, art and flavour are replaceable and never change mechanics.",
     "art": {
       "style": "abstract_sigil",
@@ -1212,7 +1213,7 @@
       }
     ],
     "triggers": [],
-    "text": "Prevent the next 6 damage that would be dealt to your Hero for the round.",
+    "text": "Reduce the next damage dealt to your Hero by 6 for the round.",
     "flavor": "Placeholder flavour for Vigilance Proxy Skill 20. Names, art and flavour are replaceable and never change mechanics.",
     "art": {
       "style": "abstract_sigil",
@@ -1556,7 +1557,7 @@
         ]
       }
     ],
-    "text": "When this Companion enters play, prevent the next 3 damage that would be dealt to your Hero for the round.",
+    "text": "When this Companion enters play, reduce the next damage dealt to your Hero by 3 for the round.",
     "flavor": "Placeholder flavour for Vigilance Proxy Companion 06. Names, art and flavour are replaceable and never change mechanics.",
     "art": {
       "style": "abstract_sigil",

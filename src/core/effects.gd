@@ -29,6 +29,7 @@ static func make_ctx(source_iid: String, controller: int, slot_index: int = -1,
         "targets": targets.duplicate(),
         "x_paid": x_paid,
         "target_kind": "",
+        "target_filter": {},
         "current_attacker": "",
         "current_target": "",
     }
@@ -69,13 +70,15 @@ static func exec_one(state: GameState, e: Dictionary, ctx: Dictionary) -> void:
 
         "damage_hero":
             var who := _who(state, e, ctx)
-            Mechanics.hero_damage(state, who, _amount(state, e.get("amount"), ctx), _source_label(state, ctx))
+            Mechanics.hero_damage(state, who, _amount(state, e.get("amount"), ctx),
+                _source_label(state, ctx), String(ctx.get("source_iid", "")))
 
         "direct_damage":
             var amt := _amount(state, e.get("amount"), ctx)
             var ig := bool(e.get("ignores_defense", false))
             for t in _resolve_targets(state, e.get("target"), ctx):
-                Mechanics.damage_character(state, String(t), amt, ig, _source_label(state, ctx))
+                Mechanics.damage_character(state, String(t), amt, ig,
+                    _source_label(state, ctx), String(ctx.get("source_iid", "")))
 
         "destroy":
             for t in _resolve_targets(state, e.get("target"), ctx):
@@ -156,7 +159,10 @@ static func exec_one(state: GameState, e: Dictionary, ctx: Dictionary) -> void:
                 var ci2 := state.inst(String(t))
                 if ci2 == null:
                     continue
-                ci2.shields.append({"amount": amt2, "expires": String(e.get("duration", "round"))})
+                var shield := {"amount": amt2, "expires": String(e.get("duration", "round"))}
+                if bool(e.get("reflect", false)):
+                    shield["reflect"] = true
+                ci2.shields.append(shield)
                 var cd2 := state.def_of(String(t))
                 state.emit("shield_added", {
                     "iid": t, "amount": amt2,
@@ -195,6 +201,16 @@ static func exec_one(state: GameState, e: Dictionary, ctx: Dictionary) -> void:
                 "kind": "choose_cards", "purpose": "recover", "from": "exhaust",
                 "owner": who5, "player": who5,
                 "count": _amount(state, e.get("amount"), ctx), "optional": true})
+
+        "search_and_attach":
+            var host_iids := _resolve_targets(state, e.get("to"), ctx)
+            if not host_iids.is_empty():
+                _defer_choice(state, {
+                    "kind": "choose_cards", "purpose": "equip",
+                    "from": "decks", "zones": e.get("zones", []).duplicate(),
+                    "tag": String(e.get("tag", "")),
+                    "owner": _who(state, e, ctx), "player": _who(state, e, ctx),
+                    "host": String(host_iids[0]), "count": 1, "optional": true})
 
         "deploy_from_hand":
             var who6 := _who(state, e, ctx)
@@ -281,65 +297,7 @@ static func check_condition(state: GameState, cond: Dictionary, ctx: Dictionary)
 # ------------------------------------------------------------------- amounts ---
 
 static func _amount(state: GameState, spec, ctx: Dictionary) -> int:
-    if spec == null:
-        return 0
-    if spec is int or spec is float:
-        return int(spec)
-    if not (spec is Dictionary):
-        return 0
-    var controller: int = int(ctx["controller"])
-    var opp := state.opponent_of(controller)
-    var base := 0
-    match String(spec.get("from", "")):
-        "x":
-            base = int(ctx.get("x_paid", 0))
-        "chain_count":
-            base = AffinityChain.count(state, int(ctx["slot_index"]),
-                String(spec.get("affinity", "any")), String(spec.get("scope", "either")), controller)
-        "count":
-            match String(spec.get("of", "")):
-                "own_companions": base = state.player(controller).companions.size()
-                "opponent_companions": base = state.player(opp).companions.size()
-                "own_hand": base = state.player(controller).hand.size()
-                "opponent_hand": base = state.player(opp).hand.size()
-                "own_exhaust": base = state.player(controller).exhaust.size()
-                "opponent_exhaust": base = state.player(opp).exhaust.size()
-                "resolved_before": base = _resolved_before(state, ctx, spec, controller)
-    if spec.has("multiplier"):
-        base = int(floor(float(base) * float(spec["multiplier"])))
-    return max(0, base)
-
-
-## How many slots of the Action Sequence resolved before the one being read.
-##
-## The Sequence resolves in order, so every slot earlier than this one has
-## already happened and no later one has — reading it needs no separate record
-## of the round, and it stays right when a card is read from a trigger.
-static func _resolved_before(state: GameState, ctx: Dictionary, spec: Dictionary,
-        evaluator: int) -> int:
-    var up_to: int = int(ctx.get("slot_index", 0))
-    var want: Array = spec.get("types", [])
-    var scope := String(spec.get("scope", "either"))
-    var n := 0
-    for i in mini(up_to, state.sequence.size()):
-        var slot: ActionSlot = state.sequence[i]
-        if scope == "controller" and slot.controller != evaluator:
-            continue
-        if scope == "opponent" and slot.controller == evaluator:
-            continue
-        if slot.card_iid == "":
-            continue
-        var cd := state.def_of(slot.card_iid)
-        if cd == null:
-            continue
-        if want.is_empty():
-            n += 1
-            continue
-        for t in want:
-            if cd.has_type(String(t)):
-                n += 1
-                break
-    return n
+    return Counts.amount(state, spec, ctx)
 
 
 static func _who(state: GameState, e: Dictionary, ctx: Dictionary) -> int:
@@ -382,13 +340,14 @@ static func _resolve_targets(state: GameState, ref, ctx: Dictionary) -> Array:
             var kind := String(ctx.get("target_kind", ""))
             var out: Array = []
             for t in ctx.get("targets", []):
-                if kind == "" or Targeting.is_valid(state, kind, controller, String(t)):
+                var filter: Dictionary = ctx.get("target_filter", {})
+                if kind == "" or Targeting.is_valid(state, kind, controller, String(t), filter):
                     out.append(String(t))
                 else:
                     state.emit("target_invalid", {
                         "iid": t,
                         "message": "Declared target is no longer valid: %s That part of the card does nothing." % \
-                            Targeting.explain_invalid(state, kind, controller, String(t))})
+                            Targeting.explain_invalid(state, kind, controller, String(t), filter)})
             return out
         "self":
             return [String(ctx.get("source_iid", ""))]
@@ -604,6 +563,10 @@ static func _trigger_matches(state: GameState, src: CardInstance, on: Dictionary
             return ev_kind == "leaves_play" and String(ev.get("iid", "")) == src.iid
         "self_wounded":
             return ev_kind == "wounded" and String(ev.get("iid", "")) == src.iid
+        "host_attack_resolved":
+            return ev_kind == "attack_resolved" \
+                and src.attached_to != "" \
+                and String(ev.get("attacker", "")) == src.attached_to
     return false
 
 

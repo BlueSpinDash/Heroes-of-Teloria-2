@@ -121,7 +121,11 @@ static func _announce_pending(st: GameState) -> void:
     match String(p.get("kind", "")):
         "choose_cards":
             var purpose := String(p.get("purpose", ""))
-            var what := "Exhaust" if purpose != "recover" else "return to hand"
+            var what := "Exhaust"
+            if purpose == "recover":
+                what = "return to hand"
+            elif purpose == "equip":
+                what = "attach to %s" % _label(st, String(p.get("host", "")))
             st.emit("choice_required", {
                 "player": p.get("player"),
                 "message": "P%d must choose up to %d card(s) to %s." % [
@@ -346,15 +350,17 @@ static func _resolve_card_action(st: GameState, slot: ActionSlot) -> void:
     var kind := ""
     if cd.target_spec is Dictionary:
         kind = String((cd.target_spec as Dictionary).get("kind", ""))
+    var target_filter: Dictionary = cd.target_spec if cd.target_spec is Dictionary else {}
     var ctx := EffectRunner.make_ctx(iid, slot.controller, st.current_step,
-        slot.targets, slot.x_paid, {"target_kind": kind})
+        slot.targets, slot.x_paid, {"target_kind": kind, "target_filter": target_filter})
 
     # Persistent cards enter play as the step resolves.
     if cd.has_type("companion"):
         Mechanics.deploy_companion(st, iid, slot.controller)
         EffectRunner.process_trigger_queue(st, 1)
     elif cd.is_attachment():
-        var hosts := Targeting.legal_targets(st, "own_character_host", slot.controller)
+        var hosts := Targeting.legal_targets(st, "own_character_host", slot.controller,
+            target_filter)
         var host := ""
         for t in slot.targets:
             if hosts.has(String(t)):
@@ -420,32 +426,52 @@ static func _resolve_attack(st: GameState, slot: ActionSlot) -> void:
             "slot": slot.slot_id,
             "message": "The declared target is no longer valid. The attack affects no target but still resolves."})
     else:
-        var dmg: int = max(0, st.current_attack(attacker) - st.current_defense(target))
-        # A card may have left a bonus for the next attack that qualifies. It
-        # is added to the damage dealt, after Defense, and is claimed once.
-        dmg += _claim_attack_bonus(st, attacker, slot.controller)
-        var tci := st.inst(target)
-        if tci.zone == "hero":
-            if dmg > 0:
-                Mechanics.hero_damage(st, tci.controller, dmg, acd.name)
-            else:
-                st.emit("no_damage", {
-                    "message": "%s deals no damage to %s." % [acd.name, _label(st, target)]})
-        else:
-            if dmg > 0:
-                st.emit("companion_damaged", {
-                    "target": target, "amount": dmg,
-                    "message": "%s deals %d damage to %s." % [acd.name, dmg, _label(st, target)]})
-                Mechanics.destroy(st, target, "attack damage")
-            else:
-                st.emit("no_damage", {
-                    "message": "%s deals no damage to %s, which survives." % [acd.name, _label(st, target)]})
-        EffectRunner.process_trigger_queue(st, 1)
+        _strike(st, attacker, target, slot.controller)
 
     st.trigger_events.append({
         "kind": "attack_resolved", "attacker": attacker, "controller": slot.controller, "target": target})
     EffectRunner.process_trigger_queue(st, 1)
     _emit_card_resolved(st, slot)
+
+
+## A Companion let into the Sequence out of turn, striking as its Reaction.
+static func _resolve_reaction_attack(st: GameState, r: Dictionary) -> void:
+    var attacker := String(r.get("attacker", ""))
+    var controller := int(r.get("controller", 0))
+    var aci := st.inst(attacker)
+    var acd := st.def_of(attacker)
+    if aci == null or acd == null or not ["hero", "companions"].has(aci.zone):
+        st.emit("attack_fizzled", {
+            "message": "The reacting character is no longer in play; nothing happens."})
+        return
+    var target := String(r.get("targets", [])[0]) if not (r.get("targets", []) as Array).is_empty() else ""
+    st.emit("resolving_reaction", {
+        "iid": attacker, "window": r.get("window", "before"),
+        "message": "Reaction resolves: %s (%d/%d) attacks %s." % [
+            acd.name, st.current_attack(attacker), st.current_defense(attacker),
+            _label(st, target) if target != "" else "no target"]})
+    if target == "" or not Targeting.legal_attack_targets(st, controller).has(target):
+        st.emit("attack_no_target", {
+            "message": "The declared target is no longer valid. The Reaction attack affects no target."})
+    else:
+        _strike(st, attacker, target, controller)
+    st.trigger_events.append({
+        "kind": "attack_resolved", "attacker": attacker, "controller": controller,
+        "target": target})
+    EffectRunner.process_trigger_queue(st, 1)
+
+
+## One character hitting another, wherever the attack came from.
+static func _strike(st: GameState, attacker: String, target: String, controller: int) -> void:
+    var acd := st.def_of(attacker)
+    if acd == null:
+        return
+    var dmg: int = max(0, st.current_attack(attacker) - st.current_defense(target))
+    # A card may have left a bonus for the next attack that qualifies. It is
+    # added to the damage dealt, after Defense, and is claimed once.
+    dmg += _claim_attack_bonus(st, attacker, controller)
+    Mechanics.attack_damage(st, attacker, target, dmg, acd.name)
+    EffectRunner.process_trigger_queue(st, 1)
 
 
 ## Take the first waiting bonus this attack qualifies for, if there is one.
@@ -479,6 +505,9 @@ static func _resolve_reaction(st: GameState, slot: ActionSlot, r: Dictionary) ->
     if bool(r.get("resolved", false)):
         return
     r["resolved"] = true
+    if String(r.get("attacker", "")) != "":
+        _resolve_reaction_attack(st, r)
+        return
     var iid := String(r.get("iid", ""))
     var cd := st.def_of(iid)
     if cd == null:
@@ -494,6 +523,7 @@ static func _resolve_reaction(st: GameState, slot: ActionSlot, r: Dictionary) ->
     var ctx := EffectRunner.make_ctx(iid, controller, st.current_step,
         r.get("targets", []), int(r.get("x_paid", 0)), {
             "target_kind": kind,
+            "target_filter": cd.target_spec if cd.target_spec is Dictionary else {},
             "current_attacker": slot.attacker_iid,
             "current_target": String(slot.targets[0]) if not slot.targets.is_empty() else "",
         })
@@ -621,6 +651,59 @@ static func legal_reactions(st: GameState, player: int) -> Array:
         if cd == null or not cd.allows_reaction_timing():
             continue
         out.append_array(_card_commands(st, player, String(iid), cd, "play_reaction"))
+    for attacker in reaction_attackers(st, player):
+        var acd := st.def_of(String(attacker))
+        if acd == null or st.player(player).energy_current < acd.attack_cost:
+            continue
+        for t in Targeting.legal_attack_targets(st, player):
+            out.append({"cmd": "commit_attack_reaction", "player": player,
+                "attacker_iid": String(attacker), "target_iid": String(t)})
+    return out
+
+
+## Companions a card in play is letting into the Action Sequence out of turn.
+##
+## Nothing may do this by itself: a character enters the Sequence in the Action
+## Phase. A card that grants it says which of its controller's Companions may,
+## and the granting card's own conditions have to hold at the moment of asking.
+static func reaction_attackers(st: GameState, player: int) -> Array:
+    var grants: Array = []
+    for src_iid in st.grant_sources():
+        var src := st.inst(String(src_iid))
+        var cd := st.def_of(String(src_iid))
+        if src == null or cd == null:
+            continue
+        for e in cd.effects:
+            if not (e is Dictionary) or String(e.get("op", "")) != "grant_reaction_attack":
+                continue
+            var grantee := src.controller if String(e.get("who", "self")) == "self" \
+                else st.opponent_of(src.controller)
+            if grantee != player:
+                continue
+            if e.has("cond") and not st.grant_condition(String(src_iid), e["cond"]):
+                continue
+            grants.append({"affinity": String(e.get("affinity", "")), "source": String(src_iid)})
+    if grants.is_empty():
+        return []
+    var out: Array = []
+    for iid in _attack_candidates(st, player):
+        var ci := st.inst(String(iid))
+        if ci == null or ci.zone != "companions":
+            continue
+        var cd2 := st.def_of(String(iid))
+        if cd2 == null:
+            continue
+        for g in grants:
+            # "other Companions": the character wearing the card that grants
+            # this is not let in by its own Equipment.
+            var host := st.inst(String((g as Dictionary)["source"]))
+            if host != null and host.attached_to == String(iid):
+                continue
+            var want := String((g as Dictionary)["affinity"])
+            if want != "" and not cd2.affinities.has(want):
+                continue
+            out.append(String(iid))
+            break
     return out
 
 
@@ -648,7 +731,7 @@ static func _card_commands(st: GameState, player: int, iid: String, cd: CardDef,
         target_kind = String((cd.target_spec as Dictionary).get("kind", ""))
     var target_options: Array = [[]]
     if target_kind != "":
-        var legal := Targeting.legal_targets(st, target_kind, player)
+        var legal := Targeting.legal_targets(st, target_kind, player, cd.target_spec)
         var optional := bool((cd.target_spec as Dictionary).get("optional", false))
         target_options = []
         for t in legal:
@@ -696,6 +779,18 @@ static func _choice_pool(st: GameState, p: Dictionary) -> Array:
         var arr := st.player(owner).exhaust.duplicate()
         arr.reverse()
         return arr
+    if from == "decks":
+        # A search: one or more of the player's own decks, narrowed to the
+        # kind of card the searching effect named. The Hit Deck is face down,
+        # so a search reveals only what the searcher is entitled to see.
+        var want := String(p.get("tag", ""))
+        var found: Array = []
+        for zone in p.get("zones", []):
+            for iid in st.player(owner).pile(String(zone)):
+                var cd := st.def_of(String(iid))
+                if cd != null and (want == "" or cd.tags.has(want)):
+                    found.append(String(iid))
+        return found
     return []
 
 
@@ -730,6 +825,8 @@ static func submit(st: GameState, cmd: Dictionary) -> Dictionary:
             return _do_commit_card(st, player, cmd)
         "commit_attack":
             return _do_commit_attack(st, player, cmd)
+        "commit_attack_reaction":
+            return _do_commit_attack_reaction(st, player, cmd)
         "play_reaction":
             return _do_play_reaction(st, player, cmd)
         "pass_reaction":
@@ -835,7 +932,7 @@ static func _validate_card_commit(st: GameState, player: int, iid: String, cmd: 
         var want := int(spec.get("count", 1))
         var optional := bool(spec.get("optional", false))
         var targets: Array = cmd.get("targets", [])
-        var legal := Targeting.legal_targets(st, kind, player)
+        var legal := Targeting.legal_targets(st, kind, player, spec)
         if targets.size() < want:
             if not optional:
                 if legal.is_empty():
@@ -843,7 +940,7 @@ static func _validate_card_commit(st: GameState, player: int, iid: String, cmd: 
                 return "%s needs %d target(s)." % [cd.name, want]
         for t in targets:
             if not legal.has(String(t)):
-                return Targeting.explain_invalid(st, kind, player, String(t))
+                return Targeting.explain_invalid(st, kind, player, String(t), spec)
     return ""
 
 
@@ -894,6 +991,45 @@ static func _do_commit_attack(st: GameState, player: int, cmd: Dictionary) -> Di
         "message": "P%d commits an attack: %s → %s (position %d, %d Energy)." % [
             player + 1, acd.name, _label(st, target), st.sequence.size(), acd.attack_cost]})
     _after_commit(st, player)
+    return {"ok": true, "error": ""}
+
+
+## A Companion entering the Action Sequence during a Reaction window, because
+## a card in play lets it. It attaches to the step being reacted to rather than
+## taking a step of its own, and it spends its one appearance for the round.
+static func _do_commit_attack_reaction(st: GameState, player: int, cmd: Dictionary) -> Dictionary:
+    if not (st.pending is Dictionary) or String((st.pending as Dictionary).get("kind", "")) != "reaction_window":
+        return _err("There is no open Reaction window.")
+    if int((st.pending as Dictionary).get("player", -1)) != player:
+        return _err("It is not your Reaction opportunity.")
+    var attacker := String(cmd.get("attacker_iid", ""))
+    if not reaction_attackers(st, player).has(attacker):
+        return _err("Nothing in play is letting %s into the Action Sequence right now."
+            % _label(st, attacker))
+    var target := String(cmd.get("target_iid", ""))
+    if not Targeting.legal_attack_targets(st, player).has(target):
+        return _err("Attacks may only target the opposing Hero or an opposing Companion.")
+    var acd := st.def_of(attacker)
+    if not Mechanics.pay_energy(st, player, acd.attack_cost):
+        return _err("Not enough Energy: attacking with %s costs %d." % [acd.name, acd.attack_cost])
+
+    var slot: ActionSlot = st.sequence[st.current_step]
+    slot.reactions.append({
+        "attacker": attacker, "controller": player, "window": "before",
+        "targets": [target], "x_paid": 0, "energy_paid": acd.attack_cost, "resolved": false,
+    })
+    st.player(player).committed_characters.append(attacker)
+    if not st.sequence_members.has(attacker):
+        st.sequence_members.append(attacker)
+    st.emit("reaction_committed", {
+        "iid": attacker, "player": player, "window": "before",
+        "message": "P%d sends %s into the Action Sequence as a Reaction: → %s." % [
+            player + 1, acd.name, _label(st, target)]})
+    if st.reaction_window != null:
+        (st.reaction_window as Dictionary)["passes"] = 0
+        (st.reaction_window as Dictionary)["player"] = st.opponent_of(player)
+    st.pending = null
+    advance(st)
     return {"ok": true, "error": ""}
 
 
@@ -967,6 +1103,13 @@ static func _do_choose_cards(st: GameState, player: int, cmd: Dictionary) -> Dic
 static func _apply_card_choice(st: GameState, p: Dictionary, iids: Array) -> void:
     var owner := int(p.get("owner", p.get("player", 0)))
     match String(p.get("purpose", "")):
+        "equip":
+            var host := String(p.get("host", ""))
+            if st.inst(host) == null:
+                return
+            for iid in iids:
+                Mechanics.attach_card(st, String(iid), host)
+            return
         "recover":
             for iid in iids:
                 var cd := st.def_of(String(iid))

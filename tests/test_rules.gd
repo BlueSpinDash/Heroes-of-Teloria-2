@@ -29,6 +29,7 @@ func run(t: TestHarness) -> void:
     test_young_blood_draws_when_wounded(t)
     test_fevered_tempo_counts_skills_before_it(t)
     test_battle_wraps_arms_its_host(t)
+    test_supplied_cards_play_as_printed(t)
     test_chain_rules(t)
     test_x_is_locked(t)
     test_instance_integrity(t)
@@ -906,14 +907,14 @@ func test_fevered_tempo_counts_skills_before_it(t: TestHarness) -> void:
         "card_iid": tempo, "targets": [mark]})["ok"]), "then Fevered Tempo")
 
     # Read while the Sequence still stands: it is cleared when the round ends.
-    t.eq(EffectRunner._resolved_before(st, {"slot_index": 3, "controller": 0},
-        {"of": "resolved_before", "types": ["skill"], "scope": "either"}, 0), 3,
+    var skills_before := {"from": "count", "of": "resolved_before",
+        "types": ["skill"], "scope": "either"}
+    t.eq(Counts.amount(st, skills_before, {"slot_index": 3, "controller": 0}), 3,
         "three Skills stand before the fourth slot")
-    t.eq(EffectRunner._resolved_before(st, {"slot_index": 0, "controller": 0},
-        {"of": "resolved_before", "types": ["skill"], "scope": "either"}, 0), 0,
+    t.eq(Counts.amount(st, skills_before, {"slot_index": 0, "controller": 0}), 0,
         "and none before the first, so the card does nothing when it leads")
-    t.eq(EffectRunner._resolved_before(st, {"slot_index": 3, "controller": 0},
-        {"of": "resolved_before", "types": ["companion"], "scope": "either"}, 0), 0,
+    t.eq(Counts.amount(st, {"from": "count", "of": "resolved_before",
+        "types": ["companion"], "scope": "either"}, {"slot_index": 3, "controller": 0}), 0,
         "and it counts Skills, not everything that resolved")
 
     GameEngine.submit(st, {"cmd": "pass_actions", "player": 1})
@@ -948,3 +949,261 @@ func test_battle_wraps_arms_its_host(t: TestHarness) -> void:
     t.eq(st.current_attack(body), base + 1, "the host hits one harder while wearing them")
     Mechanics.destroy(st, wraps, "test")
     t.eq(st.current_attack(body), base, "and drops back when they come off")
+
+
+## The cards supplied as finished faces, played as they ship.
+##
+## A printed face states its own rules, so the only thing keeping the picture
+## honest is that the definition underneath does what the picture says. These
+## check the shipped definitions, not copies of them.
+func test_supplied_cards_play_as_printed(t: TestHarness) -> void:
+    t.begin("the finished cards do what their faces say")
+    _vanguard_captain_counts_attackers(t)
+    _blasting_bolts_arm_a_ranged_host(t)
+    _counterpoint_reduces_and_answers(t)
+    _why_i_fight_only_attaches_to_parfait(t)
+    _vanguard_arbalist_finds_its_ammunition(t)
+    _rallying_banner_lets_a_companion_react(t)
+
+
+## "Vanguard Captain's Defense is equal to the number of attacking Heroes and
+## Companions in the Action Sequence."
+func _vanguard_captain_counts_attackers(t: TestHarness) -> void:
+    var st := F.fresh_with(["PAS_COMP_03"],
+        F.deck("FIX_HERO_PARFAIT", {"PAS_COMP_03": 3, "FIX_COMP": 3}),
+        F.sink_deck("FIX_HERO_B"), 41)
+    st.player(0).energy_current = 12
+    st.player(1).energy_current = 12
+    var captain := F.to_hand(st, 0, "PAS_COMP_03")
+    Mechanics.deploy_companion(st, captain, 0)
+    st.inst(captain).deployed_round = 0
+    t.eq(st.current_defense(captain), 0,
+        "with nobody attacking, the Captain has no Defense at all")
+
+    var ally := F.to_hand(st, 0, "FIX_COMP")
+    Mechanics.deploy_companion(st, ally, 0)
+    st.inst(ally).deployed_round = 0
+    st.action_priority = 0
+    GameEngine.submit(st, {"cmd": "commit_attack", "player": 0,
+        "attacker_iid": ally, "target_iid": st.player(1).hero_iid})
+    t.eq(st.current_defense(captain), 1, "one attacker in the Sequence is 1 Defense")
+    st.action_priority = 0
+    GameEngine.submit(st, {"cmd": "commit_attack", "player": 0,
+        "attacker_iid": captain, "target_iid": st.player(1).hero_iid})
+    t.eq(st.current_defense(captain), 2,
+        "and its own attack counts too, so it is toughest while it swings")
+
+
+## "The equipped Ranged Hero or Companion gains +1 Attack", and a mill after
+## its host's attack.
+func _blasting_bolts_arm_a_ranged_host(t: TestHarness) -> void:
+    var st := F.fresh_with(["NEU_EQUIP_02", "PAS_COMP_01"],
+        F.deck("FIX_HERO_PARFAIT", {"NEU_EQUIP_02": 3, "PAS_COMP_01": 3, "FIX_COMP": 3}),
+        F.sink_deck("FIX_HERO_B"), 43)
+    st.player(0).energy_current = 12
+    st.player(1).energy_current = 12
+
+    # FIX_COMP makes no Ranged attack; the Arbalist does.
+    var melee := F.to_hand(st, 0, "FIX_COMP")
+    Mechanics.deploy_companion(st, melee, 0)
+    var melee_base := st.current_attack(melee)
+    var bolts_a := F.to_hand(st, 0, "NEU_EQUIP_02")
+    Mechanics.attach_card(st, bolts_a, melee)
+    t.eq(st.current_attack(melee), melee_base,
+        "a host that does not shoot gets nothing from ammunition")
+
+    var shooter := F.to_hand(st, 0, "PAS_COMP_01")
+    Mechanics.deploy_companion(st, shooter, 0)
+    st.inst(shooter).deployed_round = 0
+    var shooter_base := st.current_attack(shooter)
+    var bolts_b := F.to_hand(st, 0, "NEU_EQUIP_02")
+    Mechanics.attach_card(st, bolts_b, shooter)
+    t.eq(st.current_attack(shooter), shooter_base + 1, "a Ranged host does get the bonus")
+
+    # The opponent has one character in the Sequence, so one card is moved.
+    var theirs := F.to_hand(st, 1, "FIX_COMP")
+    Mechanics.deploy_companion(st, theirs, 1)
+    st.inst(theirs).deployed_round = 0
+    st.action_priority = 1
+    GameEngine.submit(st, {"cmd": "commit_attack", "player": 1,
+        "attacker_iid": theirs, "target_iid": st.player(0).hero_iid})
+    st.action_priority = 0
+    GameEngine.submit(st, {"cmd": "commit_attack", "player": 0,
+        "attacker_iid": shooter, "target_iid": st.player(1).hero_iid})
+    var exhaust_before := st.player(1).exhaust.size()
+    GameEngine.submit(st, {"cmd": "pass_actions", "player": 1})
+    GameEngine.submit(st, {"cmd": "pass_actions", "player": 0})
+    var guard := 0
+    while st.result == null and st.round_number == 1 and guard < 300:
+        guard += 1
+        if st.pending != null:
+            F._auto_answer(st)
+        else:
+            GameEngine.advance(st)
+    var milled := 0
+    for e in st.events:
+        if String(e.get("kind", "")) == "milled" and int(e.get("player", -1)) == 1:
+            milled += int(e.get("count", 0))
+    t.eq(milled, 1, "the bolts moved one card for the one character the opponent had in")
+    t.ok(st.player(1).exhaust.size() >= exhaust_before,
+        "and the cards went to their Exhaust Deck")
+
+
+## "Reduce damage ... by 1, plus 1 for each other Passion card that resolved
+## before Counterpoint this round. The source takes damage equal to the amount
+## reduced."
+func _counterpoint_reduces_and_answers(t: TestHarness) -> void:
+    var st := F.fresh_with(["PAS_SKILL_18"],
+        F.deck("FIX_HERO_PARFAIT", {"PAS_SKILL_18": 3, "FIX_COMP": 3}),
+        F.sink_deck("FIX_HERO_B"), 47)
+    var mine := F.to_hand(st, 0, "FIX_COMP")
+    Mechanics.deploy_companion(st, mine, 0)
+    var theirs := F.to_hand(st, 1, "FIX_COMP")
+    Mechanics.deploy_companion(st, theirs, 1)
+
+    # Put the shield on by hand: what is being checked is the shield's shape,
+    # not the Reaction window that delivers it.
+    var ctx := EffectRunner.make_ctx("", 0, 0, [mine], 0, {"target_kind": "any_character"})
+    EffectRunner.run(st, [{"op": "prevent_damage", "target": "chosen", "duration": "round",
+        "reflect": true, "amount": 2}], ctx)
+    t.eq(st.inst(mine).shield_total(), 2, "the Companion is shielded for 2")
+
+    # An attack it stops is dealt back to whatever was attacking.
+    var wound_before := st.player(1).wound.size()
+    Mechanics.attack_damage(st, theirs, mine, 2, "Fixture Companion")
+    t.eq(st.inst(mine).zone, "companions", "the shielded Companion survives")
+    t.eq(st.inst(theirs).zone, "wound",
+        "and the attacker takes back the damage it was stopped from dealing")
+    t.ok(st.player(1).wound.size() > wound_before, "which puts it in its owner's Wound Deck")
+
+
+## "Attach to Parfait, the Unyielding Flame."
+func _why_i_fight_only_attaches_to_parfait(t: TestHarness) -> void:
+    var st := F.fresh_with(["PAS_TAAHMA_01"],
+        F.deck("FIX_HERO_PARFAIT", {"PAS_TAAHMA_01": 3, "FIX_COMP": 3}),
+        F.sink_deck("FIX_HERO_B"), 53)
+    st.player(0).energy_current = 12
+    var body := F.to_hand(st, 0, "FIX_COMP")
+    Mechanics.deploy_companion(st, body, 0)
+    var spec: Dictionary = (st.def_of(F.to_hand(st, 0, "PAS_TAAHMA_01")).target_spec as Dictionary).duplicate()
+    t.eq(String(spec.get("character_id", "")), "parfait",
+        "the card names the character it attaches to")
+    # The fixture Hero stands in for Parfait under her own id, so the same
+    # restriction is asked of a board the test controls.
+    spec["character_id"] = "fix_parfait"
+    var hosts := Targeting.legal_targets(st, "own_character_host", 0, spec)
+    t.eq(hosts.size(), 1, "exactly one character can wear it")
+    if not hosts.is_empty():
+        t.eq(String(hosts[0]), st.player(0).hero_iid, "and that character is the Hero it names")
+    t.empty(Targeting.legal_targets(st, "own_character_host", 0,
+        {"character_id": "someone_else"}), "and nobody else can, whoever else is in play")
+
+    # It is worth one maximum Energy for each Passion Companion Wounded.
+    var taahma := F.to_hand(st, 0, "PAS_TAAHMA_01")
+    var before := st.energy_max(0)
+    Mechanics.attach_card(st, taahma, st.player(0).hero_iid)
+    t.eq(st.energy_max(0), before, "with an empty Wound Deck it is worth nothing")
+    var fallen := F.to_hand(st, 0, "FIX_COMP_PAS")
+    Mechanics.deploy_companion(st, fallen, 0)
+    var with_body := st.energy_max(0)
+    Mechanics.destroy(st, fallen, "test")
+    t.eq(st.energy_max(0), with_body - 1 + 1,
+        "a Passion Companion in the Wound Deck is worth the Energy it stopped contributing")
+
+
+## "Search your Hit Deck or Exhaust Deck for an Ammunition card and equip it."
+func _vanguard_arbalist_finds_its_ammunition(t: TestHarness) -> void:
+    var st := F.fresh_with(["PAS_COMP_01", "NEU_EQUIP_02"],
+        F.deck("FIX_HERO_PARFAIT", {"PAS_COMP_01": 3, "NEU_EQUIP_02": 3, "FIX_COMP": 3}),
+        F.sink_deck("FIX_HERO_B"), 59)
+    var arbalist := F.to_hand(st, 0, "PAS_COMP_01")
+    Mechanics.deploy_companion(st, arbalist, 0)
+    EffectRunner.process_trigger_queue(st, 1)
+    var guard := 0
+    while st.pending != null and guard < 20:
+        guard += 1
+        F._auto_answer(st)
+    while not st.deferred_choices.is_empty() and guard < 40:
+        guard += 1
+        GameEngine.advance(st)
+        if st.pending != null:
+            F._auto_answer(st)
+    var worn := st.inst(arbalist).equipment_iid
+    t.ne(worn, "", "it came into play already carrying something")
+    if worn != "":
+        var wd := st.def_of(worn)
+        t.ok(wd != null and wd.tags.has("ammunition"),
+            "and what it found is Ammunition: %s" % (wd.name if wd != null else "?"))
+
+
+## "While the equipped Hero or Companion is in the Action Sequence, other
+## Passion Companions in your Companion Zone may enter the Action Sequence as
+## Reactions."
+func _rallying_banner_lets_a_companion_react(t: TestHarness) -> void:
+    var st := F.fresh_with(["PAS_EQUIP_01"],
+        F.deck("FIX_HERO_PARFAIT", {"PAS_EQUIP_01": 3, "FIX_COMP_PAS": 3, "FIX_COMP": 3}),
+        F.sink_deck("FIX_HERO_B"), 61)
+    st.player(0).energy_max_mods.append({"amount": 8, "expires": "permanent"})
+    st.player(0).energy_current = 12
+    st.player(1).energy_current = 12
+
+    var passion := F.to_hand(st, 0, "FIX_COMP_PAS")
+    Mechanics.deploy_companion(st, passion, 0)
+    st.inst(passion).deployed_round = 0
+    var will := F.to_hand(st, 0, "FIX_COMP")
+    Mechanics.deploy_companion(st, will, 0)
+    st.inst(will).deployed_round = 0
+
+    t.empty(GameEngine.reaction_attackers(st, 0),
+        "with no banner in play, nothing may enter the Sequence out of turn")
+
+    var banner := F.to_hand(st, 0, "PAS_EQUIP_01")
+    Mechanics.attach_card(st, banner, st.player(0).hero_iid)
+    t.empty(GameEngine.reaction_attackers(st, 0),
+        "and not while its host is still out of the Sequence")
+
+    st.action_priority = 0
+    GameEngine.submit(st, {"cmd": "commit_attack", "player": 0,
+        "attacker_iid": st.player(0).hero_iid, "target_iid": st.player(1).hero_iid})
+    var allowed := GameEngine.reaction_attackers(st, 0)
+    t.ok(allowed.has(passion), "with the banner's host in, the Passion Companion may react")
+    t.ok(not allowed.has(will), "and a Companion of another Affinity may not")
+
+    # Entering this way still costs the Companion its one appearance, so a
+    # character that has already been in is not offered again.
+    st.player(0).committed_characters.append(passion)
+    t.ok(not GameEngine.reaction_attackers(st, 0).has(passion),
+        "a Companion that already appeared this round is not offered")
+    st.player(0).committed_characters.erase(passion)
+
+    # It really enters: it attacks from the Reaction, and spends its appearance.
+    var hp_before := st.player(1).wound.size()
+    GameEngine.submit(st, {"cmd": "pass_actions", "player": 1})
+    GameEngine.submit(st, {"cmd": "pass_actions", "player": 0})
+    var guard := 0
+    var reacted := false
+    var tried_twice := false
+    var twice_refused := false
+    while st.result == null and st.round_number == 1 and guard < 300:
+        guard += 1
+        if st.pending != null and String((st.pending as Dictionary).get("kind", "")) == "reaction_window" \
+                and int((st.pending as Dictionary).get("player", -1)) == 0 and not reacted \
+                and GameEngine.reaction_attackers(st, 0).has(passion):
+            reacted = bool(GameEngine.submit(st, {"cmd": "commit_attack_reaction",
+                "player": 0, "attacker_iid": passion,
+                "target_iid": st.player(1).hero_iid})["ok"])
+        elif st.pending != null and reacted \
+                and String((st.pending as Dictionary).get("kind", "")) == "reaction_window" \
+                and int((st.pending as Dictionary).get("player", -1)) == 0 and not tried_twice:
+            # Its one appearance for the round is spent, so the offer is gone.
+            tried_twice = true
+            twice_refused = not GameEngine.reaction_attackers(st, 0).has(passion)
+            F._auto_answer(st)
+        elif st.pending != null:
+            F._auto_answer(st)
+        else:
+            GameEngine.advance(st)
+    t.ok(reacted, "the Companion was sent in as a Reaction")
+    if tried_twice:
+        t.ok(twice_refused, "so it is not offered a second time in the same round")
+    t.ok(st.player(1).wound.size() > hp_before, "its attack landed")

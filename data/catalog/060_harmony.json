@@ -779,7 +779,7 @@
       }
     ],
     "triggers": [],
-    "text": "Reaction (before the Action): Prevent the next 2 damage that would be dealt to the attack's target for the round.",
+    "text": "Reaction (before the Action): Reduce the next damage dealt to the attack's target by 2 for the round.",
     "flavor": "Placeholder flavour for Harmony Proxy Skill 12. Names, art and flavour are replaceable and never change mechanics.",
     "art": {
       "style": "abstract_sigil",

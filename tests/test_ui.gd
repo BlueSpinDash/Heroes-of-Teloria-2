@@ -522,7 +522,7 @@ func _hero_cards_use_the_frame(t: TestHarness) -> void:
     var gem := String((CardView.FRAMES["skill"] as Dictionary).get("ornaments", {}).get(
         "energy_gem", ""))
     t.ok(ResourceLoader.exists(gem), "and the gem exists as its own picture: %s" % gem)
-    var skill := CardView.create(app.catalog.get_def("PAS_SKILL_01"), 300.0)
+    var skill := CardView.create(_framed_with_art("PAS_SKILL_01"), 300.0)
     _root.add_child(skill)
     var textures := 0
     for host in skill.get_children():
@@ -602,7 +602,7 @@ func _layout_editor_moves_card_parts(t: TestHarness) -> void:
     t.ok(not Layout.is_changed("hero_card", "art"), "the art window starts at its shipped value")
 
     # A card draws the slot it is given, so moving the slot moves the art.
-    var def := app.catalog.get_def("PAS_HERO_01")
+    var def := _framed_with_art("PAS_HERO_01")
     var before := CardView.create(def, 300.0)
     _root.add_child(before)
     await _frames(t, 2)
@@ -687,6 +687,18 @@ func _layout_editor_moves_card_parts(t: TestHarness) -> void:
     DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
     t.ok(Layout.rect("hero_card", "art").is_equal_approx(was),
         "the test left the layout as it found it")
+
+
+## A copy of a card put back on its painted frame, with a real picture in the
+## window. The finished cards are drawn from the faces they were supplied as,
+## which have no window to place anything in — so a test about placing things
+## in a window has to make one.
+func _framed_with_art(id: String) -> CardDef:
+    var def := app.catalog.get_def(id).duplicate_def()
+    def.data["frame"] = ""
+    def.data["art"] = {"style": "supplied", "fit": "cover", "seed": 1, "hue": 20,
+        "saturation": 0.5, "image": String(CardView.FRAMES["hero"]["path"])}
+    return def
 
 
 ## Which pieces a built card holds, in the order it draws them. The artwork is
@@ -1051,7 +1063,15 @@ func _play_another_affinity(t: TestHarness) -> void:
 func _edit_a_proxy(t: TestHarness) -> void:
     t.begin("edit a proxy and keep every reference intact")
     var deck := app.profile.deck_by_id("walkthrough_deck")
-    var target := String((deck["cards"] as Dictionary).keys()[0])
+    # A proxy, not a finished card: a card drawn from a supplied face has no
+    # separate portrait to swap, and this walkthrough swaps one.
+    var target := ""
+    for id in (deck["cards"] as Dictionary).keys():
+        if app.catalog.get_def(String(id)).placeholder:
+            target = String(id)
+            break
+    if not t.ne(target, "", "the walkthrough deck holds a proxy to edit"):
+        return
     var owned_before := app.profile.owned_count(target)
     var rev_before := app.catalog.get_def(target).revision
 

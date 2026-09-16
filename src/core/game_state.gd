@@ -154,7 +154,7 @@ func _aura_energy_max(i: int) -> int:
             var who := String(e.get("who", "self"))
             var target_player := ci.controller if who == "self" else opponent_of(ci.controller)
             if target_player == i:
-                total += int(e.get("amount", 0))
+                total += _aura_value(iid, ci, e.get("amount", 0))
     return total
 
 
@@ -229,14 +229,60 @@ func _aura_stat_for(iid: String, field: String) -> int:
                 continue
             if not e.has(field):
                 continue
-            if _aura_applies(src, String(e.get("scope", "")), target):
-                total += int(e[field])
+            if not _aura_applies(src, String(e.get("scope", "")), target):
+                continue
+            if e.has("cond") and not _aura_condition(src_iid, src, e["cond"]):
+                continue
+            total += _aura_value(src_iid, src, e[field])
     return total
+
+
+## Cards in play that may be granting something, which is every card that can
+## carry a permanent effect.
+func grant_sources() -> Array:
+    return _aura_sources()
+
+
+## A condition carried by a grant, about the granting card and its host.
+func grant_condition(src_iid: String, cond) -> bool:
+    if not (cond is Dictionary):
+        return true
+    var src := inst(src_iid)
+    if src == null:
+        return false
+    match String((cond as Dictionary).get("kind", "")):
+        "host_in_sequence":
+            return src.attached_to != "" and sequence_members.has(src.attached_to)
+        "host_attacks_with":
+            var host := inst(src.attached_to)
+            if host == null:
+                return false
+            var hd := def_of(host.iid)
+            return hd != null and hd.attack_tags.has(String((cond as Dictionary).get("tag", "")))
+    return true
+
+
+## What an aura is worth right now. A plain number is itself; anything else is
+## a quantity read off the match, which is how a card prints a statistic as X.
+func _aura_value(src_iid: String, src: CardInstance, value) -> int:
+    if value is int or value is float:
+        return int(value)
+    return Counts.amount(self, value, {
+        "controller": src.controller, "slot_index": current_step,
+        "x_paid": 0, "self_iid": src_iid})
+
+
+## Conditions an aura may carry, which are about the source and its host
+## rather than about anything being targeted.
+func _aura_condition(src_iid: String, src: CardInstance, cond) -> bool:
+    return grant_condition(src_iid, cond)
 
 
 func _aura_applies(src: CardInstance, scope: String, target: CardInstance) -> bool:
     var sc := src.controller
     match scope:
+        "self":
+            return src.iid == target.iid
         "host":
             return src.attached_to == target.iid
         "own_companions":

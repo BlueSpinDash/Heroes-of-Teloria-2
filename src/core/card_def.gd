@@ -412,7 +412,9 @@ func validate() -> Array:
         errs.append("%s: 'frame' must be \"\", \"plain\" or \"printed\"" % p)
     # A printed face is the supplied picture and nothing else, so there has to
     # be one; without it the card would come out blank.
-    if frame == "printed" and String(art.get("image", "")).strip_edges() == "":
+    var face_image: Variant = art.get("image", "")
+    if frame == "printed" and not (face_image is String \
+            and (face_image as String).strip_edges() != ""):
         errs.append("%s: a printed face needs an 'image' in its art block" % p)
     if authored and placeholder:
         errs.append("%s: a finished card should not also be marked placeholder" % p)

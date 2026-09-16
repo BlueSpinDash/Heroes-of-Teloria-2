@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c157j0cvpqw56"
-path="res://.godot/imported/burning_rush.png-1d037e25ecd25f30e858885331f0b6c8.ctex"
+uid="uid://cppfn4brajp5q"
+path="res://.godot/imported/burning_rush.png-e79ca7eed08b20751c1d223c1be35ac1.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/art/burning_rush.png"
-dest_files=["res://.godot/imported/burning_rush.png-1d037e25ecd25f30e858885331f0b6c8.ctex"]
+source_file="res://assets/cards/burning_rush.png"
+dest_files=["res://.godot/imported/burning_rush.png-e79ca7eed08b20751c1d223c1be35ac1.ctex"]
 
 [params]
 
