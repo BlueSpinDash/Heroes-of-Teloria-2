@@ -37,6 +37,41 @@ const DEFAULT_RECTS := {
     },
 }
 
+## group -> key -> where it sits in the stack, back to front. A piece with a
+## lower number is drawn first, so everything after it lands on top. The frame
+## is in here too: art given a number below the frame's is drawn behind it and
+## shows only through whatever the frame leaves open.
+const DEFAULT_LAYERS := {
+    "hero_card": {
+        "frame": 10,
+        "art": 20,
+        "energy": 30,
+        "attack": 40,
+        "defense": 50,
+        "name": 60,
+        "rules": 70,
+        "affinity": 80,
+        "set": 90,
+        "rarity": 100,
+        "badges": 110,
+    },
+}
+
+## What each piece in the stack is, for a screen that lists them.
+const LAYER_LABELS := {
+    "frame": "The painted frame",
+    "art": "The card's artwork",
+    "energy": "Max Energy number",
+    "attack": "Attack number",
+    "defense": "Defense number",
+    "name": "Name",
+    "rules": "Rules text and attack line",
+    "affinity": "Affinity banner",
+    "set": "Card id",
+    "rarity": "Rarity",
+    "badges": "Badges, such as Eligible or Owned",
+}
+
 ## group -> key -> [value, minimum, maximum, description]
 const DEFAULT_NUMBERS = {
     "card_text": {
@@ -59,6 +94,7 @@ const DEFAULT_NUMBERS = {
 ## The live values, defaults overlaid with whatever was loaded.
 static var _rects: Dictionary = {}
 static var _numbers: Dictionary = {}
+static var _layers: Dictionary = {}
 static var _loaded := false
 ## Where the values in force came from, for the editor to report.
 static var source: String = "built in"
@@ -75,6 +111,9 @@ static func load_saved() -> void:
     _rects = {}
     for group in DEFAULT_RECTS:
         _rects[group] = (DEFAULT_RECTS[group] as Dictionary).duplicate(true)
+    _layers = {}
+    for group in DEFAULT_LAYERS:
+        _layers[group] = (DEFAULT_LAYERS[group] as Dictionary).duplicate(true)
     _numbers = {}
     for group in DEFAULT_NUMBERS:
         var out: Dictionary = {}
@@ -111,6 +150,12 @@ static func _overlay(path: String) -> bool:
             var v: Array = d["rects"][group][key]
             if v.size() == 4:
                 _rects[group][key] = Rect2(float(v[0]), float(v[1]), float(v[2]), float(v[3]))
+    for group in (d.get("layers", {}) as Dictionary):
+        if not _layers.has(group):
+            continue
+        for key in (d["layers"][group] as Dictionary):
+            if (_layers[group] as Dictionary).has(key):
+                _layers[group][key] = int(d["layers"][group][key])
     for group in (d.get("numbers", {}) as Dictionary):
         if not _numbers.has(group):
             continue
@@ -134,6 +179,44 @@ static func num(group: String, key: String) -> float:
         return _numbers[group][key]
     push_warning("No layout number for %s/%s" % [group, key])
     return 0.0
+
+
+## Where a piece sits in the stack. Lower is further back.
+static func layer(group: String, key: String) -> int:
+    _ensure()
+    if _layers.has(group) and (_layers[group] as Dictionary).has(key):
+        return int(_layers[group][key])
+    return 0
+
+
+## Every piece of `group`, ordered back to front.
+static func layer_order(group: String) -> Array:
+    _ensure()
+    var keys: Array = (_layers.get(group, {}) as Dictionary).keys()
+    keys.sort_custom(func(a, b):
+        var la := int(_layers[group][a])
+        var lb := int(_layers[group][b])
+        if la != lb:
+            return la < lb
+        return String(a) < String(b))
+    return keys
+
+
+## Move a piece `by` places through the stack, forward or back, and renumber so
+## the order stays unambiguous.
+static func move_layer(group: String, key: String, by: int) -> void:
+    _ensure()
+    var order := layer_order(group)
+    var at := order.find(key)
+    if at < 0:
+        return
+    var to := clampi(at + by, 0, order.size() - 1)
+    if to == at:
+        return
+    order.remove_at(at)
+    order.insert(to, key)
+    for i in order.size():
+        _layers[group][order[i]] = (i + 1) * 10
 
 
 static func set_rect(group: String, key: String, value: Rect2) -> void:
@@ -196,6 +279,31 @@ static func is_changed(group: String, key: String) -> bool:
     return false
 
 
+## True when any piece of this group has been moved through the stack.
+static func layers_changed(group: String) -> bool:
+    _ensure()
+    if not DEFAULT_LAYERS.has(group):
+        return false
+    return layer_order(group) != _default_order(group)
+
+
+static func _default_order(group: String) -> Array:
+    var keys: Array = (DEFAULT_LAYERS[group] as Dictionary).keys()
+    keys.sort_custom(func(a, b):
+        var la := int(DEFAULT_LAYERS[group][a])
+        var lb := int(DEFAULT_LAYERS[group][b])
+        if la != lb:
+            return la < lb
+        return String(a) < String(b))
+    return keys
+
+
+static func reset_layers(group: String) -> void:
+    _ensure()
+    if DEFAULT_LAYERS.has(group):
+        _layers[group] = (DEFAULT_LAYERS[group] as Dictionary).duplicate(true)
+
+
 static func reset(group: String, key: String) -> void:
     _ensure()
     if DEFAULT_RECTS.has(group) and (DEFAULT_RECTS[group] as Dictionary).has(key):
@@ -208,6 +316,7 @@ static func reset_all() -> void:
     _loaded = false
     _rects = {}
     _numbers = {}
+    _layers = {}
     _ensure()
     source = "built in"
 
@@ -228,7 +337,10 @@ static func to_dict() -> Dictionary:
         for key in (_numbers[group] as Dictionary):
             g2[key] = snappedf(float(_numbers[group][key]), 0.1)
         numbers[group] = g2
-    return {"rects": rects, "numbers": numbers}
+    var layers: Dictionary = {}
+    for group in _layers:
+        layers[group] = (_layers[group] as Dictionary).duplicate()
+    return {"rects": rects, "layers": layers, "numbers": numbers}
 
 
 static func _round(v: float) -> float:
@@ -272,6 +384,16 @@ static func as_code() -> String:
             var r: Rect2 = _rects[group][key]
             lines.append('        "%s": Rect2(%.3f, %.3f, %.3f, %.3f),' % [
                 key, r.position.x, r.position.y, r.size.x, r.size.y])
+        lines.append("    },")
+    lines.append("}")
+    lines.append("")
+    lines.append("const DEFAULT_LAYERS := {")
+    for group in _layers.keys():
+        lines.append('    "%s": {' % group)
+        var n := 0
+        for key in layer_order(String(group)):
+            n += 10
+            lines.append('        "%s": %d,' % [key, n])
         lines.append("    },")
     lines.append("}")
     lines.append("")

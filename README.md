@@ -105,18 +105,33 @@ never change an outcome.
 
 ## Adjusting the layout
 
-Positions and sizes the interface reads — where each piece sits on a Hero card,
-the type sizes on a card face, the heights of the board's zones — are not
-constants in the screens. They live in `src/ui/layout.gd` as named values, and
-the **Layout** screen edits them against a live card: drag a box to move it,
-drag its corner to resize, or type exact fractions.
+Positions, sizes and stacking order the interface reads — where each piece sits
+on a Hero card, the type sizes on a card face, the heights of the board's zones
+— are not constants in the screens. They live in `src/ui/layout.gd` as named
+values, and the **Layout** screen edits them against a live card: drag a box to
+move it, drag its corner to resize, nudge with the arrow keys, or type exact
+fractions.
 
-Saving writes `data/layout.json`, which the game loads at launch. Run from
-source, that file is repository content, so a layout adjusted in game is a real
-change to the game and can be committed. An exported build cannot write to
-itself, so it saves beside the save files instead and says so. "Copy as code"
-puts the values on the clipboard as GDScript, for folding back into the
-defaults once a layout has settled.
+A card is drawn back to front in the order the layout gives, and the painted
+frame is one of the pieces rather than a backdrop. The stacking list moves any
+piece forward or back, so artwork can be sent behind the frame, a number
+brought in front of a banner, and so on.
+
+### Where a layout change goes
+
+Saving writes `data/layout.json`, which the game loads at launch. That file is
+part of the project, so:
+
+* run from source, saving changes the project on that machine straight away;
+* **committing that file is what carries the change to anyone else.** A layout
+  saved and not committed stays local;
+* an exported build cannot write to itself, so it saves beside the save files
+  instead and applies only on that machine. The screen says which happened.
+
+"Copy as code" puts the values on the clipboard as GDScript, for folding back
+into the defaults in `src/ui/layout.gd` once a layout has settled. No
+`data/layout.json` is committed at the moment, so the values the game ships
+with are the defaults in that file.
 
 ## Running the tests
 

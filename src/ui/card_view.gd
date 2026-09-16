@@ -97,54 +97,55 @@ func _build_framed(frame_path: String) -> void:
     blank.content_margin_bottom = 0
     add_theme_stylebox_override("panel", blank)
 
+    # Every piece is built first and put in the stack afterwards, in the order
+    # the layout gives, so the frame is just another piece: art placed behind
+    # it shows through what it leaves open, rather than covering it.
+    var pieces: Dictionary = {}
+
     var frame := TextureRect.new()
     frame.texture = load(frame_path)
     frame.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
     frame.stretch_mode = TextureRect.STRETCH_SCALE
     frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    add_child(frame)
+    frame.set_anchors_preset(Control.PRESET_FULL_RECT)
+    pieces["frame"] = frame
 
-    var layer := Control.new()
-    layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    add_child(layer)
-
-    # Real art covers the window. A card with none keeps the silhouette the
+    # Real art fills the window. A card with none keeps the silhouette the
     # template painted there, which is a better placeholder than a sigil.
     if ArtLibrary.texture_for(def.art) != null:
         var art := CardArt.new()
         art.setup(def.art)
         art.mouse_filter = Control.MOUSE_FILTER_IGNORE
         _anchor(art, slot("art"))
-        layer.add_child(art)
+        pieces["art"] = art
 
-    layer.add_child(_slot(str(def.hero_max_energy), slot("energy"),
-        int(Layout.num("card_text", "stat_size") * scale_factor), Color.WHITE, true))
-    layer.add_child(_slot(str(def.attack), slot("attack"),
-        int(Layout.num("card_text", "stat_size") * scale_factor), Color.WHITE, true))
-    layer.add_child(_slot(str(def.defense), slot("defense"),
-        int(Layout.num("card_text", "stat_size") * scale_factor), Color.WHITE, true))
+    var stat_size := int(Layout.num("card_text", "stat_size") * scale_factor)
+    pieces["energy"] = _slot(str(def.hero_max_energy), slot("energy"), stat_size, Color.WHITE, true)
+    pieces["attack"] = _slot(str(def.attack), slot("attack"), stat_size, Color.WHITE, true)
+    pieces["defense"] = _slot(str(def.defense), slot("defense"), stat_size, Color.WHITE, true)
+
     # The name banner is a fixed painted width, so the name is set to fit it
     # rather than clipped: a Hero's name is the one thing on the card that
     # must always read in full.
     var name_slot: Rect2 = slot("name")
-    layer.add_child(_slot(def.name, name_slot,
+    pieces["name"] = _slot(def.name, name_slot,
         _fit_font_size(def.name, int(Layout.num("card_text", "name_size") * scale_factor),
             name_slot.size.x * card_width),
-        UiTheme.INK))
+        UiTheme.INK)
+
     # The banner and the footer lines are small painted spaces, so they carry
     # the short form: the Affinity, the card's id, its rarity. The rest of what
-    # a card is stays in its tooltip and in the collection.
-    # The Affinity ribbon is small and bronze, so its word is set in the
-    # Affinity's own colour and outlined, the way the stat numbers are.
+    # a card is stays in its tooltip and in the collection. The Affinity ribbon
+    # is small and bronze, so its word is set in the Affinity's own colour and
+    # outlined, the way the stat numbers are.
     var small := int(Layout.num("card_text", "small_size") * scale_factor)
-    layer.add_child(_slot(UiTheme.affinity_line(def).to_upper(), slot("affinity"),
+    pieces["affinity"] = _slot(UiTheme.affinity_line(def).to_upper(), slot("affinity"),
         small, UiTheme.affinity_color(
             String(def.affinities[0]) if not def.affinities.is_empty() else "neutral"
-        ).lightened(0.45), true))
-    layer.add_child(_slot(def.id, slot("set"), small,
-        UiTheme.PARCHMENT_DARK))
-    layer.add_child(_slot(UiTheme.rarity_line(def), slot("rarity"),
-        small, UiTheme.RARITY_COLOR.get(def.rarity, UiTheme.PARCHMENT_DARK)))
+        ).lightened(0.45), true)
+    pieces["set"] = _slot(def.id, slot("set"), small, UiTheme.PARCHMENT_DARK)
+    pieces["rarity"] = _slot(UiTheme.rarity_line(def), slot("rarity"), small,
+        UiTheme.RARITY_COLOR.get(def.rarity, UiTheme.PARCHMENT_DARK))
 
     # The rules panel takes the meta line and the rules text together, the way
     # the plain face does, so nothing a card says is left off the frame. The
@@ -165,14 +166,32 @@ func _build_framed(frame_path: String) -> void:
     var body_text := def.text if def.text.strip_edges() != "" else "No rules text."
     var body_label := UiTheme.wrapped(body_text,
         _fit_wrapped_font_size(body_text,
-            int(Layout.num("card_text", "rules_size") * scale_factor), rules_w, rules_h), UiTheme.INK)
+            int(Layout.num("card_text", "rules_size") * scale_factor), rules_w, rules_h),
+        UiTheme.INK)
     body_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     body_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
     rules.add_child(body_label)
-    _anchor(rules, slot("rules"))
-    layer.add_child(rules)
+    _anchor(rules, rules_slot)
+    pieces["rules"] = rules
 
-    _add_badge_layer(scale_factor)
+    pieces["badges"] = _make_badge_row(scale_factor)
+
+    _stack(pieces)
+
+
+## Put the pieces into the card back to front.
+##
+## Each one gets a host of its own because a PanelContainer fits every child to
+## its content rect, which would overwrite the anchors a piece is placed by.
+## The host takes the fitting; the piece keeps its anchors.
+func _stack(pieces: Dictionary) -> void:
+    for key in Layout.layer_order("hero_card"):
+        if not pieces.has(key):
+            continue
+        var host := Control.new()
+        host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        host.add_child(pieces[key])
+        add_child(host)
 
 
 ## One value, centred over the region the template painted for it.
@@ -426,6 +445,10 @@ func _add_badge_layer(_scale_factor: float) -> void:
     var badge_layer := Control.new()
     badge_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
     add_child(badge_layer)
+    badge_layer.add_child(_make_badge_row(_scale_factor))
+
+
+func _make_badge_row(_scale_factor: float) -> Control:
     _badge_row = UiTheme.hbox(4)
     _badge_row.alignment = BoxContainer.ALIGNMENT_CENTER
     _badge_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -435,7 +458,7 @@ func _add_badge_layer(_scale_factor: float) -> void:
     # own text and spill past the clipped edge of the face.
     _badge_row.offset_top = -BADGE_H
     _badge_row.offset_bottom = 0
-    badge_layer.add_child(_badge_row)
+    return _badge_row
 
 
 ## Extra badges under the card, such as owned counts or deck quantities.

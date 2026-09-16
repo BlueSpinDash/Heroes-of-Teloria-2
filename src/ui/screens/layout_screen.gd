@@ -161,7 +161,7 @@ func _handle_input(event: InputEvent, key: String, mode: String) -> void:
         if event.pressed:
             if _selected != key:
                 _selected = key
-                _rebuild_card()
+                _rebuild_all()
                 return
             _drag_mode = mode
             _drag_from = _preview_holder.get_local_mouse_position()
@@ -220,12 +220,17 @@ func _build_controls() -> Control:
     column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     column.add_child(UiTheme.heading("Layout"))
     column.add_child(UiTheme.wrapped(
-        "Positions and sizes the interface reads. Saving writes them to "
-        + "data/layout.json, which the game loads at launch.", 12, UiTheme.TEXT_DIM))
+        "Positions, sizes and stacking order the interface reads. Saving writes "
+        + "them to data/layout.json, which the game loads at launch. That file is "
+        + "part of the project, so committing it is what carries a change to "
+        + "everyone else — until then it is only on this machine.",
+        12, UiTheme.TEXT_DIM))
     _status = UiTheme.wrapped("In force: %s" % Layout.source, 11, UiTheme.TEXT_DIM)
     column.add_child(_status)
 
     var scroll_box := UiTheme.vbox(10)
+    _stack_box = UiTheme.vbox(4)
+    scroll_box.add_child(_stack_panel())
     for key in Layout.keys_of(GROUP):
         scroll_box.add_child(_rect_row(String(key)))
     scroll_box.add_child(UiTheme.separator())
@@ -245,13 +250,13 @@ func _build_controls() -> Control:
     var reload := UiTheme.button("Reload saved", "Discards changes not yet saved.")
     reload.pressed.connect(func():
         Layout.load_saved()
-        _rebuild_card()
+        _rebuild_all()
         _status.text = "Reloaded. In force: %s" % Layout.source)
     buttons.add_child(reload)
     var reset := UiTheme.button("Reset all", "Back to the values the game shipped with.")
     reset.pressed.connect(func():
         Layout.reset_all()
-        _rebuild_card()
+        _rebuild_all()
         _status.text = "Reset to the shipped values. Save to keep them.")
     buttons.add_child(reset)
     var copy := UiTheme.button("Copy as code", "Puts the values on the clipboard as GDScript.")
@@ -261,6 +266,78 @@ func _build_controls() -> Control:
     buttons.add_child(copy)
     column.add_child(buttons)
     return column
+
+
+var _stack_box: VBoxContainer
+
+
+## The pieces of a card, front to back, with the frame among them: art moved
+## behind the frame is drawn behind it and shows through what it leaves open.
+func _stack_panel() -> Control:
+    var p := UiTheme.panel(UiTheme.BG_PANEL, UiTheme.GOLD_DIM, 1, 4)
+    var v := UiTheme.vbox(4)
+    var head := UiTheme.hbox(8)
+    head.add_child(UiTheme.label("Stacking order — front at the top", 14, UiTheme.GOLD))
+    if Layout.layers_changed(GROUP):
+        head.add_child(UiTheme.label("changed", 10, UiTheme.GOLD))
+    var gap := Control.new()
+    gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    head.add_child(gap)
+    var undo := UiTheme.button("Reset order")
+    undo.pressed.connect(func():
+        Layout.reset_layers(GROUP)
+        _rebuild_all())
+    head.add_child(undo)
+    v.add_child(head)
+    v.add_child(_stack_box)
+    _fill_stack()
+    p.add_child(v)
+    return p
+
+
+func _fill_stack() -> void:
+    for c in _stack_box.get_children():
+        _stack_box.remove_child(c)
+        c.queue_free()
+    var order := Layout.layer_order(GROUP)
+    order.reverse()  # front first, the way a layers list reads
+    for i in order.size():
+        var key := String(order[i])
+        var row := UiTheme.hbox(6)
+        var chosen := key == _selected
+        var name_btn := UiTheme.button("%s%s" % ["▸ " if chosen else "", key],
+            "Select this piece.")
+        name_btn.custom_minimum_size = Vector2(120, 0)
+        name_btn.pressed.connect(func():
+            _selected = key
+            _rebuild_all())
+        row.add_child(name_btn)
+
+        var up := UiTheme.button("▲", "Bring forward, in front of the piece above.")
+        up.disabled = i == 0
+        up.pressed.connect(func():
+            Layout.move_layer(GROUP, key, 1)
+            _rebuild_all())
+        row.add_child(up)
+        var down := UiTheme.button("▼", "Send back, behind the piece below.")
+        down.disabled = i == order.size() - 1
+        down.pressed.connect(func():
+            Layout.move_layer(GROUP, key, -1)
+            _rebuild_all())
+        row.add_child(down)
+
+        var note := UiTheme.label(String(Layout.LAYER_LABELS.get(key, "")), 11, UiTheme.TEXT_DIM)
+        note.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+        note.clip_text = true
+        row.add_child(note)
+        _stack_box.add_child(row)
+
+
+## The stack and the boxes both describe the same card, so a change to either
+## rebuilds both.
+func _rebuild_all() -> void:
+    _rebuild_card()
+    _fill_stack()
 
 
 func _group_title(group: String) -> String:
@@ -275,7 +352,7 @@ func _rect_row(key: String) -> Control:
     var pick := UiTheme.button(key, "Select this box on the card.")
     pick.pressed.connect(func():
         _selected = key
-        _rebuild_card())
+        _rebuild_all())
     head.add_child(pick)
     if Layout.is_changed(GROUP, key):
         head.add_child(UiTheme.label("changed", 10, UiTheme.GOLD))
@@ -364,7 +441,11 @@ func _save() -> void:
     if not bool(r.get("ok", false)):
         app.toast(String(r.get("error", "Could not save the layout.")), true)
         return
-    _status.text = "Saved to %s%s" % [String(r["path"]),
-        "" if bool(r.get("in_project", false))
-        else " — this build cannot write to the project, so it went beside the saves."]
+    if bool(r.get("in_project", false)):
+        _status.text = ("Saved to %s. It is in force here now; commit that file to "
+            + "carry the change to anyone else.") % String(r["path"])
+    else:
+        _status.text = ("Saved to %s. This build cannot write to the project, so the "
+            + "layout went beside the save files and applies only on this machine.") \
+            % String(r["path"])
     app.toast("Layout saved.")

@@ -550,11 +550,54 @@ func _layout_editor_moves_card_parts(t: TestHarness) -> void:
         "and the moved art window came back as it was saved")
     t.eq(Layout.num("battle_board", "hand_card_w"), bounds.y, "as did the number")
 
+    # --- the stack ---------------------------------------------------------
+    # A card is drawn back to front in the order the layout gives, and the
+    # frame is one of the pieces: art moved behind it has to actually end up
+    # behind it, not merely be listed that way.
+    Layout.reset_all()
+    var order := Layout.layer_order("hero_card")
+    t.ok(order.find("frame") < order.find("art"),
+        "the frame starts behind the artwork")
+    var drawn := _piece_order(def)
+    t.ok(drawn.find("frame") < drawn.find("art"),
+        "and the card draws it that way: %s" % str(drawn))
+
+    Layout.move_layer("hero_card", "art", -1)
+    t.ok(Layout.layer_order("hero_card").find("art")
+            < Layout.layer_order("hero_card").find("frame"),
+        "sending the artwork back puts it behind the frame")
+    t.ok(Layout.layers_changed("hero_card"), "and that counts as a change")
+    var redrawn := _piece_order(def)
+    t.ok(redrawn.find("art") < redrawn.find("frame"),
+        "and the card is rebuilt with the artwork behind the frame: %s" % str(redrawn))
+
+    # Moving past the end does nothing rather than falling off.
+    var back := String(Layout.layer_order("hero_card")[0])
+    Layout.move_layer("hero_card", String(back), -5)
+    t.eq(Layout.layer_order("hero_card")[0], back, "the hindmost piece cannot go further back")
+
+    Layout.reset_layers("hero_card")
+    t.ok(not Layout.layers_changed("hero_card"), "resetting the order restores it")
+
     # Leave the game as it was found.
     Layout.reset_all()
     DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
     t.ok(Layout.rect("hero_card", "art").is_equal_approx(was),
         "the test left the layout as it found it")
+
+
+## Which pieces a built card holds, in the order it draws them.
+func _piece_order(def: CardDef) -> Array:
+    var view := CardView.create(def, 300.0)
+    var out: Array = []
+    for host in view.get_children():
+        for piece in (host as Node).get_children():
+            if piece is CardArt:
+                out.append("art")
+            elif piece is TextureRect:
+                out.append("frame")
+    view.queue_free()
+    return out
 
 
 ## Where a built card actually drew its art, in the card's own coordinates.
