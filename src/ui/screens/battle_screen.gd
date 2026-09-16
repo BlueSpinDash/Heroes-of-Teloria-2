@@ -18,6 +18,14 @@ var _pending_x: int = 0
 var _target_kind: String = ""
 var _as_reaction: bool = false
 var _choice_selection: Array = []
+## Targets already chosen by dropping a card onto them, so the X-cost prompt
+## does not ask for them a second time.
+var _pending_targets: Array = []
+var _targets_prechosen: bool = false
+
+# Drag and drop.
+var _drop_targets: Array = []
+var _dragging: bool = false
 
 # AI turn handling.
 var _thinker: AiThinker = null
@@ -35,6 +43,7 @@ var _log_box: VBoxContainer
 var _location_holder: HBoxContainer
 var _chain_label: Label
 var _x_spin: SpinBox
+var _sequence_zone: BattleDropTarget
 
 
 func setup(application: App, _args: Dictionary = {}) -> void:
@@ -103,7 +112,14 @@ func _build() -> void:
     seq_head.add_child(_chain_label)
     centre.add_child(seq_head)
     _sequence_row = UiTheme.hbox(6)
-    centre.add_child(_fixed_scroll(_sequence_row, 102))
+    # The Sequence doubles as the drop zone for a card that needs no target.
+    _sequence_zone = BattleDropTarget.new()
+    _sequence_zone.style(UiTheme.BG, UiTheme.GOLD_DIM, 1, 5)
+    _sequence_zone.drop_hint = "Commit to the Action Sequence"
+    _sequence_zone.accepts_check = func(payload): return _accepts_on_sequence(payload)
+    _sequence_zone.dropped.connect(func(payload): _drop_on_sequence(payload))
+    _sequence_zone.add_child(_fixed_scroll(_sequence_row, 102))
+    centre.add_child(_sequence_zone)
     centre.add_child(UiTheme.separator())
 
     centre.add_child(UiTheme.label("Your Companions", 12, UiTheme.TEXT_DIM))
@@ -132,6 +148,7 @@ func _build() -> void:
 # --------------------------------------------------------------- AI driving ---
 
 func _process(delta: float) -> void:
+    _update_drag_state()
     if st == null or st.result != null:
         return
     var actor := MatchRunner._actor(st)
@@ -160,6 +177,24 @@ func _process(delta: float) -> void:
         if not fallback.is_empty():
             GameEngine.submit(st, fallback)
     _after_command()
+
+
+## While a card or character is being dragged, every place it could legally go
+## lights up. Nothing is rebuilt mid-drag, only restyled, so the drag itself is
+## never interrupted.
+func _update_drag_state() -> void:
+    var vp := get_viewport()
+    if vp == null:
+        return
+    var now := vp.gui_is_dragging()
+    if now == _dragging:
+        return
+    _dragging = now
+    var payload = vp.gui_get_drag_data() if now else null
+    for tgt in _drop_targets:
+        if tgt is BattleDropTarget and is_instance_valid(tgt):
+            var target := tgt as BattleDropTarget
+            target.set_highlight(now and target.can_accept(payload))
 
 
 func _after_command() -> void:
@@ -226,23 +261,38 @@ func _refresh_top() -> void:
 
 
 func _refresh_boards() -> void:
+    # Chips are rebuilt each refresh, so the highlight list is rebuilt with
+    # them. The Sequence zone is persistent and is re-added here.
+    _drop_targets = []
+    if _sequence_zone != null:
+        _drop_targets.append(_sequence_zone)
     _fill_board(_opp_board, 1)
     _fill_board(_own_board, 0)
     for c in _location_holder.get_children():
+        _location_holder.remove_child(c)
         c.queue_free()
+    var loc_chip := BattleDropTarget.new()
+    loc_chip.style(UiTheme.FRAME["location"] if st.location_iid != "" else UiTheme.BG_PANEL,
+        UiTheme.GOLD_DIM, 1, 4)
+    loc_chip.custom_minimum_size = Vector2(190, 0)
+    loc_chip.set_meta("iid", st.location_iid)
+    loc_chip.drop_hint = "Play here"
+    loc_chip.accepts_check = func(payload): return _accepts_on_location(payload)
+    loc_chip.dropped.connect(func(payload): _drop_on_location(payload))
+    _drop_targets.append(loc_chip)
+    var lv := UiTheme.vbox(0)
     if st.location_iid == "":
-        _location_holder.add_child(UiTheme.label("none", 12, UiTheme.TEXT_DIM))
+        lv.add_child(UiTheme.label("none", 12, UiTheme.TEXT_DIM))
     else:
         var d := st.def_of(st.location_iid)
         var owner := st.inst(st.location_iid).owner
-        var chip := UiTheme.panel(UiTheme.FRAME["location"], UiTheme.GOLD, 1, 4)
-        var lv := UiTheme.vbox(0)
         lv.add_child(UiTheme.label("%s (P%d)" % [d.name, owner + 1], 12, UiTheme.TEXT))
         lv.add_child(UiTheme.label(d.text, 10, UiTheme.TEXT_DIM))
-        chip.add_child(lv)
-        _location_holder.add_child(chip)
-        if _mode == "pick_card_target" and _target_kind == "location":
-            _location_holder.add_child(_target_button(st.location_iid))
+    loc_chip.add_child(lv)
+    loc_chip.claim_mouse()
+    _location_holder.add_child(loc_chip)
+    if st.location_iid != "" and _mode == "pick_card_target" and _target_kind == "location":
+        _location_holder.add_child(_target_button(st.location_iid))
 
 
 func _fill_board(row: HBoxContainer, player: int) -> void:
@@ -262,8 +312,21 @@ func _character_chip(iid: String, player: int, is_hero: bool) -> Control:
     var committed := st.player(player).committed_characters.has(iid)
     var in_sequence := st.sequence_members.has(iid)
     var border := UiTheme.GOLD if in_sequence else (UiTheme.GOLD_DIM if not committed else UiTheme.TEXT_DIM)
-    var p := UiTheme.panel(UiTheme.BG_RAISED, border, 2 if in_sequence else 1, 5)
+
+    var p := BattleDropTarget.new()
+    p.style(UiTheme.BG_RAISED, border, 2 if in_sequence else 1, 5)
     p.custom_minimum_size = Vector2(170, 0)
+    p.set_meta("iid", iid)
+    p.accepts_check = func(payload): return _accepts_on_character(iid, payload)
+    p.dropped.connect(func(payload): _drop_on_character(iid, payload))
+    # Your own characters can be picked up and dragged onto what they attack.
+    if player == 0 and _can_act() and GameEngine._attack_candidates(st, 0).has(iid) \
+            and st.player(0).energy_current >= d.attack_cost:
+        p.drag_payload = {"kind": "attack", "attacker": iid,
+            "label": "%s attacks" % d.name}
+        p.tooltip_text = "Drag onto a target to attack, or use the button."
+    _drop_targets.append(p)
+
     var v := UiTheme.vbox(2)
     v.add_child(UiTheme.label("%s%s" % ["Hero: " if is_hero else "", d.name], 12, UiTheme.TEXT))
     var stats := UiTheme.hbox(5)
@@ -297,11 +360,12 @@ func _character_chip(iid: String, player: int, is_hero: bool) -> Control:
         v.add_child(_target_button(iid))
     elif _mode == "idle" and player == 0 and _can_act() \
             and GameEngine._attack_candidates(st, 0).has(iid):
-        var b := UiTheme.button("Attack with this", "Costs %d Energy." % d.attack_cost)
+        var b := UiTheme.button("Attack with this", "Costs %d Energy. You can also drag this character onto a target." % d.attack_cost)
         b.disabled = st.player(0).energy_current < d.attack_cost
         b.pressed.connect(func(): _begin_attack(iid))
         v.add_child(b)
     p.add_child(v)
+    p.claim_mouse()
     return p
 
 
@@ -394,7 +458,9 @@ func _refresh_hand() -> void:
         var card_iid := String(iid)
         if playable:
             view.add_badge("Eligible", UiTheme.GOOD)
-            view.tooltip_text = "Click to play %s." % d.name
+            view.drag_payload = {"kind": "card", "iid": card_iid,
+                "as_reaction": reaction_window, "label": d.name}
+            view.tooltip_text = "Drag %s onto where it should go, or click it." % d.name
             view.pressed.connect(func(_id): _begin_play(card_iid, reaction_window))
             var b := UiTheme.primary_button("Play as Reaction" if reaction_window else "Commit")
             b.pressed.connect(func(): _begin_play(card_iid, reaction_window))
@@ -549,7 +615,8 @@ func _mode_prompt() -> String:
             var a := st.def_of(_pending_attacker)
             return "Choose what %s attacks: the opposing Hero or one of its Companions." % [
                 a.name if a != null else "your character"]
-    return "Commit an Action, attack, or pass."
+    return ("Drag a card onto its target, or onto the Action Sequence if it needs none. "
+        + "Clicking works too: use a card's Commit button, or Attack with this.")
 
 
 func _refresh_log() -> void:
@@ -563,6 +630,144 @@ func _refresh_log() -> void:
 
 
 # ------------------------------------------------------------- interactions ---
+
+## Can this hand card be played at all right now? Mirrors the check the hand
+## uses to decide whether to offer a button, so dragging and clicking always
+## agree about what is legal.
+func _card_playable_now(iid: String, as_reaction: bool) -> bool:
+    if st == null or st.result != null:
+        return false
+    var ci := st.inst(iid)
+    if ci == null or ci.zone != "hand" or ci.owner != 0:
+        return false
+    var d := st.def_of(iid)
+    if d == null:
+        return false
+    if as_reaction:
+        if not _is_reaction_window_for_player() or not d.allows_reaction_timing():
+            return false
+    else:
+        if not _can_act() or not d.allows_action_timing():
+            return false
+    var cost: int = d.fixed_cost() if d.cost_kind() == "fixed" else d.x_min()
+    return st.player(0).energy_current >= cost
+
+
+## Which instance a drop on this chip actually targets. Equipment and Ta'ahma
+## are dropped onto the character wearing them.
+func _resolve_drop_target(chip_iid: String, kind: String) -> String:
+    var legal := Targeting.legal_targets(st, kind, 0)
+    if legal.has(chip_iid):
+        return chip_iid
+    for a in st.attachments_of(chip_iid):
+        if legal.has(String(a)):
+            return String(a)
+    return ""
+
+
+func _accepts_on_character(iid: String, payload: Dictionary) -> bool:
+    if st == null or st.result != null:
+        return false
+    match String(payload.get("kind", "")):
+        "attack":
+            if not _can_act():
+                return false
+            if not GameEngine._attack_candidates(st, 0).has(String(payload.get("attacker", ""))):
+                return false
+            return Targeting.legal_attack_targets(st, 0).has(iid)
+        "card":
+            var card_iid := String(payload.get("iid", ""))
+            if not _card_playable_now(card_iid, bool(payload.get("as_reaction", false))):
+                return false
+            var d := st.def_of(card_iid)
+            if d == null or not (d.target_spec is Dictionary):
+                return false
+            return _resolve_drop_target(iid, String((d.target_spec as Dictionary).get("kind", ""))) != ""
+    return false
+
+
+func _accepts_on_sequence(payload: Dictionary) -> bool:
+    if String(payload.get("kind", "")) != "card":
+        return false  # an attack has to be dragged onto what it attacks
+    var card_iid := String(payload.get("iid", ""))
+    if not _card_playable_now(card_iid, bool(payload.get("as_reaction", false))):
+        return false
+    var d := st.def_of(card_iid)
+    if d == null:
+        return false
+    if not (d.target_spec is Dictionary):
+        return true
+    return bool((d.target_spec as Dictionary).get("optional", false))
+
+
+func _accepts_on_location(payload: Dictionary) -> bool:
+    if String(payload.get("kind", "")) != "card":
+        return false
+    var card_iid := String(payload.get("iid", ""))
+    if not _card_playable_now(card_iid, bool(payload.get("as_reaction", false))):
+        return false
+    var d := st.def_of(card_iid)
+    if d == null or not (d.target_spec is Dictionary):
+        return false
+    if String((d.target_spec as Dictionary).get("kind", "")) != "location":
+        return false
+    return not Targeting.legal_targets(st, "location", 0).is_empty()
+
+
+# --------------------------------------------------------------- drop actions ---
+
+func _drop_on_character(iid: String, payload: Dictionary) -> void:
+    if String(payload.get("kind", "")) == "attack":
+        var r := GameEngine.submit(st, {"cmd": "commit_attack", "player": 0,
+            "attacker_iid": String(payload.get("attacker", "")), "target_iid": iid})
+        if not bool(r["ok"]):
+            app.toast(String(r["error"]), true)
+            return
+        _mode = "idle"
+        _pending_attacker = ""
+        _after_command()
+        return
+    var card_iid := String(payload.get("iid", ""))
+    var d := st.def_of(card_iid)
+    if d == null or not (d.target_spec is Dictionary):
+        return
+    var kind := String((d.target_spec as Dictionary).get("kind", ""))
+    var resolved := _resolve_drop_target(iid, kind)
+    if resolved == "":
+        app.toast(Targeting.explain_invalid(st, kind, 0, iid), true)
+        return
+    _play_dragged(card_iid, [resolved], bool(payload.get("as_reaction", false)))
+
+
+func _drop_on_sequence(payload: Dictionary) -> void:
+    _play_dragged(String(payload.get("iid", "")), [], bool(payload.get("as_reaction", false)))
+
+
+func _drop_on_location(payload: Dictionary) -> void:
+    var legal := Targeting.legal_targets(st, "location", 0)
+    if legal.is_empty():
+        app.toast("There is no Location in play to target.", true)
+        return
+    _play_dragged(String(payload.get("iid", "")), [String(legal[0])],
+        bool(payload.get("as_reaction", false)))
+
+
+## Play a card whose target was already settled by where it was dropped. An X
+## cost is still asked for, because only the player can decide that.
+func _play_dragged(iid: String, targets: Array, as_reaction: bool) -> void:
+    var d := st.def_of(iid)
+    if d == null:
+        return
+    _pending_card = iid
+    _as_reaction = as_reaction
+    _pending_targets = targets.duplicate()
+    _targets_prechosen = true
+    if d.cost_kind() == "x":
+        _pending_x = d.x_min()
+        _ask_for_x(d)
+        return
+    _submit_card(targets)
+
 
 func _can_act() -> bool:
     return st.pending == null and st.phase == "action" \
@@ -581,6 +786,8 @@ func _cancel() -> void:
     _pending_attacker = ""
     _pending_x = 0
     _target_kind = ""
+    _pending_targets = []
+    _targets_prechosen = false
     _refresh()
 
 
@@ -590,6 +797,8 @@ func _begin_play(iid: String, as_reaction: bool) -> void:
         return
     _pending_card = iid
     _as_reaction = as_reaction
+    _pending_targets = []
+    _targets_prechosen = false
     _pending_x = d.x_min() if d.cost_kind() == "x" else 0
     if d.cost_kind() == "x":
         _ask_for_x(d)
@@ -611,7 +820,10 @@ func _ask_for_x(d: CardDef) -> void:
     var ok := UiTheme.primary_button("Continue")
     ok.pressed.connect(func():
         _pending_x = int(_x_spin.value)
-        _continue_play(d))
+        if _targets_prechosen:
+            _submit_card(_pending_targets)
+        else:
+            _continue_play(d))
     _controls.add_child(ok)
     var cancel := UiTheme.button("Cancel")
     cancel.pressed.connect(_cancel)
@@ -666,4 +878,6 @@ func _submit_card(targets: Array) -> void:
     _pending_card = ""
     _pending_x = 0
     _target_kind = ""
+    _pending_targets = []
+    _targets_prechosen = false
     _after_command()

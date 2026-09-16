@@ -11,6 +11,10 @@ extends PanelContainer
 
 signal pressed(def_id: String)
 
+## Set by the battle screen to make this card draggable. Null leaves it
+## click-only, which every card also remains.
+var drag_payload = null
+
 const BASE_WIDTH := 300.0
 const BASE_HEIGHT := 452.0
 
@@ -160,7 +164,19 @@ func _build() -> void:
     root.add_child(_badge_row)
 
     if clickable:
+        # Every control inside the face is decoration. With them transparent to
+        # the mouse, the card itself is what gets hovered, clicked and dragged,
+        # rather than whichever label happens to be under the pointer.
+        _ignore_mouse_below(self)
+        mouse_filter = Control.MOUSE_FILTER_STOP
         gui_input.connect(_on_gui_input)
+
+
+static func _ignore_mouse_below(node: Node) -> void:
+    for child in node.get_children():
+        if child is Control:
+            (child as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
+        _ignore_mouse_below(child)
 
 
 func _banner(text: String, font_size: int, big: bool = false) -> PanelContainer:
@@ -207,7 +223,17 @@ func add_badge(text: String, colour: Color = UiTheme.GOLD) -> void:
     _badge_row.add_child(p)
 
 
+func _get_drag_data(_at_position: Vector2) -> Variant:
+    if drag_payload == null or def == null:
+        return null
+    var ghost := CardView.create(def, card_width * 0.8)
+    ghost.modulate = Color(1, 1, 1, 0.85)
+    set_drag_preview(ghost)
+    return drag_payload
+
+
 func _on_gui_input(event: InputEvent) -> void:
-    if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+    if event is InputEventMouseButton and not event.pressed \
+            and event.button_index == MOUSE_BUTTON_LEFT:
         pressed.emit(def.id)
         accept_event()

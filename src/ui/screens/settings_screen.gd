@@ -58,7 +58,8 @@ func _rules_reference() -> Control:
             + "commit, refunds cap at your maximum, and Round End refreshes you to full."],
         ["Attacks", "A Hero or eligible Companion may commit one attack per round, paying its "
             + "attack cost and choosing its target then. Damage is Attack minus Defense at "
-            + "resolution. Any positive damage destroys a Companion; zero damage does not."],
+            + "resolution. Any positive damage destroys a Companion; zero damage does not. "
+            + "Drag the character onto what it attacks, or use its Attack button."],
         ["Hero damage", "There is no Hero health. Damage moves that many random cards to your "
             + "Wound Deck, from Exhaust first and then from Hit, without reshuffling."],
         ["Losing", "You lose when Hit plus Exhaust cannot supply a required draw, a required "
@@ -163,8 +164,9 @@ func _accessibility_section() -> Control:
     var pair := _section("Accessibility")
     var v: VBoxContainer = pair[1]
     v.add_child(UiTheme.wrapped(
-        "Affinity, rarity and legality are always spelled out in text as well as colour, and every "
-        + "control works with a click or a tap. Dragging is never required.", 12, UiTheme.TEXT_DIM))
+        "Affinity, rarity and legality are always spelled out in text as well as colour. In a "
+        + "match you can drag a card onto its target, or do exactly the same thing by clicking: "
+        + "every action has a button. Dragging is never required.", 12, UiTheme.TEXT_DIM))
 
     var row := UiTheme.hbox(8)
     row.add_child(UiTheme.label("Text size:", 13))
