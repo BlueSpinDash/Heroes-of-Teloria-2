@@ -26,6 +26,9 @@ func run(t: TestHarness) -> void:
     test_parfait_refund(t)
     test_sorbet_named_type(t)
     test_burning_rush_bonus(t)
+    test_young_blood_draws_when_wounded(t)
+    test_fevered_tempo_counts_skills_before_it(t)
+    test_battle_wraps_arms_its_host(t)
     test_chain_rules(t)
     test_x_is_locked(t)
     test_instance_integrity(t)
@@ -843,3 +846,105 @@ func _integrity_problems(st: GameState) -> Array:
             problems.append("%s (%s) is in no zone; recorded zone is '%s'" % [
                 iid, (st.instances[iid] as CardInstance).def_id, (st.instances[iid] as CardInstance).zone])
     return problems
+
+
+## A Companion that says what happens when it dies has to actually get to say
+## it. The card is already out of play by the time the trigger queue runs, so
+## its own parting is the one event it is still allowed to answer.
+func test_young_blood_draws_when_wounded(t: TestHarness) -> void:
+    t.begin("Young Blood draws when it enters the Wound Deck")
+    var st := F.fresh_decks(
+        F.deck("FIX_HERO_PARFAIT", {"FIX_YOUNG": 3, "FIX_COMP": 3}),
+        F.sink_deck("FIX_HERO_B"), 29)
+    var young := F.to_hand(st, 0, "FIX_YOUNG")
+    var plain := F.to_hand(st, 0, "FIX_COMP")
+    Mechanics.deploy_companion(st, young, 0)
+    Mechanics.deploy_companion(st, plain, 0)
+
+    var hand_before := st.player(0).hand.size()
+    Mechanics.destroy(st, young, "test")
+    EffectRunner.process_trigger_queue(st, 1)
+    t.eq(st.player(0).hand.size(), hand_before + 1,
+        "its controller drew a card as it went to the Wound Deck")
+    t.eq(st.inst(young).zone, "wound", "and the card itself is in the Wound Deck")
+
+    # Only its own death, not a neighbour's.
+    var hand_now := st.player(0).hand.size()
+    Mechanics.destroy(st, plain, "test")
+    EffectRunner.process_trigger_queue(st, 1)
+    t.eq(st.player(0).hand.size(), hand_now,
+        "another Companion dying draws nothing")
+
+
+## A card that reads the round has to read the round as it stands when it
+## resolves. The Action Sequence resolves in order, so the slots before this
+## one are exactly what has already happened.
+func test_fevered_tempo_counts_skills_before_it(t: TestHarness) -> void:
+    t.begin("Fevered Tempo counts the Skills that resolved before it")
+    var st := F.fresh_decks(
+        F.deck("FIX_HERO_PARFAIT", {"FIX_TEMPO": 3, "FIX_RUSH": 3, "FIX_COMP": 3}),
+        F.sink_deck("FIX_HERO_B"), 31)
+    st.player(0).energy_max_mods.append({"amount": 8, "expires": "permanent"})
+    st.player(0).energy_current = 12
+    st.player(1).energy_current = 12
+
+    # Something to shoot at, with 2 Defense, and three Skills committed ahead
+    # of Tempo. Three minus two is the one point that gets through — which is
+    # also what proves the count is read rather than assumed.
+    var mark := F.to_hand(st, 1, "FIX_COMP")
+    Mechanics.deploy_companion(st, mark, 1)
+    t.eq(st.current_defense(mark), 2, "the target has 2 Defense")
+
+    st.action_priority = 0
+    for i in 3:
+        var filler := F.to_hand(st, 0, "FIX_RUSH")
+        t.ok(bool(GameEngine.submit(st, {"cmd": "commit_card", "player": 0,
+            "card_iid": filler, "targets": []})["ok"]), "a Skill is committed ahead of it")
+        st.action_priority = 0
+    var tempo := F.to_hand(st, 0, "FIX_TEMPO")
+    t.ok(bool(GameEngine.submit(st, {"cmd": "commit_card", "player": 0,
+        "card_iid": tempo, "targets": [mark]})["ok"]), "then Fevered Tempo")
+
+    # Read while the Sequence still stands: it is cleared when the round ends.
+    t.eq(EffectRunner._resolved_before(st, {"slot_index": 3, "controller": 0},
+        {"of": "resolved_before", "types": ["skill"], "scope": "either"}, 0), 3,
+        "three Skills stand before the fourth slot")
+    t.eq(EffectRunner._resolved_before(st, {"slot_index": 0, "controller": 0},
+        {"of": "resolved_before", "types": ["skill"], "scope": "either"}, 0), 0,
+        "and none before the first, so the card does nothing when it leads")
+    t.eq(EffectRunner._resolved_before(st, {"slot_index": 3, "controller": 0},
+        {"of": "resolved_before", "types": ["companion"], "scope": "either"}, 0), 0,
+        "and it counts Skills, not everything that resolved")
+
+    GameEngine.submit(st, {"cmd": "pass_actions", "player": 1})
+    GameEngine.submit(st, {"cmd": "pass_actions", "player": 0})
+    var guard := 0
+    while st.result == null and st.round_number == 1 and guard < 300:
+        guard += 1
+        if st.pending != null:
+            F._auto_answer(st)
+        else:
+            GameEngine.advance(st)
+
+    var dealt := -1
+    for e in st.events:
+        if String(e.get("kind", "")) == "companion_damaged" \
+                and String(e.get("target", "")) == mark:
+            dealt = int(e.get("amount", -1))
+    t.eq(dealt, 1, "three Skills ahead of it, less 2 Defense, is one point through")
+
+
+## Equipment that prints a number has to hand that number to its host.
+func test_battle_wraps_arms_its_host(t: TestHarness) -> void:
+    t.begin("Battle Wraps gives its host +1 Attack")
+    var st := F.fresh_decks(
+        F.deck("FIX_HERO_PARFAIT", {"FIX_WRAPS": 3, "FIX_COMP": 3}),
+        F.sink_deck("FIX_HERO_B"), 37)
+    var body := F.to_hand(st, 0, "FIX_COMP")
+    Mechanics.deploy_companion(st, body, 0)
+    var base := st.current_attack(body)
+    var wraps := F.to_hand(st, 0, "FIX_WRAPS")
+    Mechanics.attach_card(st, wraps, body)
+    t.eq(st.current_attack(body), base + 1, "the host hits one harder while wearing them")
+    Mechanics.destroy(st, wraps, "test")
+    t.eq(st.current_attack(body), base, "and drops back when they come off")

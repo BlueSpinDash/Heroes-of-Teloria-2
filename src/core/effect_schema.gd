@@ -55,6 +55,11 @@ const COUNT_OF := [
     "own_companions", "opponent_companions",
     "own_hand", "opponent_hand",
     "own_exhaust", "opponent_exhaust",
+    # Slots of the Action Sequence that resolved before the one being read.
+    # The Sequence resolves in order, so everything earlier has resolved and
+    # nothing later has: it is the round's own record of what has happened.
+    # Narrowed by "types" (card types) and "scope" (whose slots).
+    "resolved_before",
 ]
 
 const AURA_SCOPES := [
@@ -113,6 +118,7 @@ const TRIGGERS := {
     "own_hero_damaged": [],
     "opponent_hero_damaged": [],
     "self_leaves_play": [],
+    "self_wounded": [],
     "attack_resolved": ["scope"],
     "chosen_type_card_resolved": ["scope"],
 }
@@ -154,8 +160,15 @@ static func validate_amount(value, path: String, allow_negative: bool = false) -
             if not SCOPES.has(String(value.get("scope", ""))):
                 errs.append("%s: chain_count needs a valid scope" % path)
         "count":
-            if not COUNT_OF.has(String(value.get("of", ""))):
+            var of := String(value.get("of", ""))
+            if not COUNT_OF.has(of):
                 errs.append("%s: count 'of' must be one of %s" % [path, str(COUNT_OF)])
+            elif of == "resolved_before":
+                if value.has("scope") and not SCOPES.has(String(value["scope"])):
+                    errs.append("%s: count scope must be one of %s" % [path, str(SCOPES)])
+                for t in value.get("types", []):
+                    if not CARD_TYPES.has(String(t)):
+                        errs.append("%s: '%s' is not a card type" % [path, str(t)])
     if value.has("multiplier") and not (value["multiplier"] is int or value["multiplier"] is float):
         errs.append("%s: multiplier must be numeric" % path)
     return errs

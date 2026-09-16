@@ -865,9 +865,9 @@
   },
   {
     "id": "NEU_EQUIP_01",
-    "revision": 1,
-    "placeholder": true,
-    "name": "Neutral Proxy Equipment 01",
+    "revision": 2,
+    "placeholder": false,
+    "name": "Battle Wraps",
     "types": [
       "equipment"
     ],
@@ -903,10 +903,12 @@
     "text": "While this card is in play, its host gets +1 Attack.",
     "flavor": "Placeholder flavour for Neutral Proxy Equipment 01. Names, art and flavour are replaceable and never change mechanics.",
     "art": {
-      "style": "abstract_sigil",
-      "seed": 59850,
-      "hue": 210,
-      "saturation": 0.0
+      "style": "supplied",
+      "image": "res://assets/cards/battle_wraps.png",
+      "fit": "contain",
+      "seed": 80101,
+      "hue": 40,
+      "saturation": 0.25
     },
     "patterns": [
       "equipment_buff"
@@ -917,7 +919,10 @@
       "patterns": [
         "equipment_buff"
       ]
-    }
+    },
+    "authored": true,
+    "short_name": "Battle Wraps",
+    "frame": "printed"
   },
   {
     "id": "NEU_EQUIP_02",

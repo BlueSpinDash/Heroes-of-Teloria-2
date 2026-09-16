@@ -95,10 +95,13 @@ finished before its type had a frame can keep the look it shipped with. No card
 uses it at the moment: every Hero and every Skill is on its frame.
 
 `"frame": "printed"` goes the other way: the supplied card face is drawn whole,
-with nothing placed on it. The picture then carries its own name, numbers and
-rules text, which means the game can no longer restate what the card does when
-the card changes — the face has to be redrawn instead. `docs/ADDING_CARDS.md`
-sets out the trade.
+with nothing placed on it. This is how a card supplied as a finished painting
+is added — the face goes in `assets/cards/`, `tools/prepare_card_faces.gd`
+takes the backdrop off it, and the card is drawn from it. The picture then
+carries its own name, numbers and rules text, which means the game can no
+longer restate what the card does when the card changes: the face has to be
+redrawn instead. The card still carries real effect data underneath, because
+that is what the game plays. `docs/ADDING_CARDS.md` sets out the trade.
 
 Cards on the table are drawn small enough to fit it, which leaves their rules
 text too small to read, so resting the pointer on one brings the same card up

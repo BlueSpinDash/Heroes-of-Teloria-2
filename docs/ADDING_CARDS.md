@@ -128,14 +128,32 @@ it shipped with. No card uses it at the moment.
 
 `"frame": "printed"` draws a supplied card face whole, exactly as it arrived,
 with nothing placed on it but the badges that describe *this copy* of the card
-(Eligible, Owned). Point the art block at the full face rather than a crop:
+(Eligible, Owned). This is how every card supplied as a finished face is added.
+
+Drop the face in `assets/cards/`, run the trimmer, and point the card at it:
+
+```sh
+godot --headless --path . --script tools/prepare_card_faces.gd
+```
 
 ```json
 "frame": "printed",
-"art": {"style": "supplied", "image": "burning_rush_card.png", "fit": "cover"}
+"art": {"style": "supplied", "image": "res://assets/cards/young_blood.png",
+        "fit": "contain"}
 ```
 
-It is not the default, and the trade is worth understanding before using it:
+A face arrives as a picture *of* a card, sitting on whatever the renderer put
+behind it. `tools/prepare_card_faces.gd` takes that backdrop off: it is only
+reachable from the edges, so a flood fill from the four corners finds exactly
+it, and what is left is cropped to the card. That is not a choice about what to
+keep — the whole card survives, with its own rounded corners as transparency.
+
+The face is then fitted **whole** (`"fit": "contain"`), not filled to the box.
+These are pictures of cards and they do not all come out at exactly 5:7;
+filling the box would take a slice off a card's own banner or footer, which is
+the one thing a printed face is for keeping.
+
+The trade is worth understanding before using it:
 
 * **The rules text becomes a picture.** Everywhere else, what a card says is
   generated from its effect data and checked against it, which is what lets a
@@ -146,12 +164,13 @@ It is not the default, and the trade is worth understanding before using it:
   redrawn to match.
 * **The Layout screen cannot touch it.** There are no pieces to move, so the
   card is not listed there.
-* **The footer is whatever was drawn.** The supplied faces so far carry
-  placeholder set and rarity lines (`SET • 001/000`, `RARITY`), which would
-  ship as-is.
+* **The footer is whatever was drawn.** The supplied faces carry placeholder
+  set and rarity lines (`SET • 001/000`, `RARITY`), which ship as-is.
 
-The frames exist to avoid all of that. Use a printed face when the picture is
-the point and the card is finished.
+The card still needs real effect data underneath, because that is what the game
+plays. The generated text is kept in the definition and is what the rest of the
+interface quotes; the printed words are what the player reads on the face. They
+should say the same thing, and the generated line is the one that is checked.
 
 ### The window is not a rectangle
 

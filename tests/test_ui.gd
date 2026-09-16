@@ -473,6 +473,7 @@ func _hero_cards_use_the_frame(t: TestHarness) -> void:
     t.begin("cards are drawn on the frame for their own type")
     var counted: Dictionary = {}
     var plain: Array = []
+    var printed: Array = []
     var wrong: Array = []
     for d in app.catalog.all_defs():
         var card: CardDef = d
@@ -485,6 +486,8 @@ func _hero_cards_use_the_frame(t: TestHarness) -> void:
         if card.frame == "plain":
             plain.append(card.id)
             want = {}
+        if card.frame == "printed":
+            printed.append(card.id)
         if got != want:
             wrong.append("%s got %s, wanted %s" % [card.id, str(got), str(want)])
         if not want.is_empty():
@@ -494,6 +497,13 @@ func _hero_cards_use_the_frame(t: TestHarness) -> void:
     t.ge(float(int(counted.get("skill_card", 0))), 50.0, "and the Skills are framed too")
     t.empty(wrong, "every card is on the frame for its own type, and only those are")
     t.empty(plain, "no card opts out of its frame")
+    # A card supplied as a finished face is drawn from that face instead. It
+    # still names a frame, so that a missing picture falls back to one rather
+    # than to nothing.
+    t.ok(printed.size() >= 3, "the cards supplied as finished faces use them: %s" % str(printed))
+    for id in printed:
+        t.eq(CardView.frame_group(app.catalog.get_def(String(id))), "",
+            "%s is drawn from its own face, so it has no slots to place" % id)
 
     # Each frame places only what it has room for: a Skill has no Attack or
     # Defense medallion, so its layout has no place for those numbers.
@@ -554,17 +564,16 @@ func _a_supplied_face_can_be_used_whole(t: TestHarness) -> void:
     var view := CardView.create(printed, 300.0)
     _root.add_child(view)
     await _frames(t, 2)
-    t.ne(_find_art(view), null, "the supplied picture is what the card draws")
-    var drawn := _art_rect(view)
-    t.le(absf(drawn.size.x - 300.0), 1.5, "and it covers the whole face, not a window (%s)"
-        % str(drawn))
-    t.le(absf(drawn.position.x), 1.5, "starting at the card's own edge")
-    var framed := 0
-    for host in view.get_children():
-        for piece in (host as Node).get_children():
-            if piece is TextureRect:
-                framed += 1
-    t.eq(framed, 0, "no painted frame is laid over it")
+    var face := view.find_child(CardView.PRINTED_FACE, true, false) as TextureRect
+    if t.ne(face, null, "the supplied picture is what the card draws"):
+        t.ne(face.texture, null, "and the picture is really loaded")
+        t.le(absf(face.size.x - 300.0), 1.5,
+            "it is given the whole face, not a window (%s)" % str(face.size))
+        t.eq(face.stretch_mode, TextureRect.STRETCH_KEEP_ASPECT_CENTERED,
+            "fitted whole rather than cropped to the box")
+    t.eq(_find_art(view), null, "nothing of the built face is drawn under it")
+    t.eq(view.find_child("PrintedFace", true, false).get_parent().get_child_count(), 1,
+        "and nothing is laid over it but the badges, which are their own layer")
     view.queue_free()
 
     # Without a picture there would be nothing to draw, so the catalog says so

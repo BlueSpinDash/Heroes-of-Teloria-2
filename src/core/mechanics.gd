@@ -260,6 +260,10 @@ static func destroy(state: GameState, iid: String, reason: String = "") -> void:
         return
     _release_attachments(state, iid, "exhaust")
     state.trigger_events.append({"kind": "leaves_play", "iid": iid, "controller": ci.controller})
+    # Destruction is also the way a card in play enters its owner's Wound
+    # Deck, which is a different thing from leaving play: replacement and a
+    # bounce send a card to Exhaust and to hand instead.
+    state.trigger_events.append({"kind": "wounded", "iid": iid, "controller": ci.controller})
     var was_companion := ci.zone == "companions"
     var controller := ci.controller
     state.move_to_pile(iid, "wound")

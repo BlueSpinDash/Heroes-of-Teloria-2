@@ -351,9 +351,9 @@
   },
   {
     "id": "PAS_SKILL_05",
-    "revision": 1,
-    "placeholder": true,
-    "name": "Passion Proxy Skill 05",
+    "revision": 2,
+    "placeholder": false,
+    "name": "Fevered Tempo",
     "types": [
       "skill"
     ],
@@ -375,28 +375,38 @@
       "action"
     ],
     "target": {
-      "kind": "opponent_companion",
+      "kind": "any_character",
       "count": 1
     },
     "effects": [
       {
         "op": "direct_damage",
         "target": "chosen",
-        "amount": 2,
+        "amount": {
+          "from": "count",
+          "of": "resolved_before",
+          "types": [
+            "skill"
+          ],
+          "scope": "either"
+        },
         "ignores_defense": false
       }
     ],
     "triggers": [],
-    "text": "Deal 2 damage to target Companion your opponent controls, reduced by its Defense.",
+    "text": "Deal damage equal to the number of Skill cards that resolved before Fevered Tempo this round to target character, reduced by its Defense.",
     "flavor": "Placeholder flavour for Passion Proxy Skill 05. Names, art and flavour are replaceable and never change mechanics.",
     "art": {
-      "style": "abstract_sigil",
-      "seed": 89809,
-      "hue": 350,
-      "saturation": 0.45
+      "style": "supplied",
+      "image": "res://assets/cards/fevered_tempo.png",
+      "fit": "contain",
+      "seed": 20505,
+      "hue": 10,
+      "saturation": 0.6
     },
     "patterns": [
-      "direct_damage"
+      "damage",
+      "chain_payoff"
     ],
     "ai_hints": {
       "role": "aggro",
@@ -404,7 +414,10 @@
       "patterns": [
         "direct_damage"
       ]
-    }
+    },
+    "authored": true,
+    "short_name": "Fevered Tempo",
+    "frame": "printed"
   },
   {
     "id": "PAS_SKILL_06",
@@ -1320,9 +1333,9 @@
   },
   {
     "id": "PAS_COMP_02",
-    "revision": 1,
-    "placeholder": true,
-    "name": "Passion Proxy Companion 02",
+    "revision": 2,
+    "placeholder": false,
+    "name": "Young Blood",
     "types": [
       "companion"
     ],
@@ -1335,7 +1348,7 @@
     "character_id": "",
     "cost": {
       "kind": "fixed",
-      "amount": 1
+      "amount": 2
     },
     "timing": [
       "action"
@@ -1351,29 +1364,30 @@
     "triggers": [
       {
         "on": {
-          "kind": "self_deployed"
+          "kind": "self_wounded"
         },
         "effects": [
           {
-            "op": "damage_hero",
-            "who": "opponent",
+            "op": "draw",
+            "who": "self",
             "amount": 1
           }
         ]
       }
     ],
-    "text": "When this Companion enters play, deal 1 damage to the opposing Hero.",
+    "text": "When Young Blood enters your Wound Deck, you draw 1 card.",
     "flavor": "Placeholder flavour for Passion Proxy Companion 02. Names, art and flavour are replaceable and never change mechanics.",
     "art": {
-      "style": "abstract_sigil",
-      "seed": 64538,
-      "hue": 350,
-      "saturation": 0.45
+      "style": "supplied",
+      "image": "res://assets/cards/young_blood.png",
+      "fit": "contain",
+      "seed": 20201,
+      "hue": 20,
+      "saturation": 0.5
     },
     "patterns": [
-      "deploy",
-      "etb_effect",
-      "hero_burn"
+      "body",
+      "draw"
     ],
     "ai_hints": {
       "role": "aggro",
@@ -1383,7 +1397,10 @@
         "etb_effect",
         "hero_burn"
       ]
-    }
+    },
+    "authored": true,
+    "short_name": "Young Blood",
+    "frame": "printed"
   },
   {
     "id": "PAS_COMP_03",

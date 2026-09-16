@@ -21,9 +21,9 @@ const BASE_HEIGHT := 420.0
 ## How much of the foot of a card a badge covers.
 const BADGE_H := 22.0
 
-## How far a supplied card face's own corners are rounded, as a fraction of the
-## card's width. Card stock is cut with a corner, not a square.
-const PRINTED_RADIUS := 0.042
+## The name given to the picture on a card drawn from a supplied face, so the
+## interface and the tests can find it without guessing at the node order.
+const PRINTED_FACE := "PrintedFace"
 
 ## Painted frames, by the card type they belong to. A card of a type with a
 ## frame is drawn on it, with every live value placed over the region the
@@ -353,6 +353,11 @@ static func _anchor(c: Control, where: Rect2) -> void:
 ## when the card changes, so a printed face has to be redrawn to keep up. The
 ## badges still go on, because they say things about this copy of the card
 ## rather than about the card.
+##
+## The face is fitted whole rather than filled to the box. These are pictures
+## of cards and they do not all come out at exactly 5:7; cropping one to fit
+## would take a slice off its own banner or footer, which is the one thing a
+## printed face is for keeping.
 func _build_printed() -> void:
     var scale_factor := card_width / BASE_WIDTH
     custom_minimum_size = Vector2(card_width, BASE_HEIGHT * scale_factor)
@@ -368,19 +373,16 @@ func _build_printed() -> void:
     blank.content_margin_bottom = 0
     add_theme_stylebox_override("panel", blank)
 
-    var face := CardArt.new()
-    face.setup(def.art)
+    var face := TextureRect.new()
+    face.name = PRINTED_FACE
+    face.texture = ArtLibrary.texture_for(def.art)
+    face.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    face.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
     face.mouse_filter = Control.MOUSE_FILTER_IGNORE
     face.set_anchors_preset(Control.PRESET_FULL_RECT)
-    var rounded := Panel.new()
-    rounded.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    rounded.clip_children = CanvasItem.CLIP_CHILDREN_ONLY
-    rounded.add_theme_stylebox_override("panel", _window_mask(PRINTED_RADIUS * card_width))
-    rounded.add_child(face)
-    rounded.set_anchors_preset(Control.PRESET_FULL_RECT)
     var host := Control.new()
     host.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    host.add_child(rounded)
+    host.add_child(face)
     add_child(host)
 
     var badges := Control.new()

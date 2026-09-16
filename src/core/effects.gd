@@ -304,9 +304,42 @@ static func _amount(state: GameState, spec, ctx: Dictionary) -> int:
                 "opponent_hand": base = state.player(opp).hand.size()
                 "own_exhaust": base = state.player(controller).exhaust.size()
                 "opponent_exhaust": base = state.player(opp).exhaust.size()
+                "resolved_before": base = _resolved_before(state, ctx, spec, controller)
     if spec.has("multiplier"):
         base = int(floor(float(base) * float(spec["multiplier"])))
     return max(0, base)
+
+
+## How many slots of the Action Sequence resolved before the one being read.
+##
+## The Sequence resolves in order, so every slot earlier than this one has
+## already happened and no later one has — reading it needs no separate record
+## of the round, and it stays right when a card is read from a trigger.
+static func _resolved_before(state: GameState, ctx: Dictionary, spec: Dictionary,
+        evaluator: int) -> int:
+    var up_to: int = int(ctx.get("slot_index", 0))
+    var want: Array = spec.get("types", [])
+    var scope := String(spec.get("scope", "either"))
+    var n := 0
+    for i in mini(up_to, state.sequence.size()):
+        var slot: ActionSlot = state.sequence[i]
+        if scope == "controller" and slot.controller != evaluator:
+            continue
+        if scope == "opponent" and slot.controller == evaluator:
+            continue
+        if slot.card_iid == "":
+            continue
+        var cd := state.def_of(slot.card_iid)
+        if cd == null:
+            continue
+        if want.is_empty():
+            n += 1
+            continue
+        for t in want:
+            if cd.has_type(String(t)):
+                n += 1
+                break
+    return n
 
 
 static func _who(state: GameState, e: Dictionary, ctx: Dictionary) -> int:
@@ -442,7 +475,7 @@ static func _slot_index_for(state: GameState) -> int:
 ## provisional resolution order.
 static func _collect_matching(state: GameState, ev: Dictionary) -> Array:
     var out: Array = []
-    for iid in _trigger_sources(state):
+    for iid in _sources_for(state, ev):
         var ci := state.inst(String(iid))
         var cd := state.def_of(String(iid))
         if ci == null or cd == null:
@@ -468,6 +501,27 @@ static func _collect_matching(state: GameState, ev: Dictionary) -> Array:
             return int(a["entry"]) < int(b["entry"])
         return int(a["order"]) < int(b["order"]))
     return out
+
+
+## Events about a card ending up somewhere else, which the card itself is
+## entitled to answer even though it is no longer in play.
+const PARTING_EVENTS := ["leaves_play", "wounded"]
+
+
+## The sources that may answer this event.
+##
+## A card that has just left play is already out of the in-play list by the
+## time the queue runs — it was moved before the queue was processed. Its own
+## parting is the one event it can still answer, and a card that says what
+## happens when it dies would never say it otherwise.
+static func _sources_for(state: GameState, ev: Dictionary) -> Array:
+    var sources := _trigger_sources(state)
+    if not PARTING_EVENTS.has(String(ev.get("kind", ""))):
+        return sources
+    var gone := String(ev.get("iid", ""))
+    if gone != "" and not sources.has(gone):
+        sources.append(gone)
+    return sources
 
 
 static func _trigger_sources(state: GameState) -> Array:
@@ -548,6 +602,8 @@ static func _trigger_matches(state: GameState, src: CardInstance, on: Dictionary
             return ev_kind == "hero_damaged" and int(ev.get("player", -1)) == state.opponent_of(src.controller)
         "self_leaves_play":
             return ev_kind == "leaves_play" and String(ev.get("iid", "")) == src.iid
+        "self_wounded":
+            return ev_kind == "wounded" and String(ev.get("iid", "")) == src.iid
     return false
 
 

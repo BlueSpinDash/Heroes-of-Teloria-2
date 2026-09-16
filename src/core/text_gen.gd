@@ -13,6 +13,12 @@ const AFFINITY_LABEL := {
     "silence": "Silence",
 }
 
+## How a card type is named in rules text.
+const TYPE_LABEL := {
+    "hero": "Hero", "companion": "Companion", "skill": "Skill",
+    "equipment": "Equipment", "location": "Location", "taahma": "Ta'ahma",
+}
+
 const TARGET_KIND_PHRASE := {
     "opponent_companion": "target Companion your opponent controls",
     "own_companion": "target Companion you control",
@@ -308,6 +314,8 @@ static func render_trigger(trig: Dictionary, def: CardDef) -> String:
             lead = "Whenever the opposing Hero is damaged,"
         "self_leaves_play":
             lead = "When %s leaves play," % _self_name(def, "this card")
+        "self_wounded":
+            lead = "When %s enters your Wound Deck," % _self_name(def, "this card")
         "attack_resolved":
             var scope2 := String(on.get("scope", "either"))
             if scope2 == "controller":
@@ -376,7 +384,22 @@ static func _plain_amount(amount, def: CardDef) -> String:
                 "opponent_hand": return "the number of cards in your opponent's hand"
                 "own_exhaust": return "the number of cards in your Exhaust Deck"
                 "opponent_exhaust": return "the number of cards in your opponent's Exhaust Deck"
+                "resolved_before": return _resolved_before_text(amount, def)
     return "an amount"
+
+
+## "the number of Skill cards that resolved before Fevered Tempo this round"
+static func _resolved_before_text(amount: Dictionary, def: CardDef) -> String:
+    var names: Array = []
+    for t in amount.get("types", []):
+        names.append(TYPE_LABEL.get(String(t), String(t).capitalize()))
+    var what := "cards" if names.is_empty() else "%s cards" % " or ".join(names)
+    var whose := ""
+    match String(amount.get("scope", "either")):
+        "controller": whose = " you committed"
+        "opponent": whose = " your opponent committed"
+    return "the number of %s%s that resolved before %s this round" % [
+        what, whose, _self_name(def, "this card")]
 
 
 static func _abs_amount(amount, def: CardDef) -> String:
