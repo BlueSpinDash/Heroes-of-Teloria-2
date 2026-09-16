@@ -42,12 +42,26 @@ ask about.
 | Adds to max Energy | 2 | Companions only. |
 | Unique or named character | Named: Parfait | Either restricts it to one copy per deck. |
 | What it does | "Deal 2 damage to the opposing Hero, then draw a card." | Plain English is fine. |
-| Art file | `emberfall_strike.png` | Drop the file in `assets/art/`. |
+| Art file | `emberfall_strike.png` | Drop the file in `assets/art/`. A full card face is fine too: I crop the portrait out of it. |
 | Flavour text | optional | |
 
 I will turn the plain-English effect into the structured effect data, and the
 card's rules text is then generated from that data. That is what guarantees the
 printed text and the actual behaviour cannot drift apart.
+
+## A worked example
+
+`PAS_HERO_01` was the proxy "Passion Proxy Hero 01". It is now Parfait, the
+Unyielding Flame, taken from a supplied card face:
+
+* the portrait was cropped out of the card face into
+  `assets/art/parfait_the_unyielding_flame.png`;
+* her statistics, Affinity, rarity and attack tags were read off the card;
+* her ability became a trigger, and the rules text was generated from it;
+* `short_name` is "Parfait", so her text names her the way the printed card
+  does rather than saying "this character";
+* the id did not change, so the Passion starter deck and the Passion AI deck
+  still reference her without any edit.
 
 ## What I will tell you back
 

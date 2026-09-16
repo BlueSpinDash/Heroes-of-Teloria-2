@@ -1,19 +1,25 @@
 [
   {
     "id": "PAS_HERO_01",
-    "revision": 1,
-    "placeholder": true,
-    "name": "Passion Proxy Hero 01",
+    "revision": 2,
+    "placeholder": false,
+    "authored": true,
+    "name": "Parfait, the Unyielding Flame",
+    "short_name": "Parfait",
     "types": [
       "hero"
     ],
     "tags": [],
+    "attack_tags": [
+      "martial",
+      "melee"
+    ],
     "affinities": [
       "passion"
     ],
     "rarity": "legendary",
     "unique": true,
-    "character_id": "passion_hero_01",
+    "character_id": "parfait",
     "cost": {
       "kind": "none"
     },
@@ -38,10 +44,12 @@
         ]
       }
     ],
-    "text": "Whenever a Passion card resolves while this character is in the Action Sequence, you gain 1 Energy.",
-    "flavor": "Placeholder flavour for Passion Proxy Hero 01. Names, art and flavour are replaceable and never change mechanics.",
+    "text": "Whenever a Passion card resolves while Parfait is in the Action Sequence, you gain 1 Energy.",
+    "flavor": "",
     "art": {
-      "style": "abstract_sigil",
+      "style": "supplied",
+      "image": "parfait_the_unyielding_flame.png",
+      "fit": "cover",
       "seed": 50670,
       "hue": 350,
       "saturation": 0.45

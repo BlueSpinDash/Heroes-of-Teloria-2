@@ -27,6 +27,19 @@ A definition's `art` block may name an image:
 | `cover` (default) | Fills the window and crops the overflow. Best for a painted portrait. |
 | `contain` | Shows the whole image on a dark ground. Best when nothing may be cropped. |
 
+## Supplying a full card face
+
+If you have a finished card face rather than a bare portrait, send it as it is.
+`tools/crop_art.gd` lifts the portrait out of it:
+
+```sh
+godot --headless --path . --script tools/crop_art.gd -- \
+    /path/to/card_face.png res://assets/art/name.png X Y WIDTH HEIGHT
+```
+
+The portrait window on a rendered card is roughly 1.17 times wider than it is
+tall, so a crop at about that ratio fills it without anything being cut off.
+
 ## Practical notes
 
 * **A missing file is not an error.** The card falls back to its placeholder

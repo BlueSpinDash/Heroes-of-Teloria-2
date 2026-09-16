@@ -24,6 +24,7 @@ func run(t: TestHarness) -> void:
     test_decks_legal(t)
     test_starter_grant_plays(t)
     test_ai_deck_themes(t)
+    test_parfait(t)
     test_art_assets(t)
     test_authored_flag(t)
     test_edit_preserves_references(t)
@@ -280,6 +281,106 @@ func test_ai_deck_themes(t: TestHarness) -> void:
             if def != null and def.has_affinity(affinity):
                 on_theme += int((d["cards"] as Dictionary)[def_id])
         t.ge(float(on_theme), 30.0, "%s uses at least 30 on-Affinity cards (%d)" % [affinity, on_theme])
+
+
+## The first proxy replaced by a real card. She is also the blueprint's
+## confirmed timing example, so the shipped definition is pinned here in
+## addition to the engine fixture in the rules suite.
+func test_parfait(t: TestHarness) -> void:
+    t.begin("Parfait, the Unyielding Flame")
+    var cat := _catalog()
+    var def := cat.get_def("PAS_HERO_01")
+    if not t.ne(def, null, "PAS_HERO_01 exists"):
+        return
+
+    t.eq(def.name, "Parfait, the Unyielding Flame", "she has her printed name")
+    t.eq(def.short_name, "Parfait", "and a short name for her own rules text")
+    t.ok(def.authored, "she is marked as a finished card")
+    t.ok(not def.placeholder, "and is no longer placeholder content")
+    t.ok(def.has_type("hero"), "she is a Hero")
+    t.ok(def.has_affinity("passion"), "with the Passion Affinity")
+    t.eq(def.affinities.size(), 1, "and only that Affinity")
+    t.eq(def.rarity, "legendary", "printed at Legendary")
+    t.ok(def.unique, "Unique, as every Hero is")
+    t.eq(def.character_id, "parfait", "with her own named-character identity")
+    t.eq(cat.collection_cap("PAS_HERO_01"), 1, "so she caps at one owned copy")
+
+    t.eq(def.hero_max_energy, 4, "maximum Energy 4")
+    t.eq(def.attack, 3, "Attack 3")
+    t.eq(def.defense, 1, "Defense 1")
+    t.eq(def.attack_cost, 1, "her attack costs 1 Energy")
+    t.eq(def.attack_tags, ["martial", "melee"], "and is a Martial Melee attack")
+    t.eq(def.cost_kind(), "none", "a Hero has no play cost")
+
+    t.eq(def.triggers.size(), 1, "she has exactly one printed ability")
+    if def.triggers.size() == 1:
+        var on: Dictionary = (def.triggers[0] as Dictionary).get("on", {})
+        t.eq(String(on.get("kind", "")), "affinity_card_resolved", "it watches cards resolving")
+        t.eq(String(on.get("affinity", "")), "passion", "specifically Passion cards")
+        t.eq(String(on.get("scope", "")), "either", "from either player")
+        var fx: Array = (def.triggers[0] as Dictionary).get("effects", [])
+        t.eq(fx.size(), 1, "and does one thing")
+        if fx.size() == 1:
+            t.eq(String((fx[0] as Dictionary).get("op", "")), "energy_gain", "it returns Energy")
+            t.eq(int((fx[0] as Dictionary).get("amount", 0)), 1, "one Energy")
+
+    t.eq(def.text, "Whenever a Passion card resolves while Parfait is in the Action Sequence, "
+        + "you gain 1 Energy.", "her generated text names her and matches her ability")
+    t.ok(ArtLibrary.has_image(def.art), "she carries a supplied art file")
+    t.ne(ArtLibrary.texture_for(def.art), null,
+        "and it loads: %s" % ArtLibrary.describe(def.art))
+    t.empty(def.validate(), "her definition validates")
+
+    # Replacing the proxy kept her id, so the authored decks still find her.
+    var starter := {}
+    for d in DeckLibrary.starters():
+        if String((d as Dictionary).get("affinity", "")) == "passion":
+            starter = d
+    t.eq(String(starter.get("hero", "")), "PAS_HERO_01", "the Passion starter still names her as its Hero")
+
+    # Her ability works with the shipped card, not only with the test fixture:
+    # her own Passion attack refunds its Energy before she leaves the Sequence.
+    var rules := RulesProfile.load_from()
+    var st := GameEngine.start_match(cat, rules, [starter, DeckLibrary.ai_deck_for("devotion")],
+        20260916, "parfait_check", ["You", "Opponent"], [false, true], ["", "devotion"])
+    st.first_player = 0
+    st.action_priority = 0
+    var parfait_iid := st.player(0).hero_iid
+    t.eq(st.def_of(parfait_iid).id, "PAS_HERO_01", "she is in the Hero Zone")
+    t.eq(st.player(0).energy_current, 4, "she starts at her printed maximum Energy")
+
+    var r := GameEngine.submit(st, {"cmd": "commit_attack", "player": 0,
+        "attacker_iid": parfait_iid, "target_iid": st.player(1).hero_iid})
+    if not t.ok(r["ok"], "her attack was committed: %s" % str(r["error"])):
+        return
+    t.eq(st.player(0).energy_current, 3, "she paid one Energy on commitment")
+    t.ok(st.sequence_members.has(parfait_iid), "she is in the Action Sequence from commitment")
+
+    GameEngine.submit(st, {"cmd": "pass_actions", "player": 1})
+    GameEngine.submit(st, {"cmd": "pass_actions", "player": 0})
+    var guard := 0
+    while st.result == null and st.round_number == 1 and guard < 200:
+        guard += 1
+        if st.pending is Dictionary:
+            GameEngine.submit(st, MatchRunner._passive_command(st,
+                int((st.pending as Dictionary).get("player", 0))))
+        else:
+            GameEngine.advance(st)
+
+    # Round End refreshes Energy anyway, so the refund is read from the log,
+    # where its position relative to her leaving the Sequence is visible.
+    var refunded := false
+    var refund_before_exit := false
+    for e in st.events:
+        var kind := String((e as Dictionary).get("kind", ""))
+        if kind == "energy_gained" and int((e as Dictionary).get("player", -1)) == 0 \
+                and String((e as Dictionary).get("reason", "")).contains("Parfait"):
+            refunded = true
+        if kind == "left_sequence" and String((e as Dictionary).get("iid", "")) == parfait_iid \
+                and refunded:
+            refund_before_exit = true
+    t.ok(refunded, "her own Passion attack refunded her Energy")
+    t.ok(refund_before_exit, "and it happened before she left the Action Sequence")
 
 
 func test_art_assets(t: TestHarness) -> void:

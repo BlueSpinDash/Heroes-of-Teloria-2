@@ -1058,7 +1058,12 @@ def finish(body, *, code, key, display, hue, role, kind, index, rarity,
     # undoing the work.
     prior = EXISTING.get(cid)
     if prior is not None and prior.get("authored"):
-        return prior
+        kept = dict(prior)
+        # Rules text stays engine-generated even on a finished card, so the
+        # printed text can never drift from what the interpreter runs.
+        if cid in CARD_TEXT:
+            kept["text"] = CARD_TEXT[cid]
+        return kept
 
     name = "%s Proxy %s %02d" % (display, TYPE_WORD[kind], index)
     is_neutral = key == "neutral"

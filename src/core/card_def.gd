@@ -53,6 +53,11 @@ var revision: int:
 var name: String:
     get: return String(data.get("name", ""))
 
+## How the card refers to itself in its own rules text, such as "Parfait" for
+## "Parfait, the Unyielding Flame". Falls back to "this card" when unset.
+var short_name: String:
+    get: return String(data.get("short_name", ""))
+
 var placeholder: bool:
     get: return _truthy(data.get("placeholder", true))
 
@@ -85,6 +90,11 @@ var affinities: Array:
 
 var patterns: Array:
     get: return data.get("patterns", [])
+
+## Tags describing this character's attack, such as Martial and Melee. Printed
+## on the attack line. Display only for now: no card in the catalog reads them.
+var attack_tags: Array:
+    get: return data.get("attack_tags", [])
 
 
 func has_type(t: String) -> bool:
@@ -375,6 +385,20 @@ func validate() -> Array:
     # A missing art file is deliberately not an error: the card falls back to
     # its placeholder sigil, so a catalog stays playable while art is in
     # progress. The card editor reports the missing file instead.
+
+    if data.has("short_name") and not (data["short_name"] is String):
+        errs.append("%s: 'short_name' must be text" % p)
+
+    if not attack_tags.is_empty():
+        if not is_character():
+            errs.append("%s: only a Hero or Companion has attack tags" % p)
+        var seen_attack_tags: Dictionary = {}
+        for at in attack_tags:
+            if not EffectSchema.ATTACK_TAGS.has(String(at)):
+                errs.append("%s: '%s' is not an attack tag" % [p, str(at)])
+            if seen_attack_tags.has(at):
+                errs.append("%s: duplicate attack tag '%s'" % [p, str(at)])
+            seen_attack_tags[at] = true
 
     if data.has("authored") and not (data["authored"] is bool):
         errs.append("%s: 'authored' must be true or false" % p)

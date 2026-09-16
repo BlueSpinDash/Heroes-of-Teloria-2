@@ -19,7 +19,7 @@ establish no Teloria lore or final balance.
 | Progression | Gold, boosters, duplicate conversion, idempotent rewards, durable pack transactions. |
 | Persistence | Versioned save with atomic writes, backup rotation, export and import. |
 | Interface | Home, Collection, Deck builder, Opponent selection, Battle, Results, Shop, Card editor, Settings. |
-| Tests | 723 assertions across five suites, all passing. |
+| Tests | 760 assertions across five suites, all passing. |
 
 ## Requirements
 
