@@ -21,15 +21,44 @@ const BASE_HEIGHT := 420.0
 ## How much of the foot of a card a badge covers.
 const BADGE_H := 22.0
 
+## How far a supplied card face's own corners are rounded, as a fraction of the
+## card's width. Card stock is cut with a corner, not a square.
+const PRINTED_RADIUS := 0.042
+
 ## Painted frames, by the card type they belong to. A card of a type with a
 ## frame is drawn on it, with every live value placed over the region the
 ## template painted for it, instead of being laid out from scratch.
-const FRAMES := {"hero": "res://assets/frames/hero_frame.png"}
+## Card type -> the painted frame it is drawn on, the layout group that places
+## the pieces on it, and any ornament cut off the frame that belongs on top of
+## the artwork rather than behind it.
+const FRAMES := {
+    "hero": {
+        "path": "res://assets/frames/hero_frame.png",
+        "group": "hero_card",
+        "art_radius": 0.090,
+    },
+    "skill": {
+        "path": "res://assets/frames/skill_frame.png",
+        "group": "skill_card",
+        "art_radius": 0.090,
+        "ornaments": {"energy_gem": "res://assets/frames/skill_energy_gem.png"},
+    },
+}
 
-## Where each live value sits on the Hero frame. These are editable: the Layout
-## screen moves them and writes them back to `data/layout.json`.
-static func slot(key: String) -> Rect2:
-    return Layout.rect("hero_card", key)
+## The layout group whose slots place this card's pieces, or "" when the card
+## is not drawn on a painted frame. The Layout screen asks so it can edit the
+## group that belongs to whatever card is being previewed.
+static func frame_group(card: CardDef) -> String:
+    if card == null or card.frame == "printed":
+        return ""
+    var frame := _frame_for(card)
+    return "" if frame.is_empty() else String(frame["group"])
+
+
+## Where a live value sits on its frame. These are editable: the Layout screen
+## moves them and writes them back to `data/layout.json`.
+static func slot(group: String, key: String) -> Rect2:
+    return Layout.rect(group, key)
 
 
 
@@ -53,27 +82,32 @@ func set_card(card: CardDef) -> void:
         c.queue_free()
     if def == null:
         return
+    if def.frame == "printed" and ArtLibrary.texture_for(def.art) != null:
+        _build_printed()
+        return
     var frame := _frame_for(def)
-    if frame != "":
-        _build_framed(frame)
-    else:
+    if frame.is_empty():
         _build()
+    else:
+        _build_framed(frame)
 
 
-## The painted frame this card is drawn on, or "" for the plain face.
+## The painted frame this card is drawn on as {"path", "group"}, or empty for
+## the plain face.
 ##
 ## A card can opt out with `"frame": "plain"` in its data, which is how a card
 ## that was finished before its type had a frame keeps the look it shipped
-## with.
-static func _frame_for(card: CardDef) -> String:
+## with, or with `"frame": "printed"`, which draws a supplied card face whole
+## instead of building one.
+static func _frame_for(card: CardDef) -> Dictionary:
     if card.frame == "plain":
-        return ""
+        return {}
     for type in FRAMES:
         if card.has_type(String(type)):
-            var path := String(FRAMES[type])
-            if ResourceLoader.exists(path):
-                return path
-    return ""
+            var spec: Dictionary = FRAMES[type]
+            if ResourceLoader.exists(String(spec["path"])):
+                return spec
+    return {}
 
 
 ## Draw the card on its painted frame.
@@ -82,7 +116,8 @@ static func _frame_for(card: CardDef) -> String:
 ## the type banner, the stat captions, the ornament — so all this adds is the
 ## values that differ, each anchored over the region the template painted for
 ## it. Anchors are fractions of the card, so the whole face scales together.
-func _build_framed(frame_path: String) -> void:
+func _build_framed(spec: Dictionary) -> void:
+    var group := String(spec["group"])
     var scale_factor := card_width / BASE_WIDTH
     custom_minimum_size = Vector2(card_width, BASE_HEIGHT * scale_factor)
     size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -99,11 +134,14 @@ func _build_framed(frame_path: String) -> void:
 
     # Every piece is built first and put in the stack afterwards, in the order
     # the layout gives, so the frame is just another piece: art placed behind
-    # it shows through what it leaves open, rather than covering it.
+    # it shows through what it leaves open, rather than covering it. A piece is
+    # only built when its frame has a place for it — a Skill has no Attack
+    # medallion, so it has no Attack number.
     var pieces: Dictionary = {}
+    var places := Layout.keys_of(group)
 
     var frame := TextureRect.new()
-    frame.texture = load(frame_path)
+    frame.texture = load(String(spec["path"]))
     frame.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
     frame.stretch_mode = TextureRect.STRETCH_SCALE
     frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -112,22 +150,59 @@ func _build_framed(frame_path: String) -> void:
 
     # Real art fills the window. A card with none keeps the silhouette the
     # template painted there, which is a better placeholder than a sigil.
-    if ArtLibrary.texture_for(def.art) != null:
+    if places.has("art") and ArtLibrary.texture_for(def.art) != null:
         var art := CardArt.new()
         art.setup(def.art)
         art.mouse_filter = Control.MOUSE_FILTER_IGNORE
-        _anchor(art, slot("art"))
-        pieces["art"] = art
+        art.set_anchors_preset(Control.PRESET_FULL_RECT)
+        # The painted window is not a rectangle: each of its corners is cut
+        # back by a gothic arch. Art laid over the window as a plain rectangle
+        # squares those arches off, so it is clipped to the window's shape and
+        # the frame's own corners are left showing.
+        var window := Panel.new()
+        window.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        window.clip_children = CanvasItem.CLIP_CHILDREN_ONLY
+        window.add_theme_stylebox_override("panel",
+            _window_mask(float(spec.get("art_radius", 0.0)) * card_width))
+        window.add_child(art)
+        _anchor(window, slot(group, "art"))
+        pieces["art"] = window
 
+    # Ornaments the printed card paints over its artwork — the Skill frame's
+    # Energy gem overlaps the top-left of the art window. They were cut off the
+    # frame so they can go back on above the art instead of the window losing
+    # that corner to them.
+    for key in spec.get("ornaments", {}):
+        var ornament_path := String(spec["ornaments"][key])
+        if not places.has(key) or not ResourceLoader.exists(ornament_path):
+            continue
+        var ornament := TextureRect.new()
+        ornament.texture = load(ornament_path)
+        ornament.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+        ornament.stretch_mode = TextureRect.STRETCH_SCALE
+        ornament.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        _anchor(ornament, slot(group, String(key)))
+        pieces[key] = ornament
+
+    # The Energy gem carries a Hero's maximum Energy and every other card's
+    # cost, which is what that gem means on each of them.
     var stat_size := int(Layout.num("card_text", "stat_size") * scale_factor)
-    pieces["energy"] = _slot(str(def.hero_max_energy), slot("energy"), stat_size, Color.WHITE, true)
-    pieces["attack"] = _slot(str(def.attack), slot("attack"), stat_size, Color.WHITE, true)
-    pieces["defense"] = _slot(str(def.defense), slot("defense"), stat_size, Color.WHITE, true)
+    if places.has("energy"):
+        var energy_text := str(def.hero_max_energy) if def.has_type("hero") \
+            else UiTheme.cost_text(def)
+        pieces["energy"] = _slot(energy_text, slot(group, "energy"), stat_size,
+            Color.WHITE, true)
+    if places.has("attack"):
+        pieces["attack"] = _slot(str(def.attack), slot(group, "attack"), stat_size,
+            Color.WHITE, true)
+    if places.has("defense"):
+        pieces["defense"] = _slot(str(def.defense), slot(group, "defense"), stat_size,
+            Color.WHITE, true)
 
     # The name banner is a fixed painted width, so the name is set to fit it
-    # rather than clipped: a Hero's name is the one thing on the card that
-    # must always read in full.
-    var name_slot: Rect2 = slot("name")
+    # rather than clipped: a card's name is the one thing on it that must
+    # always read in full.
+    var name_slot: Rect2 = slot(group, "name")
     pieces["name"] = _slot(def.name, name_slot,
         _fit_font_size(def.name, int(Layout.num("card_text", "name_size") * scale_factor),
             name_slot.size.x * card_width),
@@ -139,19 +214,19 @@ func _build_framed(frame_path: String) -> void:
     # is small and bronze, so its word is set in the Affinity's own colour and
     # outlined, the way the stat numbers are.
     var small := int(Layout.num("card_text", "small_size") * scale_factor)
-    pieces["affinity"] = _slot(UiTheme.affinity_line(def).to_upper(), slot("affinity"),
+    pieces["affinity"] = _slot(UiTheme.affinity_line(def).to_upper(), slot(group, "affinity"),
         small, UiTheme.affinity_color(
             String(def.affinities[0]) if not def.affinities.is_empty() else "neutral"
         ).lightened(0.45), true)
-    pieces["set"] = _slot(def.id, slot("set"), small, UiTheme.PARCHMENT_DARK)
-    pieces["rarity"] = _slot(UiTheme.rarity_line(def), slot("rarity"), small,
+    pieces["set"] = _slot(def.id, slot(group, "set"), small, UiTheme.PARCHMENT_DARK)
+    pieces["rarity"] = _slot(UiTheme.rarity_line(def), slot(group, "rarity"), small,
         UiTheme.RARITY_COLOR.get(def.rarity, UiTheme.PARCHMENT_DARK))
 
     # The rules panel takes the meta line and the rules text together, the way
     # the plain face does, so nothing a card says is left off the frame. The
     # panel is a fixed painted space, so a long rule is set smaller to fit it
     # rather than running off the bottom of the card.
-    var rules_slot: Rect2 = slot("rules")
+    var rules_slot: Rect2 = slot(group, "rules")
     var rules_w := rules_slot.size.x * card_width
     var rules_h := rules_slot.size.y * card_width * BASE_HEIGHT / BASE_WIDTH
     var rules := UiTheme.vbox(int(2 * scale_factor))
@@ -176,7 +251,7 @@ func _build_framed(frame_path: String) -> void:
 
     pieces["badges"] = _make_badge_row(scale_factor)
 
-    _stack(pieces)
+    _stack(group, pieces)
 
 
 ## Put the pieces into the card back to front.
@@ -184,8 +259,8 @@ func _build_framed(frame_path: String) -> void:
 ## Each one gets a host of its own because a PanelContainer fits every child to
 ## its content rect, which would overwrite the anchors a piece is placed by.
 ## The host takes the fitting; the piece keeps its anchors.
-func _stack(pieces: Dictionary) -> void:
-    for key in Layout.layer_order("hero_card"):
+func _stack(group: String, pieces: Dictionary) -> void:
+    for key in Layout.layer_order(group):
         if not pieces.has(key):
             continue
         var host := Control.new()
@@ -249,6 +324,16 @@ func _fit_wrapped_font_size(text: String, base: int, width: float, height: float
     return size
 
 
+## The shape of a painted art window: a rectangle with its corners cut back.
+## Drawn by a clipping parent, so what it covers is what the art shows through.
+static func _window_mask(radius: float) -> StyleBoxFlat:
+    var box := StyleBoxFlat.new()
+    box.bg_color = Color.WHITE
+    box.set_corner_radius_all(int(maxf(radius, 0.0)))
+    box.anti_aliasing = true
+    return box
+
+
 static func _anchor(c: Control, where: Rect2) -> void:
     c.anchor_left = where.position.x
     c.anchor_top = where.position.y
@@ -258,6 +343,50 @@ static func _anchor(c: Control, where: Rect2) -> void:
     c.offset_top = 0.0
     c.offset_right = 0.0
     c.offset_bottom = 0.0
+
+
+## Draw a card face that was supplied whole.
+##
+## Nothing is placed on it: the name, the numbers and the rules text are part
+## of the picture. That is the trade — the face is exactly the art that was
+## drawn, and in exchange the game can no longer restate what the card does
+## when the card changes, so a printed face has to be redrawn to keep up. The
+## badges still go on, because they say things about this copy of the card
+## rather than about the card.
+func _build_printed() -> void:
+    var scale_factor := card_width / BASE_WIDTH
+    custom_minimum_size = Vector2(card_width, BASE_HEIGHT * scale_factor)
+    size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+    clip_contents = true
+    mouse_filter = Control.MOUSE_FILTER_STOP if clickable else Control.MOUSE_FILTER_PASS
+    tooltip_text = "%s — %s" % [def.name, def.text if def.text != "" else "No rules text."]
+
+    var blank := UiTheme.panel_style(Color(0, 0, 0, 0), Color(0, 0, 0, 0), 0, 0)
+    blank.content_margin_left = 0
+    blank.content_margin_right = 0
+    blank.content_margin_top = 0
+    blank.content_margin_bottom = 0
+    add_theme_stylebox_override("panel", blank)
+
+    var face := CardArt.new()
+    face.setup(def.art)
+    face.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    face.set_anchors_preset(Control.PRESET_FULL_RECT)
+    var rounded := Panel.new()
+    rounded.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    rounded.clip_children = CanvasItem.CLIP_CHILDREN_ONLY
+    rounded.add_theme_stylebox_override("panel", _window_mask(PRINTED_RADIUS * card_width))
+    rounded.add_child(face)
+    rounded.set_anchors_preset(Control.PRESET_FULL_RECT)
+    var host := Control.new()
+    host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    host.add_child(rounded)
+    add_child(host)
+
+    var badges := Control.new()
+    badges.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    badges.add_child(_make_badge_row(scale_factor))
+    add_child(badges)
 
 
 func _build() -> void:

@@ -35,6 +35,18 @@ const DEFAULT_RECTS := {
         "set": Rect2(0.075, 0.933, 0.290, 0.026),
         "rarity": Rect2(0.635, 0.933, 0.290, 0.026),
     },
+    # The Skill frame has no Attack or Defense medallion, so its art window is
+    # wider and reaches further down the left of the card.
+    "skill_card": {
+        "energy": Rect2(0.118, 0.134, 0.090, 0.072),
+        "energy_gem": Rect2(0.062, 0.080, 0.200, 0.199),
+        "art": Rect2(0.176, 0.131, 0.662, 0.446),
+        "name": Rect2(0.285, 0.582, 0.530, 0.054),
+        "rules": Rect2(0.178, 0.662, 0.664, 0.166),
+        "affinity": Rect2(0.392, 0.916, 0.208, 0.034),
+        "set": Rect2(0.075, 0.933, 0.290, 0.026),
+        "rarity": Rect2(0.635, 0.933, 0.290, 0.026),
+    },
 }
 
 ## group -> key -> where it sits in the stack, back to front. A piece with a
@@ -55,13 +67,26 @@ const DEFAULT_LAYERS := {
         "rarity": 100,
         "badges": 110,
     },
+    "skill_card": {
+        "frame": 10,
+        "art": 20,
+        "energy_gem": 25,
+        "energy": 30,
+        "name": 60,
+        "rules": 70,
+        "affinity": 80,
+        "set": 90,
+        "rarity": 100,
+        "badges": 110,
+    },
 }
 
 ## What each piece in the stack is, for a screen that lists them.
 const LAYER_LABELS := {
     "frame": "The painted frame",
     "art": "The card's artwork",
-    "energy": "Max Energy number",
+    "energy": "The Energy number",
+    "energy_gem": "The Energy gem, cut off the frame to sit over the artwork",
     "attack": "Attack number",
     "defense": "Defense number",
     "name": "Name",

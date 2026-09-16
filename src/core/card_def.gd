@@ -408,8 +408,12 @@ func validate() -> Array:
 
     if data.has("authored") and not (data["authored"] is bool):
         errs.append("%s: 'authored' must be true or false" % p)
-    if data.has("frame") and not (data["frame"] is String and frame in ["", "plain"]):
-        errs.append("%s: 'frame' must be \"\" or \"plain\"" % p)
+    if data.has("frame") and not (data["frame"] is String and frame in ["", "plain", "printed"]):
+        errs.append("%s: 'frame' must be \"\", \"plain\" or \"printed\"" % p)
+    # A printed face is the supplied picture and nothing else, so there has to
+    # be one; without it the card would come out blank.
+    if frame == "printed" and String(art.get("image", "")).strip_edges() == "":
+        errs.append("%s: a printed face needs an 'image' in its art block" % p)
     if authored and placeholder:
         errs.append("%s: a finished card should not also be marked placeholder" % p)
 

@@ -10,12 +10,14 @@ extends Control
 
 var app: App
 
-const GROUP := "hero_card"
 ## The size the preview card is drawn at. Large enough to place a footer line.
 const PREVIEW_W := 460.0
 ## How far a nudge moves a slot, as a fraction of the card.
 const NUDGE := 0.002
 
+## The layout group being edited: whichever one places the previewed card.
+## Frames differ — a Skill has no Attack medallion — so this follows the card.
+var _group: String = "hero_card"
 var _selected: String = "art"
 var _preview_holder: Control
 var _card: CardView
@@ -34,7 +36,7 @@ var _drag_rect := Rect2()
 func setup(application: App, _args: Dictionary = {}) -> void:
     app = application
     for d in app.catalog.all_defs():
-        if (d as CardDef).has_type("hero"):
+        if CardView.frame_group(d as CardDef) != "":
             _card_ids.append((d as CardDef).id)
     _card_ids.sort()
 
@@ -43,7 +45,7 @@ func setup(application: App, _args: Dictionary = {}) -> void:
     add_child(root)
     root.add_child(_build_preview())
     root.add_child(_build_controls())
-    _rebuild_card()
+    _rebuild_all()
 
 
 # ------------------------------------------------------------------ preview ---
@@ -54,12 +56,12 @@ func _build_preview() -> Control:
 
     var picker := UiTheme.hbox(8)
     picker.add_child(UiTheme.label("Previewing:", 13))
-    var prev := UiTheme.button("<", "The previous Hero.")
+    var prev := UiTheme.button("<", "The previous card with a painted frame.")
     prev.pressed.connect(func(): _step_card(-1))
     picker.add_child(prev)
     _card_label = UiTheme.label("", 13, UiTheme.GOLD)
     picker.add_child(_card_label)
-    var next := UiTheme.button(">", "The next Hero.")
+    var next := UiTheme.button(">", "The next card with a painted frame.")
     next.pressed.connect(func(): _step_card(1))
     picker.add_child(next)
     column.add_child(picker)
@@ -83,7 +85,7 @@ func _step_card(by: int) -> void:
     if _card_ids.is_empty():
         return
     _card_index = wrapi(_card_index + by, 0, _card_ids.size())
-    _rebuild_card()
+    _rebuild_all()
 
 
 ## Rebuild the previewed card and the boxes over it. The card is rebuilt rather
@@ -97,6 +99,13 @@ func _rebuild_card() -> void:
         return
     var def := app.catalog.get_def(String(_card_ids[_card_index]))
     _card_label.text = def.name if def != null else "?"
+    # Each frame has its own group of slots, so stepping to a card of another
+    # type moves the editing to that frame's group.
+    var group := CardView.frame_group(def)
+    if group != "":
+        _group = group
+    if not Layout.keys_of(_group).has(_selected):
+        _selected = String(Layout.keys_of(_group)[0])
     _card = CardView.create(def, PREVIEW_W)
     _card.mouse_filter = Control.MOUSE_FILTER_IGNORE
     _preview_holder.add_child(_card)
@@ -105,13 +114,13 @@ func _rebuild_card() -> void:
     _overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
     _overlay.mouse_filter = Control.MOUSE_FILTER_PASS
     _preview_holder.add_child(_overlay)
-    for key in Layout.keys_of(GROUP):
+    for key in Layout.keys_of(_group):
         _overlay.add_child(_box(String(key)))
     _refresh_fields()
 
 
 func _box(key: String) -> Control:
-    var r := Layout.rect(GROUP, key)
+    var r := Layout.rect(_group, key)
     var chosen := key == _selected
     var colour := UiTheme.GOLD if chosen else UiTheme.GOLD_DIM
 
@@ -165,7 +174,7 @@ func _handle_input(event: InputEvent, key: String, mode: String) -> void:
                 return
             _drag_mode = mode
             _drag_from = _preview_holder.get_local_mouse_position()
-            _drag_rect = Layout.rect(GROUP, key)
+            _drag_rect = Layout.rect(_group, key)
         else:
             _drag_mode = ""
         accept_event()
@@ -190,7 +199,7 @@ func _apply(key: String, r: Rect2) -> void:
     r.size.y = clampf(r.size.y, 0.01, 1.0)
     r.position.x = clampf(r.position.x, 0.0, 1.0 - r.size.x)
     r.position.y = clampf(r.position.y, 0.0, 1.0 - r.size.y)
-    Layout.set_rect(GROUP, key, r)
+    Layout.set_rect(_group, key, r)
     _rebuild_card()
 
 
@@ -204,7 +213,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
         KEY_UP: by = Vector2(0, -NUDGE)
         KEY_DOWN: by = Vector2(0, NUDGE)
         _: return
-    var r := Layout.rect(GROUP, _selected)
+    var r := Layout.rect(_group, _selected)
     if (event as InputEventKey).shift_pressed:
         r.size += by
     else:
@@ -231,8 +240,10 @@ func _build_controls() -> Control:
     var scroll_box := UiTheme.vbox(10)
     _stack_box = UiTheme.vbox(4)
     scroll_box.add_child(_stack_panel())
-    for key in Layout.keys_of(GROUP):
-        scroll_box.add_child(_rect_row(String(key)))
+    # Filled from the previewed card's own group, so stepping from a Hero to a
+    # Skill lists that frame's slots rather than the Hero's.
+    _rect_box = UiTheme.vbox(6)
+    scroll_box.add_child(_rect_box)
     scroll_box.add_child(UiTheme.separator())
     for group in Layout.number_groups():
         scroll_box.add_child(UiTheme.label(_group_title(String(group)), 14, UiTheme.GOLD))
@@ -269,6 +280,7 @@ func _build_controls() -> Control:
 
 
 var _stack_box: VBoxContainer
+var _rect_box: VBoxContainer
 
 
 ## The pieces of a card, front to back, with the frame among them: art moved
@@ -278,14 +290,14 @@ func _stack_panel() -> Control:
     var v := UiTheme.vbox(4)
     var head := UiTheme.hbox(8)
     head.add_child(UiTheme.label("Stacking order — front at the top", 14, UiTheme.GOLD))
-    if Layout.layers_changed(GROUP):
+    if Layout.layers_changed(_group):
         head.add_child(UiTheme.label("changed", 10, UiTheme.GOLD))
     var gap := Control.new()
     gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     head.add_child(gap)
     var undo := UiTheme.button("Reset order")
     undo.pressed.connect(func():
-        Layout.reset_layers(GROUP)
+        Layout.reset_layers(_group)
         _rebuild_all())
     head.add_child(undo)
     v.add_child(head)
@@ -299,7 +311,7 @@ func _fill_stack() -> void:
     for c in _stack_box.get_children():
         _stack_box.remove_child(c)
         c.queue_free()
-    var order := Layout.layer_order(GROUP)
+    var order := Layout.layer_order(_group)
     order.reverse()  # front first, the way a layers list reads
     for i in order.size():
         var key := String(order[i])
@@ -316,13 +328,13 @@ func _fill_stack() -> void:
         var up := UiTheme.button("▲", "Bring forward, in front of the piece above.")
         up.disabled = i == 0
         up.pressed.connect(func():
-            Layout.move_layer(GROUP, key, 1)
+            Layout.move_layer(_group, key, 1)
             _rebuild_all())
         row.add_child(up)
         var down := UiTheme.button("▼", "Send back, behind the piece below.")
         down.disabled = i == order.size() - 1
         down.pressed.connect(func():
-            Layout.move_layer(GROUP, key, -1)
+            Layout.move_layer(_group, key, -1)
             _rebuild_all())
         row.add_child(down)
 
@@ -337,7 +349,19 @@ func _fill_stack() -> void:
 ## rebuilds both.
 func _rebuild_all() -> void:
     _rebuild_card()
+    _fill_rects()
     _fill_stack()
+
+
+func _fill_rects() -> void:
+    if _rect_box == null:
+        return
+    for c in _rect_box.get_children():
+        _rect_box.remove_child(c)
+        c.queue_free()
+    _fields.clear()
+    for key in Layout.keys_of(_group):
+        _rect_box.add_child(_rect_row(String(key)))
 
 
 func _group_title(group: String) -> String:
@@ -354,20 +378,20 @@ func _rect_row(key: String) -> Control:
         _selected = key
         _rebuild_all())
     head.add_child(pick)
-    if Layout.is_changed(GROUP, key):
+    if Layout.is_changed(_group, key):
         head.add_child(UiTheme.label("changed", 10, UiTheme.GOLD))
     var gap := Control.new()
     gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     head.add_child(gap)
     var undo := UiTheme.button("Reset")
     undo.pressed.connect(func():
-        Layout.reset(GROUP, key)
+        Layout.reset(_group, key)
         _rebuild_card())
     head.add_child(undo)
     v.add_child(head)
 
     var row := UiTheme.hbox(4)
-    var r := Layout.rect(GROUP, key)
+    var r := Layout.rect(_group, key)
     for part in [["x", r.position.x], ["y", r.position.y], ["w", r.size.x], ["h", r.size.y]]:
         row.add_child(UiTheme.label(String(part[0]), 11, UiTheme.TEXT_DIM))
         var edit := LineEdit.new()
@@ -387,7 +411,7 @@ func _rect_row(key: String) -> Control:
 func _set_part(key: String, part: String, text: String) -> void:
     if not text.is_valid_float():
         return
-    var r := Layout.rect(GROUP, key)
+    var r := Layout.rect(_group, key)
     match part:
         "x": r.position.x = float(text)
         "y": r.position.y = float(text)
@@ -428,8 +452,8 @@ func _number_row(group: String, key: String) -> Control:
 
 
 func _refresh_fields() -> void:
-    for key in Layout.keys_of(GROUP):
-        var r := Layout.rect(GROUP, String(key))
+    for key in Layout.keys_of(_group):
+        var r := Layout.rect(_group, String(key))
         for part in [["x", r.position.x], ["y", r.position.y], ["w", r.size.x], ["h", r.size.y]]:
             var edit = _fields.get("%s_%s" % [key, String(part[0])])
             if edit is LineEdit and not (edit as LineEdit).has_focus():

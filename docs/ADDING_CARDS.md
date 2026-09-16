@@ -114,8 +114,8 @@ checkbox, and I set it whenever I replace a card.
 ## Which face a card is drawn on
 
 A card type can have a painted frame, and a card of that type is drawn on it
-automatically. Heroes have one. The frame carries everything that is the same
-on every card of its type — the type banner, the stat captions, the ornament —
+automatically. Heroes and Skills have one. The frame carries everything that is
+the same on every card of its type — the type banner, the stat captions, the ornament —
 and the live card fills in the name, the numbers, the art, the rules text, the
 Affinity and the footer, each anchored over the region the template painted for
 it.
@@ -124,13 +124,58 @@ A card opts out with `"frame": "plain"`, which draws the laid-out face instead.
 That is for a card finished before its type has a frame, so it can keep the look
 it shipped with. No card uses it at the moment.
 
+### Using a card face as it was drawn
+
+`"frame": "printed"` draws a supplied card face whole, exactly as it arrived,
+with nothing placed on it but the badges that describe *this copy* of the card
+(Eligible, Owned). Point the art block at the full face rather than a crop:
+
+```json
+"frame": "printed",
+"art": {"style": "supplied", "image": "burning_rush_card.png", "fit": "cover"}
+```
+
+It is not the default, and the trade is worth understanding before using it:
+
+* **The rules text becomes a picture.** Everywhere else, what a card says is
+  generated from its effect data and checked against it, which is what lets a
+  card be rebalanced without being repainted, and what stops a card saying one
+  thing and doing another. A printed face still has to carry correct effect
+  data — that is what the game plays — but the words on the picture are no
+  longer kept honest by anything. Change the card and the face has to be
+  redrawn to match.
+* **The Layout screen cannot touch it.** There are no pieces to move, so the
+  card is not listed there.
+* **The footer is whatever was drawn.** The supplied faces so far carry
+  placeholder set and rarity lines (`SET • 001/000`, `RARITY`), which would
+  ship as-is.
+
+The frames exist to avoid all of that. Use a printed face when the picture is
+the point and the card is finished.
+
+### The window is not a rectangle
+
+Each painted window has its corners cut back by a gothic arch, so artwork laid
+over it as a plain rectangle squares those arches off. The card clips its art
+to the window's shape instead (`art_radius` in `FRAMES`, a fraction of the
+card's width), which leaves the frame's own corners showing.
+
+A frame can also have **ornaments**: pieces of the painted frame that belong
+*over* the artwork rather than behind it. The Skill frame's Energy gem is one —
+the printed card paints it across the top-left corner of the art window. It is
+cut off the frame by `tools/prepare_card_frames.gd` into its own picture with
+everything around it cleared, given a slot and a place in the stacking order
+like any other piece, and drawn above the art. Without that, the window would
+lose that corner to the gem.
+
 ### Cropping the art
 
 A card's art is scaled to **cover** its frame's window and clipped, never
 squashed, so a crop of the wrong shape silently loses whatever is nearest the
-edges. The Hero frame's window is the `"art"` slot in `src/ui/layout.gd`, which the
-**Layout** screen edits: 0.617 of the card wide by 0.448 tall, which on a 5:7
-card is an aspect of **0.984** — very slightly taller than it is wide.
+edges. A frame's window is the `"art"` slot in `src/ui/layout.gd`, which the
+**Layout** screen edits. The Hero window is 0.617 of the card wide by 0.448
+tall, an aspect of **0.984** on a 5:7 card — very slightly taller than it is
+wide. The Skill window is 0.662 by 0.446, an aspect of **1.057**.
 
 When a supplied card face is the source, cut the portrait from **that card's own
 art window**, at that aspect:
@@ -151,10 +196,7 @@ The crops in use, for reference:
 | --- | --- | --- |
 | Parfait | x 217–933, y 170–890 | `221 170 708 720` |
 | Sorbet | x 232–975, y 150–875 | `262 150 713 725` |
-| Burning Rush | x 178–950, y 174–880 (667 wide near the top) | `264 248 666 486` |
-
-Burning Rush is cut to the plain face's art area, which is wider than it is
-tall, rather than to a frame's window: Skills have no painted frame yet.
+| Burning Rush | x 178–950, y 174–880 (667 wide near the top) | `310 266 607 574` |
 
 Measure the edges at magnification. `tools/crop_art.gd` takes a `SCALE`
 argument for exactly this: crop a 40-pixel strip straddling an edge at 7x and
@@ -173,10 +215,17 @@ Getting this wrong is not obvious from a thumbnail. Check it by rendering the
 card large and comparing against the supplied face — an arm or a hand reaching
 for the edge of the frame is exactly what a too-tight crop takes first.
 
-To give another type a frame: add the painted template to `assets/frames/`,
-teach `tools/prepare_hero_frame.gd` to paint its placeholder text out, and add
-the type and its slot rectangles to `FRAMES` and the slot table in
-`src/ui/card_view.gd`.
+To give another type a frame: add the painted template to `assets/frames/` as
+`_<type>_template_src.png`, add it to the table in
+`tools/prepare_card_frames.gd` with the placeholder text to paint out, and add
+the type to `FRAMES` in `src/ui/card_view.gd` and its slot rectangles and
+stacking order to `src/ui/layout.gd`.
+
+Painting out is done two ways. A **patch** stretches a clean piece of the same
+surface over the words, which works on parchment and stone. On a cut gem, where
+every facet is lit differently, a patch cut from elsewhere lands as a visible
+block; an **inpaint** is used there instead, refilling the region column by
+column between the clean surface above it and the clean surface below.
 
 ## Doing it yourself in the app
 

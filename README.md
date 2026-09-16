@@ -69,24 +69,36 @@ trading-card proportions, 2.5 by 3.5.
 
 ## Card faces
 
-A card type can have a painted frame. Heroes have one: `assets/frames/` holds
-the painted template and the frame built from it by
-`tools/prepare_hero_frame.gd`, which paints out the placeholder name, stat
+A card type can have a painted frame. Heroes and Skills have one:
+`assets/frames/` holds the painted templates and the frames built from them by
+`tools/prepare_card_frames.gd`, which paints out the placeholder name, stat
 numbers and lorem rules text so the game can fill them in, and leaves
-everything that is the same on every Hero — the HERO banner, the MAX ENERGY,
-ATTACK and DEFENSE captions, the ornament. The live card then anchors each
-value over the region the template painted for it, as a fraction of the card,
-so the whole face scales together.
+everything that is the same on every card of the type — the HERO or SKILL
+banner, the stat captions, the ornament. The live card then anchors each value
+over the region the template painted for it, as a fraction of the card, so the
+whole face scales together.
 
-Rebuild the frame after replacing the template:
+Each window has its corners cut back by a gothic arch, so art is clipped to the
+window's shape rather than laid over it as a rectangle. A frame can also hand
+back an ornament it paints across the window — the Skill frame's Energy gem —
+which is cut out as its own picture and drawn above the artwork, the way the
+printed card has it.
+
+Rebuild the frames after replacing a template:
 
 ```sh
-godot --headless --path . --script tools/prepare_hero_frame.gd
+godot --headless --path . --script tools/prepare_card_frames.gd
 ```
 
 A card can opt out with `"frame": "plain"` in its data, which is how a card
 finished before its type had a frame can keep the look it shipped with. No card
-uses it at the moment: every Hero, Parfait included, is on the frame.
+uses it at the moment: every Hero and every Skill is on its frame.
+
+`"frame": "printed"` goes the other way: the supplied card face is drawn whole,
+with nothing placed on it. The picture then carries its own name, numbers and
+rules text, which means the game can no longer restate what the card does when
+the card changes — the face has to be redrawn instead. `docs/ADDING_CARDS.md`
+sets out the trade.
 
 Cards on the table are drawn small enough to fit it, which leaves their rules
 text too small to read, so resting the pointer on one brings the same card up
