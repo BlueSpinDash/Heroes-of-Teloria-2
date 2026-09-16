@@ -67,6 +67,14 @@ apiece. Your hand is pinned below the board and never scrolls away, so a card
 the engine will accept is always reachable. Cards are drawn at standard
 trading-card proportions, 2.5 by 3.5.
 
+Cards on the table are drawn small enough to fit it, which leaves their rules
+text too small to read, so resting the pointer on one brings the same card up
+at a size meant for reading. It works on everything that stands for a card: a
+card in hand, a Hero or Companion in play, a step in the Action Sequence, the
+Location. Over the hand the reader appears above the row, so it never covers
+the cards next to the one being read. It is a reader, not a control — it takes
+no input and never touches match state.
+
 Resolution is not silent. When something takes damage the number floats off it,
 and the cards it loses fly from the deck they leave into the Wound Deck, so the
 count you see tick up has a visible cause. Destruction, exhaustion, shields,

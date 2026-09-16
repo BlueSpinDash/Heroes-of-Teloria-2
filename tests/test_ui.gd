@@ -197,6 +197,7 @@ func _play_cards_from_hand(t: TestHarness) -> void:
     await _frames(t, 2)
     _assert_buttons_reachable(t, screen)
     _assert_board_zones_visible(t, screen)
+    await _card_zoom_reads_cards(t, screen)
     var energy_before := st.player(0).energy_current
     var slots_before := st.sequence.size()
     t.ok(_press_first_play_button(screen), "the hand offered a play button")
@@ -385,6 +386,55 @@ func _drag_and_drop(t: TestHarness) -> void:
     screen.call("_refresh")
     await _frames(t, 2)
     t.eq(_first_draggable_card(screen), null, "no card can be picked up on the opponent's turn")
+
+
+## Resting the pointer on a small card has to bring up a readable one.
+##
+## The hand and the board draw cards small enough to fit the table, which
+## leaves the rules text too small to read, so this is the only way to read a
+## card during a match.
+func _card_zoom_reads_cards(t: TestHarness, screen: Control) -> void:
+    t.begin("hovering a card shows it at a readable size")
+    var zoom = screen.get("_zoom")
+    if not t.ok(zoom != null, "the battle screen has a card reader"):
+        return
+    t.ok(not zoom.call("showing"), "nothing is being read to start with")
+
+    var card := _first_draggable_card(screen)
+    if not t.ne(card, null, "there is a card in hand to hover"):
+        return
+    var want: CardDef = (card as CardView).def
+    (card as CardView).mouse_entered.emit()
+    # The reader waits a beat before appearing so that sweeping the pointer
+    # across the board does not flash a card for every chip it crosses.
+    zoom.call("_process", CardZoom.HOVER_DELAY + 0.1)
+    await _frames(t, 2)
+    t.ok(zoom.call("showing"), "resting on a hand card brings up a reader")
+    t.eq(zoom.call("shown_card"), want, "and it is the card that was hovered")
+
+    var shown: Rect2 = zoom.call("shown_rect")
+    t.ge(float(shown.size.x), float((card as CardView).card_width) + 1.0,
+        "the reader is larger than the card in hand")
+    var window := Rect2(Vector2.ZERO, Vector2(screen.get_viewport().get_visible_rect().size))
+    t.ok(window.encloses(shown),
+        "the reader %s is fully inside the window %s" % [str(shown), str(window)])
+
+    (card as CardView).mouse_exited.emit()
+    await _frames(t, 2)
+    t.ok(not zoom.call("showing"), "moving off the card takes the reader away")
+
+    # A card on the board is read the same way, and a refresh clears the reader
+    # because the chip it was reading has been rebuilt.
+    var st: GameState = app.match_state
+    var hero := _chip_for(screen, st.player(0).hero_iid)
+    if hero != null:
+        (hero as Control).mouse_entered.emit()
+        zoom.call("_process", CardZoom.HOVER_DELAY + 0.1)
+        await _frames(t, 2)
+        t.ok(zoom.call("showing"), "a Hero on the board can be read too")
+        screen.call("_refresh")
+        await _frames(t, 2)
+        t.ok(not zoom.call("showing"), "a refresh clears the reader with the chips")
 
 
 func _first_draggable_card(screen: Control) -> Control:

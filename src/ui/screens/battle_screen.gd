@@ -73,6 +73,9 @@ var _pile_chips: Dictionary = {}
 var _effects: BoardEffects
 var _events_seen: int = 0
 
+## A full-size card face, shown while the pointer rests on a small one.
+var _zoom: CardZoom
+
 
 func setup(application: App, _args: Dictionary = {}) -> void:
     app = application
@@ -163,9 +166,11 @@ func _build() -> void:
     hand_zone.size_flags_vertical = Control.SIZE_SHRINK_END
     root.add_child(hand_zone)
 
-    # Added last so it draws over the board. It never takes input.
+    # Added last so they draw over the board. Neither takes input.
     _effects = BoardEffects.new()
     add_child(_effects)
+    _zoom = CardZoom.new()
+    add_child(_zoom)
 
 
 ## The shared middle: the Action Sequence, with the Location plate beside it,
@@ -296,6 +301,8 @@ func _update_drag_state() -> void:
     if now == _dragging:
         return
     _dragging = now
+    if now and _zoom != null and is_instance_valid(_zoom):
+        _zoom.dismiss()
     var payload = vp.gui_get_drag_data() if now else null
     for tgt in _drop_targets:
         if tgt is BattleDropTarget and is_instance_valid(tgt):
@@ -321,6 +328,9 @@ func _refresh() -> void:
     _chips = {}
     _pile_chips = {}
     _drop_targets = []
+    # The thing being read is about to be freed, so nothing is being read.
+    if _zoom != null and is_instance_valid(_zoom):
+        _zoom.dismiss()
     for zone in [_sequence_zone, _location_zone, _own_companion_zone]:
         if zone != null:
             _drop_targets.append(zone)
@@ -463,6 +473,7 @@ func _refresh_location() -> void:
     lv.add_child(txt)
     chip.add_child(lv)
     chip.claim_mouse()
+    _readable(chip, d)
     _location_holder.add_child(chip)
     if _mode == "pick_card_target" and _target_kind == "location":
         _location_holder.add_child(_target_button(st.location_iid))
@@ -584,6 +595,7 @@ func _character_chip(iid: String, player: int, is_hero: bool) -> Control:
         gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
         v.add_child(gap)
     p.claim_mouse()
+    _readable(p, d)
     return p
 
 
@@ -633,6 +645,10 @@ func _refresh_sequence() -> void:
                 "" if not bool((r as Dictionary).get("resolved", false)) else " ✓"],
                 10, UiTheme.GOLD))
         p.add_child(v)
+        # A step stands for the card that was committed, or for the attacker.
+        var source := slot.card_iid if slot.kind == "card" else slot.attacker_iid
+        if source != "":
+            _readable(p, st.def_of(source))
         _sequence_row.add_child(p)
     var idx: int = st.current_step if st.phase == "resolve" else st.sequence.size() - 1
     _chain_label.text = AffinityChain.describe(st, idx)
@@ -674,6 +690,7 @@ func _refresh_hand() -> void:
                 why = "No legal target"
 
         var card_iid := String(iid)
+        _readable(view, d, true)
         if playable:
             view.add_badge("Eligible", UiTheme.GOOD)
             view.drag_payload = {"kind": "card", "iid": card_iid,
@@ -1015,6 +1032,23 @@ func _play_dragged(iid: String, targets: Array, as_reaction: bool) -> void:
 
 
 # ------------------------------------------------------------------ effects ---
+
+## Make a small thing on the board readable: resting the pointer on it brings
+## up the same card at a size meant for reading.
+##
+## Everything on the board stands for a card, so everything on the board can be
+## read this way — a card in hand, a Hero or Companion in play, a step in the
+## Action Sequence, the Location.
+func _readable(control: Control, def: CardDef, above: bool = false) -> void:
+    if def == null or _zoom == null:
+        return
+    control.mouse_entered.connect(func():
+        if not _dragging and is_instance_valid(_zoom):
+            _zoom.request(def, control.get_global_rect(), above))
+    control.mouse_exited.connect(func():
+        if is_instance_valid(_zoom):
+            _zoom.dismiss())
+
 
 ## Where something is on screen.
 ##
