@@ -72,6 +72,12 @@ as a target. Those are all in `docs/EFFECT_SCHEMA.md` now and are available to
 any future card. That is the shape of a card that needs engine work: the
 vocabulary grows once, deliberately, and the card is then ordinary data.
 
+`PAS_SKILL_01` became Burning Rush, and needed the vocabulary extended once
+more: `next_attack_bonus` leaves a bonus for the next attack that qualifies,
+claimed once and lapsing at Round End if nothing claims it. Its art came from a
+finished card face rather than a blank template, which is fine — the portrait
+is cropped out of it the same way.
+
 ## What I will tell you back
 
 For each card I will report:
@@ -145,10 +151,20 @@ The crops in use, for reference:
 | --- | --- | --- |
 | Parfait | x 217–933, y 170–890 | `221 170 708 720` |
 | Sorbet | x 232–975, y 150–875 | `262 150 713 725` |
+| Burning Rush | x 178–950, y 174–880 (667 wide near the top) | `264 248 666 486` |
+
+Burning Rush is cut to the plain face's art area, which is wider than it is
+tall, rather than to a frame's window: Skills have no painted frame yet.
 
 Measure the edges at magnification. `tools/crop_art.gd` takes a `SCALE`
 argument for exactly this: crop a 40-pixel strip straddling an edge at 7x and
 the boundary between the painted border and the artwork is unmistakable.
+
+**Measure at the height the crop is actually taken from.** These windows have
+large arched corners, so the sides are further in near the top and bottom than
+they are at mid-height. Burning Rush's window is 772 wide across the middle but
+only 667 near the top, and a crop cut to the middle measurement caught the
+card's own blue frame in its upper corner.
 Eyeballing a full-size card face is not good enough — it put the window 26
 pixels out, which showed as a pale strip of empty frame down one side of every
 Hero.

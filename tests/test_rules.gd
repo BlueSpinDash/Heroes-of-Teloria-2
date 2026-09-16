@@ -25,6 +25,7 @@ func run(t: TestHarness) -> void:
     test_persistent_destinations(t)
     test_parfait_refund(t)
     test_sorbet_named_type(t)
+    test_burning_rush_bonus(t)
     test_chain_rules(t)
     test_x_is_locked(t)
     test_instance_integrity(t)
@@ -627,6 +628,92 @@ func test_sorbet_named_type(t: TestHarness) -> void:
     t.eq(st.current_attack(vig), 1, "the growth expired at Round End")
     t.eq(st.current_defense(vig), 1, "in Defense as well")
     t.eq(st.inst(sorbet).chosen_type, "", "and the named type is forgotten with it")
+
+
+## Burning Rush leaves a bonus for the next Passion character to attack after
+## it. The bonus has to go to the first one that qualifies, be spent once, and
+## lapse if nothing claims it.
+func test_burning_rush_bonus(t: TestHarness) -> void:
+    t.begin("Burning Rush pays the next Passion attack, once")
+    var st := F.fresh_decks(
+        F.deck("FIX_HERO_PARFAIT", {"FIX_RUSH": 3, "FIX_COMP_PAS": 3, "FIX_COMP": 3}),
+        F.sink_deck("FIX_HERO_B"), 13)
+    st.player(0).energy_max_mods.append({"amount": 8, "expires": "permanent"})
+    st.player(1).energy_max_mods.append({"amount": 8, "expires": "permanent"})
+    st.player(0).energy_current = 12
+    st.player(1).energy_current = 12
+
+    # A Passion Companion and a Will one, both already in play and able to act.
+    var pas := F.to_hand(st, 0, "FIX_COMP_PAS")
+    var will := F.to_hand(st, 0, "FIX_COMP")
+    Mechanics.deploy_companion(st, pas, 0)
+    Mechanics.deploy_companion(st, will, 0)
+    st.inst(pas).deployed_round = 0
+    st.inst(will).deployed_round = 0
+
+    # Rush first, then the Will Companion attacks, then the Passion one. The
+    # Will attack must not take the bonus; the Passion attack must.
+    st.action_priority = 0
+    var rush := F.to_hand(st, 0, "FIX_RUSH")
+    t.ok(bool(GameEngine.submit(st, {"cmd": "commit_card", "player": 0,
+        "card_iid": rush, "targets": []})["ok"]), "Burning Rush was committed first")
+    st.action_priority = 0
+    t.ok(bool(GameEngine.submit(st, {"cmd": "commit_attack", "player": 0,
+        "attacker_iid": will, "target_iid": st.player(1).hero_iid})["ok"]),
+        "the Will Companion attacks after it")
+    st.action_priority = 0
+    t.ok(bool(GameEngine.submit(st, {"cmd": "commit_attack", "player": 0,
+        "attacker_iid": pas, "target_iid": st.player(1).hero_iid})["ok"]),
+        "and the Passion Companion after that")
+
+    var wound_before := st.player(1).wound.size()
+    GameEngine.submit(st, {"cmd": "pass_actions", "player": 1})
+    GameEngine.submit(st, {"cmd": "pass_actions", "player": 0})
+    var guard := 0
+    while st.result == null and st.round_number == 1 and guard < 300:
+        guard += 1
+        if st.pending != null:
+            F._auto_answer(st)
+        else:
+            GameEngine.advance(st)
+
+    var claimed_by: Array = []
+    for e in st.events:
+        if String(e.get("kind", "")) == "attack_bonus_claimed":
+            claimed_by.append(String(e.get("attacker", "")))
+    t.eq(claimed_by, [pas],
+        "the Passion Companion took the bonus, and it was taken exactly once")
+
+    # Both Companions have 2 Attack and the defending Hero has 2 Defense, so
+    # each attack would deal nothing at all. The only damage the Hero takes is
+    # the bonus, which lands because it is added to the damage dealt rather
+    # than to the attacker's Attack: it is not absorbed by Defense.
+    var dealt := st.player(1).wound.size() - wound_before
+    t.eq(dealt, 1, "the one point of damage the Hero took is the bonus itself")
+    t.ok(st.pending_attack_bonuses.is_empty(), "nothing is left waiting afterwards")
+
+    # A bonus nothing claims lapses rather than carrying into the next round.
+    var st2 := F.fresh_decks(F.deck("FIX_HERO_PARFAIT", {"FIX_RUSH": 3}),
+        F.sink_deck("FIX_HERO_B"), 17)
+    st2.player(0).energy_current = 8
+    st2.action_priority = 0
+    var lone := F.to_hand(st2, 0, "FIX_RUSH")
+    GameEngine.submit(st2, {"cmd": "commit_card", "player": 0, "card_iid": lone, "targets": []})
+    GameEngine.submit(st2, {"cmd": "pass_actions", "player": 1})
+    GameEngine.submit(st2, {"cmd": "pass_actions", "player": 0})
+    var guard2 := 0
+    while st2.result == null and st2.round_number == 1 and guard2 < 300:
+        guard2 += 1
+        if st2.pending != null:
+            F._auto_answer(st2)
+        else:
+            GameEngine.advance(st2)
+    t.ok(st2.pending_attack_bonuses.is_empty(), "an unclaimed bonus lapsed at Round End")
+    var lapsed := false
+    for e in st2.events:
+        if String(e.get("kind", "")) == "attack_bonus_lapsed":
+            lapsed = true
+    t.ok(lapsed, "and said so rather than vanishing quietly")
 
 
 func test_chain_rules(t: TestHarness) -> void:

@@ -41,6 +41,12 @@ var location_iid: String = ""
 ## after its own resolution triggers have finished.
 var sequence_members: Array = []
 
+## Bonuses waiting for the next attack that qualifies, each
+## {"amount", "scope", "affinity", "controller", "source"}. A card that says
+## "the next X to resolve after this" leaves one here; the attack that matches
+## takes it and it is gone. Anything unclaimed lapses at Round End.
+var pending_attack_bonuses: Array = []
+
 ## Player choices raised by a resolving card. They are presented at the end of
 ## the current step rather than interrupting mid-effect (provisional ruling).
 var deferred_choices: Array = []
@@ -417,6 +423,7 @@ func to_dict(include_catalog: bool = true, include_history: bool = true) -> Dict
         "players": pl,
         "instances": insts,
         "counters": counters.duplicate(),
+        "pending_attack_bonuses": pending_attack_bonuses.duplicate(true),
         "sequence": seq,
         "current_step": current_step,
         "round_history": round_history.duplicate(true) if include_history else [],
@@ -469,6 +476,7 @@ func clone_for_search() -> GameState:
     c.current_step = current_step
     c.location_iid = location_iid
     c.sequence_members = sequence_members.duplicate()
+    c.pending_attack_bonuses = pending_attack_bonuses.duplicate(true)
     c.deferred_choices = deferred_choices.duplicate(true)
     c.trigger_depth_limit = trigger_depth_limit
     c.pending = (pending as Dictionary).duplicate(true) if pending is Dictionary else null
@@ -498,6 +506,7 @@ static func from_dict(d: Dictionary) -> GameState:
     st.round_history = d.get("round_history", []).duplicate(true)
     st.location_iid = String(d.get("location_iid", ""))
     st.sequence_members = d.get("sequence_members", []).duplicate()
+    st.pending_attack_bonuses = d.get("pending_attack_bonuses", []).duplicate(true)
     st.deferred_choices = d.get("deferred_choices", []).duplicate(true)
     st.pending = d.get("pending", null)
     st.reaction_window = d.get("reaction_window", null)

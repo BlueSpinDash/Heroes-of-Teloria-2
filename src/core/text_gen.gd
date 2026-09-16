@@ -173,6 +173,17 @@ static func render_effect(e: Dictionary, def: CardDef) -> String:
             var subj10 := "You may put a Companion from your hand into play" if who10 == "self" \
                 else "Your opponent puts a Companion from their hand into play"
             return "%s." % subj10
+        "next_attack_bonus":
+            var aff0 := String(e.get("affinity", ""))
+            var who0 := String(e.get("scope", "controller"))
+            var whose0 := ""
+            if who0 == "controller":
+                whose0 = " you control"
+            elif who0 == "opponent":
+                whose0 = " your opponent controls"
+            return "The next %scharacter%s to attack after %s deals %s additional damage." % [
+                "%s " % AFFINITY_LABEL.get(aff0, aff0) if aff0 != "" else "",
+                whose0, _self_name(def, "this card"), _plain_amount(e.get("amount"), def)]
         "choose_card_type":
             var chooser := String(e.get("chooser", "controller"))
             return "%s a Card Type." % ("You choose" if chooser == "controller"

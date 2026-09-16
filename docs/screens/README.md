@@ -28,6 +28,7 @@ xvfb-run -a godot --path . --resolution 1440x900 --script tools/ui_drive.gd
 | `18_card_type.png` | Sorbet's Card Type choice, mid-resolution |
 | `19_layout.png` | The Layout screen, with a card's pieces boxed and editable |
 | `20_layers.png` | The same card with its artwork in front of the frame, then behind it |
+| `21_burning_rush.png` | Burning Rush, the first authored Skill |
 
 The battle screen's own artwork lives in `assets/board/`. `board_full.png` is
 the painted board; `tools/slice_board.gd` cuts the plates the screen uses out

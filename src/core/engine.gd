@@ -421,6 +421,9 @@ static func _resolve_attack(st: GameState, slot: ActionSlot) -> void:
             "message": "The declared target is no longer valid. The attack affects no target but still resolves."})
     else:
         var dmg: int = max(0, st.current_attack(attacker) - st.current_defense(target))
+        # A card may have left a bonus for the next attack that qualifies. It
+        # is added to the damage dealt, after Defense, and is claimed once.
+        dmg += _claim_attack_bonus(st, attacker, slot.controller)
         var tci := st.inst(target)
         if tci.zone == "hero":
             if dmg > 0:
@@ -443,6 +446,33 @@ static func _resolve_attack(st: GameState, slot: ActionSlot) -> void:
         "kind": "attack_resolved", "attacker": attacker, "controller": slot.controller, "target": target})
     EffectRunner.process_trigger_queue(st, 1)
     _emit_card_resolved(st, slot)
+
+
+## Take the first waiting bonus this attack qualifies for, if there is one.
+##
+## The bonus is spent whether or not the attack goes on to land: it was left
+## for the next attack to resolve, and this is that attack.
+static func _claim_attack_bonus(st: GameState, attacker: String, controller: int) -> int:
+    if st.pending_attack_bonuses.is_empty():
+        return 0
+    var ad := st.def_of(attacker)
+    if ad == null:
+        return 0
+    for i in st.pending_attack_bonuses.size():
+        var bonus: Dictionary = st.pending_attack_bonuses[i]
+        var want := String(bonus.get("affinity", ""))
+        if want != "" and not ad.affinities.has(want):
+            continue
+        if not EffectRunner._scope_ok(st, String(bonus.get("scope", "either")),
+                int(bonus.get("controller", 0)), controller):
+            continue
+        st.pending_attack_bonuses.remove_at(i)
+        var amount := int(bonus.get("amount", 0))
+        st.emit("attack_bonus_claimed", {
+            "attacker": attacker, "amount": amount,
+            "message": "%s takes the waiting bonus and deals %d more damage." % [ad.name, amount]})
+        return amount
+    return 0
 
 
 static func _resolve_reaction(st: GameState, slot: ActionSlot, r: Dictionary) -> void:
@@ -488,7 +518,14 @@ static func _do_round_end(st: GameState) -> void:
     if Mechanics.settle_failures(st):
         return
 
-    # Expire round-limited effects and reset round tracking.
+    # Expire round-limited effects and reset round tracking. A bonus left for
+    # the next attack lapses with them: it was for this round's Sequence.
+    if not st.pending_attack_bonuses.is_empty():
+        st.emit("attack_bonus_lapsed", {
+            "count": st.pending_attack_bonuses.size(),
+            "message": "%d waiting attack bonus(es) lapse unclaimed at Round End."
+                % st.pending_attack_bonuses.size()})
+        st.pending_attack_bonuses.clear()
     for iid in st.instances.keys():
         var ci: CardInstance = st.instances[iid]
         ci.expire("round")

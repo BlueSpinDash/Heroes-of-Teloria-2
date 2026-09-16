@@ -131,15 +131,17 @@
   },
   {
     "id": "PAS_SKILL_01",
-    "revision": 1,
-    "placeholder": true,
-    "name": "Passion Proxy Skill 01",
+    "revision": 2,
+    "placeholder": false,
+    "authored": true,
+    "name": "Burning Rush",
+    "short_name": "Burning Rush",
     "types": [
       "skill"
     ],
     "tags": [
-      "magic",
-      "ranged"
+      "martial",
+      "melee"
     ],
     "affinities": [
       "passion"
@@ -156,28 +158,33 @@
     ],
     "effects": [
       {
-        "op": "damage_hero",
-        "who": "opponent",
-        "amount": 2
+        "op": "next_attack_bonus",
+        "amount": 1,
+        "scope": "either",
+        "affinity": "passion"
       }
     ],
     "triggers": [],
-    "text": "Deal 2 damage to the opposing Hero.",
-    "flavor": "Placeholder flavour for Passion Proxy Skill 01. Names, art and flavour are replaceable and never change mechanics.",
+    "text": "The next Passion character to attack after Burning Rush deals 1 additional damage.",
+    "flavor": "",
     "art": {
-      "style": "abstract_sigil",
-      "seed": 285,
-      "hue": 350,
-      "saturation": 0.45
+      "style": "supplied",
+      "image": "burning_rush.png",
+      "fit": "cover",
+      "seed": 50301,
+      "hue": 20,
+      "saturation": 0.55
     },
     "patterns": [
-      "hero_burn"
+      "next_attack_bonus",
+      "damage_boost"
     ],
     "ai_hints": {
       "role": "aggro",
-      "priority": 0.47,
+      "priority": 0.42,
       "patterns": [
-        "hero_burn"
+        "next_attack_bonus",
+        "damage_boost"
       ]
     }
   },

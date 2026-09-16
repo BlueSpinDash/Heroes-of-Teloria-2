@@ -107,6 +107,17 @@ static func all_defs() -> Array:
             "affinities": ["silence"], "cost": {"kind": "fixed", "amount": 2},
             "target": {"kind": "opponent_companion", "count": 1},
             "effects": [{"op": "destroy", "target": "chosen"}], "patterns": ["removal"]}),
+        # Burning Rush's confirmed shape: a bonus left for the next Passion
+        # character to attack after it, whoever controls them.
+        def({"id": "FIX_RUSH", "name": "Fixture Rush", "types": ["skill"], "tags": ["martial", "melee"],
+            "affinities": ["passion"], "cost": {"kind": "fixed", "amount": 1},
+            "effects": [{"op": "next_attack_bonus", "amount": 1, "scope": "either",
+                "affinity": "passion"}],
+            "patterns": ["next_attack_bonus"]}),
+        def({"id": "FIX_COMP_PAS", "name": "Fixture Passion Companion", "types": ["companion"],
+            "affinities": ["passion"], "cost": {"kind": "fixed", "amount": 1},
+            "energy_contribution": 1, "attack": 2, "defense": 1, "attack_cost": 1,
+            "persistent": {"kind": "companion"}, "patterns": ["deploy"]}),
         def({"id": "FIX_BUFF", "name": "Fixture Buff", "types": ["skill"], "tags": ["martial"],
             "affinities": ["will"], "cost": {"kind": "fixed", "amount": 1},
             "target": {"kind": "own_character", "count": 1},

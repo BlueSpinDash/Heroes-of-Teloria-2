@@ -180,6 +180,7 @@ Twenty operations. Anything else fails validation.
 | `random_exhaust_from_hand` | `who`, `amount` | A random discard. |
 | `deploy_from_hand` | `who` | Put a Companion from hand into play. |
 | `choose_card_type` | `chooser` | That player names one of the six Card Types. The card remembers it for the round, and `chosen_type_card_resolved` reads it. |
+| `next_attack_bonus` | `amount`, `scope`, optional `affinity` | Leaves a bonus for the next attack that qualifies. Claimed once, by the first attack to resolve whose attacker matches, then gone. Unclaimed, it lapses at Round End. |
 
 **Energy**
 
@@ -258,6 +259,12 @@ forgotten at Round End with everything else that lasts a round. That is the
 Sorbet pattern — she names a Card Type when her attack resolves, and every
 Vigilance Companion her controller has grows each time a card of that type
 resolves afterwards — and it is pinned as a fixture too.
+
+`next_attack_bonus` is added to the damage an attack **deals**, after Defense
+has been subtracted, not to the attacker's Attack. An attack that would bounce
+off a tougher target for nothing still lands the bonus. That is deliberate:
+"deals 1 additional damage" is about what arrives, and a bonus that Defense
+could absorb would do nothing in exactly the situations it is played for.
 
 Avoid `stat_mod` or `prevent_damage` with `"duration": "round"` inside a
 `round_end` trigger: round-duration effects expire moments later in the same

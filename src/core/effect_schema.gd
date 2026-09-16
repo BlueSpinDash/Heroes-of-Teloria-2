@@ -81,6 +81,7 @@ const OPS := {
     "random_exhaust_from_hand": {"required": ["who", "amount"], "optional": []},
     "deploy_from_hand": {"required": ["who"], "optional": []},
     "choose_card_type": {"required": ["chooser"], "optional": []},
+    "next_attack_bonus": {"required": ["amount", "scope"], "optional": ["affinity"]},
     "conditional": {"required": ["cond", "then"], "optional": ["otherwise"]},
     "chain_reward": {"required": ["require", "then"], "optional": []},
     "repeat": {"required": ["amount", "effects"], "optional": []},
@@ -247,6 +248,8 @@ static func validate_effects(effects, path: String, allow_persistent_only: bool)
                 errs.append("%s: op '%s' has unexpected field '%s'" % [p, op, str(k)])
         if e.has("who") and not WHO.has(String(e["who"])):
             errs.append("%s: 'who' must be self or opponent" % p)
+        if e.has("affinity") and not AFFINITIES.has(String(e["affinity"])):
+            errs.append("%s: '%s' is not an Affinity" % [p, str(e["affinity"])])
         if e.has("chooser") and not CHOOSERS.has(String(e["chooser"])):
             errs.append("%s: 'chooser' must be controller or opponent" % p)
         if e.has("duration") and not DURATIONS.has(String(e["duration"])):
@@ -255,6 +258,8 @@ static func validate_effects(effects, path: String, allow_persistent_only: bool)
             errs.append_array(validate_target_ref(e["target"], p + ".target"))
         if e.has("scope") and op == "aura_stat_mod" and not AURA_SCOPES.has(String(e["scope"])):
             errs.append("%s: aura scope must be one of %s" % [p, str(AURA_SCOPES)])
+        if e.has("scope") and op == "next_attack_bonus" and not SCOPES.has(String(e["scope"])):
+            errs.append("%s: scope must be one of %s" % [p, str(SCOPES)])
         if e.has("amount"):
             errs.append_array(validate_amount(e["amount"], p + ".amount", SIGNED_AMOUNT_OPS.has(op)))
         if e.has("ignores_defense") and not (e["ignores_defense"] is bool):

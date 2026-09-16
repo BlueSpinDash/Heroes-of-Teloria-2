@@ -132,6 +132,24 @@ static func exec_one(state: GameState, e: Dictionary, ctx: Dictionary) -> void:
                 _defer_choice(state, {
                     "kind": "choose_card_type", "player": who, "source": src_iid})
 
+        "next_attack_bonus":
+            # Left for the next attack that qualifies to claim. Nothing is
+            # applied here: which character it will be is not known yet.
+            var bonus := {
+                "amount": _amount(state, e.get("amount", 0), ctx),
+                "scope": String(e.get("scope", "controller")),
+                "affinity": String(e.get("affinity", "")),
+                "controller": int(ctx["controller"]),
+                "source": _source_label(state, ctx),
+            }
+            state.pending_attack_bonuses.append(bonus)
+            state.emit("attack_bonus_pending", {
+                "amount": bonus["amount"], "affinity": bonus["affinity"],
+                "message": "%s: the next %sattack to resolve deals %d more damage." % [
+                    String(bonus["source"]) if String(bonus["source"]) != "" else "A card",
+                    "%s " % String(bonus["affinity"]).capitalize() if String(bonus["affinity"]) != "" else "",
+                    int(bonus["amount"])]})
+
         "prevent_damage":
             var amt2 := _amount(state, e.get("amount"), ctx)
             for t in _resolve_targets(state, e.get("target"), ctx):
