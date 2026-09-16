@@ -196,6 +196,7 @@ func _play_cards_from_hand(t: TestHarness) -> void:
     screen.call("_refresh")
     await _frames(t, 2)
     _assert_buttons_reachable(t, screen)
+    _assert_board_zones_visible(t, screen)
     var energy_before := st.player(0).energy_current
     var slots_before := st.sequence.size()
     t.ok(_press_first_play_button(screen), "the hand offered a play button")
@@ -397,15 +398,14 @@ func _first_draggable_card(screen: Control) -> Control:
     return null
 
 
+## The board keeps a lookup of every chip by instance id, which is also what
+## the animation layer uses to find things on screen.
 func _chip_for(screen: Control, iid: String) -> Control:
-    for board_name in ["_own_board", "_opp_board"]:
-        var row = screen.get(board_name)
-        if row == null:
-            continue
-        for child in (row as Control).get_children():
-            if child is BattleDropTarget and (child as BattleDropTarget).has_meta("iid") \
-                    and String((child as BattleDropTarget).get_meta("iid")) == iid:
-                return child as Control
+    var chips = screen.get("_chips")
+    if chips is Dictionary and (chips as Dictionary).has(iid):
+        var chip = (chips as Dictionary)[iid]
+        if is_instance_valid(chip):
+            return chip as Control
     return null
 
 
@@ -470,6 +470,42 @@ func _assert_buttons_reachable(t: TestHarness, screen: Control) -> void:
             unreachable.append("%s at %s outside the hand strip %s" % [
                 (b as Button).text, str(r), str(visible)])
     t.empty(unreachable, "every play button is inside the visible hand strip")
+
+    # The strip itself has to be on screen. Twice now a taller board has pushed
+    # the hand below the window, which makes the whole hand unplayable even
+    # though every button is correctly placed inside it.
+    var window := Rect2(Vector2.ZERO, Vector2(screen.get_viewport().get_visible_rect().size))
+    t.ok(visible.position.y >= window.position.y - 1.0
+            and visible.end.y <= window.end.y + 1.0,
+        "the hand strip %s sits inside the window %s" % [str(visible), str(window)])
+
+
+## The board reads as two mirrored halves around a shared middle. Every zone
+## has to be laid out and on screen, or part of the match is invisible.
+func _assert_board_zones_visible(t: TestHarness, screen: Control) -> void:
+    var window := Rect2(Vector2.ZERO, Vector2(screen.get_viewport().get_visible_rect().size))
+    var zones := {
+        "your Companion Zone": screen.get("_own_companion_zone"),
+        "the opponent's Companion Zone": screen.get("_opp_companion_zone"),
+        "the Terrain zone": screen.get("_terrain_zone"),
+        "the Action Sequence": screen.get("_sequence_zone"),
+        "your decks": screen.get("_own_piles"),
+        "the opponent's decks": screen.get("_opp_piles"),
+        "your Hero": screen.get("_own_hero_holder"),
+        "the opponent's Hero": screen.get("_opp_hero_holder"),
+    }
+    var missing: Array = []
+    for name in zones:
+        var c = zones[name]
+        if c == null or not (c is Control):
+            missing.append("%s was never built" % name)
+            continue
+        var r: Rect2 = (c as Control).get_global_rect()
+        if r.size.x <= 0.0 or r.size.y <= 0.0:
+            missing.append("%s has no size" % name)
+        elif not window.intersects(r):
+            missing.append("%s at %s is off screen %s" % [name, str(r), str(window)])
+    t.empty(missing, "every board zone is laid out and on screen")
 
 
 func _finish_match(st: GameState) -> void:

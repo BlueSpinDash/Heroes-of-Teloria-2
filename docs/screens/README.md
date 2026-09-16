@@ -16,5 +16,6 @@ xvfb-run -a godot --path . --resolution 1440x900 --script tools/ui_drive.gd
 | `04_deck_builder.png` | Deck builder, with the Energy curve and live legality |
 | `05_opponents.png` | Opponent selection, all seven Affinities |
 | `07_battle_sequence.png` | Battle, mid-round, with the Action Sequence and chain |
+| `08_battle_effects.png` | Battle, with damage floats and cards in flight to the Wound Deck |
 | `09_shop_reveal.png` | Shop, a booster revealed with slots and conversions |
 | `10_card_editor.png` | Card editor, with the regenerated rules text and validation |

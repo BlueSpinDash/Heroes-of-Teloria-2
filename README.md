@@ -40,6 +40,33 @@ godot --path .
 # Or open project.godot in the Godot editor and press Play.
 ```
 
+## The battle board
+
+The board reads as two mirrored halves around a shared middle.
+
+```
+             opponent's Companion Zone | decks | Hero
+  ------------------------------------------------------------
+                    Terrain  (shared, one active at a time)
+                    Action Sequence  (shared, resolves left to right)
+  ------------------------------------------------------------
+  Hero | decks | your Companion Zone
+                              your hand  (pinned to the bottom)
+```
+
+Each player has their own Hero, their three decks (Hit, Exhaust and Wound) and
+their own Companion Zone. The Terrain and the Action Sequence sit once in the
+middle because the rules give the two players one of each between them, not one
+apiece. Your hand is pinned below the board and never scrolls away, so a card
+the engine will accept is always reachable.
+
+Resolution is not silent. When something takes damage the number floats off it,
+and the cards it loses fly from the deck they leave into the Wound Deck, so the
+count you see tick up has a visible cause. Destruction, exhaustion, shields,
+Energy gains and drains, and deployments all get the same treatment. The
+animations are cosmetic: they replay what the engine already decided and can
+never change an outcome.
+
 ## Running the tests
 
 ```sh

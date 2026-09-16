@@ -24,6 +24,17 @@ const ENERGY := Color("#2a5aa8")
 const ATTACK := Color("#8e2b28")
 const DEFENSE := Color("#25508c")
 
+## Board zone colours, following the supplied board art.
+const ZONE_BG := Color("#2a1116")
+const ZONE_BORDER := Color("#8a7434")
+const PILE_HIT := Color("#16233f")
+const PILE_HERO := Color("#5a4a1e")
+const PILE_EXHAUST := Color("#3a2148")
+const PILE_WOUND := Color("#4a1414")
+const DAMAGE_TEXT := Color("#ff6b5a")
+const HEAL_TEXT := Color("#6fd08c")
+const ENERGY_TEXT := Color("#6fa8ff")
+
 const FRAME := {
     "skill": Color("#1b3a63"),
     "companion": Color("#14494b"),
@@ -239,6 +250,17 @@ static func scroll(child: Control, horizontal: bool = false) -> ScrollContainer:
     child.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     s.add_child(child)
     return s
+
+
+## A titled area of the board, drawn like the panels in the board art.
+static func zone(title: String, bg: Color = ZONE_BG, border: Color = ZONE_BORDER) -> Array:
+    var p := panel(bg, border, 2, 6)
+    var v := vbox(2)
+    var caption := label(title.to_upper(), 10, GOLD, HORIZONTAL_ALIGNMENT_CENTER)
+    caption.clip_text = true
+    v.add_child(caption)
+    p.add_child(v)
+    return [p, v]
 
 
 ## A small labelled statistic, used across the battle and shop screens.
