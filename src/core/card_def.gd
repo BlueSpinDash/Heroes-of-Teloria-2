@@ -456,13 +456,22 @@ func _references_chosen() -> bool:
 
 func _references_ref(ref: String) -> bool:
     for e in all_effect_ops():
-        if e.has("target") and String(e["target"]) == ref:
+        if e.has("target") and _ref_name(e["target"]) == ref:
             return true
         if e.has("scope") and String(e["scope"]) == ref:
             return true
-        if e.has("cond") and e["cond"] is Dictionary and String((e["cond"] as Dictionary).get("target", "")) == ref:
+        if e.has("cond") and e["cond"] is Dictionary \
+                and _ref_name((e["cond"] as Dictionary).get("target", "")) == ref:
             return true
     return false
+
+
+## A target is either a reference name or an object that narrows one. Either
+## way, this is the name it narrows.
+static func _ref_name(target) -> String:
+    if target is Dictionary:
+        return String((target as Dictionary).get("ref", ""))
+    return String(target) if target != null else ""
 
 
 func _references_x() -> bool:

@@ -32,6 +32,7 @@ var _current_name: String = ""
 
 const SCREENS := {
     "saves": "res://src/ui/screens/saves_screen.gd",
+    "layout": "res://src/ui/screens/layout_screen.gd",
     "home": "res://src/ui/screens/home_screen.gd",
     "collection": "res://src/ui/screens/collection_screen.gd",
     "decks": "res://src/ui/screens/decks_screen.gd",
@@ -53,6 +54,7 @@ func _ready() -> void:
 
 
 func _load_services() -> void:
+    Layout.load_saved()
     rules = RulesProfile.load_from()
     economy = EconomyConfig.load_from()
     catalog = Catalog.load_bundled()
@@ -184,7 +186,7 @@ func _make_header() -> Control:
     # is hidden until there is one.
     _nav = UiTheme.hbox(10)
     for entry in [["Home", "home"], ["Collection", "collection"], ["Decks", "decks"],
-            ["Play", "opponents"], ["Shop", "shop"], ["Editor", "editor"], ["Settings", "settings"]]:
+            ["Play", "opponents"], ["Shop", "shop"], ["Editor", "editor"], ["Layout", "layout"], ["Settings", "settings"]]:
         var b := UiTheme.button(String(entry[0]))
         var target := String(entry[1])
         b.pressed.connect(func(): goto(target))

@@ -122,9 +122,9 @@ it shipped with. No card uses it at the moment.
 
 A card's art is scaled to **cover** its frame's window and clipped, never
 squashed, so a crop of the wrong shape silently loses whatever is nearest the
-edges. The Hero frame's window is the `"art"` slot in `src/ui/card_view.gd`:
-0.589 of the card wide by 0.432 tall, which on a 5:7 card is an aspect of
-**0.974** — very slightly taller than it is wide.
+edges. The Hero frame's window is the `"art"` slot in `src/ui/layout.gd`, which the
+**Layout** screen edits: 0.617 of the card wide by 0.448 tall, which on a 5:7
+card is an aspect of **0.984** — very slightly taller than it is wide.
 
 When a supplied card face is the source, cut the portrait from **that card's own
 art window**, at that aspect:
@@ -143,8 +143,15 @@ The crops in use, for reference:
 
 | Card | Source window | Crop taken |
 | --- | --- | --- |
-| Parfait | x 252–948, y 170–890 | `252 172 696 715` |
-| Sorbet | x 248–978, y 150–875 | `272 150 706 725` |
+| Parfait | x 217–933, y 170–890 | `221 170 708 720` |
+| Sorbet | x 232–975, y 150–875 | `262 150 713 725` |
+
+Measure the edges at magnification. `tools/crop_art.gd` takes a `SCALE`
+argument for exactly this: crop a 40-pixel strip straddling an edge at 7x and
+the boundary between the painted border and the artwork is unmistakable.
+Eyeballing a full-size card face is not good enough — it put the window 26
+pixels out, which showed as a pale strip of empty frame down one side of every
+Hero.
 
 Getting this wrong is not obvious from a thumbnail. Check it by rendering the
 card large and comparing against the supplied face — an arm or a hand reaching

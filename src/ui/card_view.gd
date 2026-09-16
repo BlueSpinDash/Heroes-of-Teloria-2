@@ -26,21 +26,12 @@ const BADGE_H := 22.0
 ## template painted for it, instead of being laid out from scratch.
 const FRAMES := {"hero": "res://assets/frames/hero_frame.png"}
 
-## Where each live value sits on the Hero frame, as a fraction of the card.
-## These come from the painted template: the gem and the two medallions down
-## the left, the art window, the name banner, the rules panel, the Affinity
-## banner and the two footer lines.
-const HERO_SLOTS := {
-    "energy": Rect2(0.100, 0.104, 0.130, 0.062),
-    "attack": Rect2(0.100, 0.294, 0.130, 0.050),
-    "defense": Rect2(0.100, 0.448, 0.130, 0.050),
-    "art": Rect2(0.249, 0.135, 0.589, 0.432),
-    "name": Rect2(0.285, 0.582, 0.530, 0.054),
-    "rules": Rect2(0.178, 0.662, 0.664, 0.166),
-    "affinity": Rect2(0.392, 0.916, 0.208, 0.034),
-    "set": Rect2(0.075, 0.933, 0.290, 0.026),
-    "rarity": Rect2(0.635, 0.933, 0.290, 0.026),
-}
+## Where each live value sits on the Hero frame. These are editable: the Layout
+## screen moves them and writes them back to `data/layout.json`.
+static func slot(key: String) -> Rect2:
+    return Layout.rect("hero_card", key)
+
+
 
 var def: CardDef = null
 var card_width: float = BASE_WIDTH
@@ -123,47 +114,49 @@ func _build_framed(frame_path: String) -> void:
         var art := CardArt.new()
         art.setup(def.art)
         art.mouse_filter = Control.MOUSE_FILTER_IGNORE
-        _anchor(art, HERO_SLOTS["art"])
+        _anchor(art, slot("art"))
         layer.add_child(art)
 
-    layer.add_child(_slot(str(def.hero_max_energy), HERO_SLOTS["energy"],
-        int(24 * scale_factor), Color.WHITE, true))
-    layer.add_child(_slot(str(def.attack), HERO_SLOTS["attack"],
-        int(24 * scale_factor), Color.WHITE, true))
-    layer.add_child(_slot(str(def.defense), HERO_SLOTS["defense"],
-        int(24 * scale_factor), Color.WHITE, true))
+    layer.add_child(_slot(str(def.hero_max_energy), slot("energy"),
+        int(Layout.num("card_text", "stat_size") * scale_factor), Color.WHITE, true))
+    layer.add_child(_slot(str(def.attack), slot("attack"),
+        int(Layout.num("card_text", "stat_size") * scale_factor), Color.WHITE, true))
+    layer.add_child(_slot(str(def.defense), slot("defense"),
+        int(Layout.num("card_text", "stat_size") * scale_factor), Color.WHITE, true))
     # The name banner is a fixed painted width, so the name is set to fit it
     # rather than clipped: a Hero's name is the one thing on the card that
     # must always read in full.
-    var name_slot: Rect2 = HERO_SLOTS["name"]
+    var name_slot: Rect2 = slot("name")
     layer.add_child(_slot(def.name, name_slot,
-        _fit_font_size(def.name, int(15 * scale_factor), name_slot.size.x * card_width),
+        _fit_font_size(def.name, int(Layout.num("card_text", "name_size") * scale_factor),
+            name_slot.size.x * card_width),
         UiTheme.INK))
     # The banner and the footer lines are small painted spaces, so they carry
     # the short form: the Affinity, the card's id, its rarity. The rest of what
     # a card is stays in its tooltip and in the collection.
     # The Affinity ribbon is small and bronze, so its word is set in the
     # Affinity's own colour and outlined, the way the stat numbers are.
-    layer.add_child(_slot(UiTheme.affinity_line(def).to_upper(), HERO_SLOTS["affinity"],
-        int(9 * scale_factor), UiTheme.affinity_color(
+    var small := int(Layout.num("card_text", "small_size") * scale_factor)
+    layer.add_child(_slot(UiTheme.affinity_line(def).to_upper(), slot("affinity"),
+        small, UiTheme.affinity_color(
             String(def.affinities[0]) if not def.affinities.is_empty() else "neutral"
         ).lightened(0.45), true))
-    layer.add_child(_slot(def.id, HERO_SLOTS["set"], int(9 * scale_factor),
+    layer.add_child(_slot(def.id, slot("set"), small,
         UiTheme.PARCHMENT_DARK))
-    layer.add_child(_slot(UiTheme.rarity_line(def), HERO_SLOTS["rarity"],
-        int(9 * scale_factor), UiTheme.RARITY_COLOR.get(def.rarity, UiTheme.PARCHMENT_DARK)))
+    layer.add_child(_slot(UiTheme.rarity_line(def), slot("rarity"),
+        small, UiTheme.RARITY_COLOR.get(def.rarity, UiTheme.PARCHMENT_DARK)))
 
     # The rules panel takes the meta line and the rules text together, the way
     # the plain face does, so nothing a card says is left off the frame. The
     # panel is a fixed painted space, so a long rule is set smaller to fit it
     # rather than running off the bottom of the card.
-    var rules_slot: Rect2 = HERO_SLOTS["rules"]
+    var rules_slot: Rect2 = slot("rules")
     var rules_w := rules_slot.size.x * card_width
     var rules_h := rules_slot.size.y * card_width * BASE_HEIGHT / BASE_WIDTH
     var rules := UiTheme.vbox(int(2 * scale_factor))
     rules.mouse_filter = Control.MOUSE_FILTER_IGNORE
     var meta := _meta_line()
-    var meta_size := int(10 * scale_factor)
+    var meta_size := int(Layout.num("card_text", "meta_size") * scale_factor)
     if meta != "":
         var meta_label := UiTheme.wrapped(meta, meta_size, UiTheme.PARCHMENT_DARK.darkened(0.55))
         meta_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -171,11 +164,12 @@ func _build_framed(frame_path: String) -> void:
         rules_h -= _wrapped_height(meta, meta_size, rules_w) + 2.0 * scale_factor
     var body_text := def.text if def.text.strip_edges() != "" else "No rules text."
     var body_label := UiTheme.wrapped(body_text,
-        _fit_wrapped_font_size(body_text, int(12 * scale_factor), rules_w, rules_h), UiTheme.INK)
+        _fit_wrapped_font_size(body_text,
+            int(Layout.num("card_text", "rules_size") * scale_factor), rules_w, rules_h), UiTheme.INK)
     body_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     body_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
     rules.add_child(body_label)
-    _anchor(rules, HERO_SLOTS["rules"])
+    _anchor(rules, slot("rules"))
     layer.add_child(rules)
 
     _add_badge_layer(scale_factor)

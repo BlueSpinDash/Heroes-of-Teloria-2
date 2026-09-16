@@ -103,6 +103,21 @@ Energy gains and drains, and deployments all get the same treatment. The
 animations are cosmetic: they replay what the engine already decided and can
 never change an outcome.
 
+## Adjusting the layout
+
+Positions and sizes the interface reads — where each piece sits on a Hero card,
+the type sizes on a card face, the heights of the board's zones — are not
+constants in the screens. They live in `src/ui/layout.gd` as named values, and
+the **Layout** screen edits them against a live card: drag a box to move it,
+drag its corner to resize, or type exact fractions.
+
+Saving writes `data/layout.json`, which the game loads at launch. Run from
+source, that file is repository content, so a layout adjusted in game is a real
+change to the game and can be committed. An exported build cannot write to
+itself, so it saves beside the save files instead and says so. "Copy as code"
+puts the values on the clipboard as GDScript, for folding back into the
+defaults once a layout has settled.
+
 ## Running the tests
 
 ```sh

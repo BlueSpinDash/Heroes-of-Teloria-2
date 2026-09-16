@@ -32,19 +32,14 @@ var _thinker: AiThinker = null
 var _ai_pause: float = 0.0
 
 # Layout metrics, budgeted against the window rather than left to grow. The
-# board is painted art, so each zone is sized to the plate behind it.
-const HAND_CARD_W := 122.0
-## Card face at trading-card proportions, plus the Commit button above it and
-## room for the strip's own scrollbar.
-const HAND_STRIP_H := 218.0
-## Tall enough for a character chip carrying an action button, so nothing in a
-## Companion Zone is ever clipped off the bottom.
-const COMPANION_STRIP_H := 82.0
-## The deck plates and the Hero plate share one row height per player.
-const DECK_PLATE_H := 76.0
-## The shared middle: the Action Sequence, with the Location beside it.
-const MIDDLE_H := 110.0
-const LOCATION_W := 206.0
+# board is painted art, so each zone is sized to the plate behind it. These are
+# editable: the Layout screen changes them and writes them to data/layout.json.
+var HAND_CARD_W: float = Layout.num("battle_board", "hand_card_w")
+var HAND_STRIP_H: float = Layout.num("battle_board", "hand_strip_h")
+var COMPANION_STRIP_H: float = Layout.num("battle_board", "companion_strip_h")
+var DECK_PLATE_H: float = Layout.num("battle_board", "deck_plate_h")
+var MIDDLE_H: float = Layout.num("battle_board", "middle_h")
+var LOCATION_W: float = Layout.num("battle_board", "location_w")
 
 # Layout handles.
 var _top: HBoxContainer

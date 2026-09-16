@@ -42,6 +42,7 @@ func run(t: TestHarness) -> void:
         return
     _every_screen_builds(t)
     _hero_cards_use_the_frame(t)
+    await _layout_editor_moves_card_parts(t)
     await _start_a_new_save_through_the_screen(t)
     _play_a_starter(t)
     await _play_cards_from_hand(t)
@@ -91,7 +92,7 @@ func _screen() -> Control:
 
 func _every_screen_builds(t: TestHarness) -> void:
     t.begin("every screen builds")
-    for name in ["saves", "home", "collection", "decks", "opponents", "shop", "editor", "settings"]:
+    for name in ["saves", "home", "collection", "decks", "opponents", "shop", "editor", "layout", "settings"]:
         app.goto(String(name))
         var s := _screen()
         t.ne(s, null, "the %s screen was created" % name)
@@ -503,6 +504,66 @@ func _hero_cards_use_the_frame(t: TestHarness) -> void:
             "%s keeps trading-card proportions (%.1f, wanted %.1f)" % [
                 id, view.get_combined_minimum_size().y, want])
         view.queue_free()
+
+
+## The Layout screen has to actually move what a card draws, and a layout has
+## to survive being saved and loaded, or it is a toy.
+func _layout_editor_moves_card_parts(t: TestHarness) -> void:
+    t.begin("the Layout screen moves the pieces of a card")
+    var path := "user://layout_test.json"
+    var was := Layout.rect("hero_card", "art")
+    t.ok(not Layout.is_changed("hero_card", "art"), "the art window starts at its shipped value")
+
+    # A card draws the slot it is given, so moving the slot moves the art.
+    var def := app.catalog.get_def("PAS_HERO_01")
+    var before := CardView.create(def, 300.0)
+    _root.add_child(before)
+    await _frames(t, 2)
+    var art_before := _art_rect(before)
+    t.ne(art_before, Rect2(), "the card drew its art somewhere")
+
+    var moved := Rect2(was.position.x + 0.05, was.position.y + 0.03, was.size.x, was.size.y)
+    Layout.set_rect("hero_card", "art", moved)
+    t.ok(Layout.is_changed("hero_card", "art"), "the change is reported against the shipped value")
+    var after := CardView.create(def, 300.0)
+    _root.add_child(after)
+    await _frames(t, 2)
+    var art_after := _art_rect(after)
+    t.ok(absf(art_after.position.x - art_before.position.x - 0.05 * 300.0) < 1.5,
+        "the art moved across by what the slot moved (%s then %s)" % [
+            str(art_before.position), str(art_after.position)])
+    before.queue_free()
+    after.queue_free()
+
+    # A number is clamped to its stated range rather than accepted blindly.
+    var bounds := Layout.limits("battle_board", "hand_card_w")
+    Layout.set_num("battle_board", "hand_card_w", bounds.y + 500.0)
+    t.eq(Layout.num("battle_board", "hand_card_w"), bounds.y,
+        "a number past its maximum is held at the maximum")
+
+    # Saved and loaded, the values come back.
+    t.ok(Layout.save_to(path), "the layout saved")
+    Layout.reset_all()
+    t.ok(not Layout.is_changed("hero_card", "art"), "resetting put the shipped value back")
+    t.ok(Layout.load_from(path), "the saved layout loaded")
+    t.ok(Layout.rect("hero_card", "art").is_equal_approx(moved),
+        "and the moved art window came back as it was saved")
+    t.eq(Layout.num("battle_board", "hand_card_w"), bounds.y, "as did the number")
+
+    # Leave the game as it was found.
+    Layout.reset_all()
+    DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+    t.ok(Layout.rect("hero_card", "art").is_equal_approx(was),
+        "the test left the layout as it found it")
+
+
+## Where a built card actually drew its art, in the card's own coordinates.
+func _art_rect(view: CardView) -> Rect2:
+    for layer in view.get_children():
+        for child in (layer as Node).get_children():
+            if child is CardArt:
+                return Rect2((child as Control).position, (child as Control).size)
+    return Rect2()
 
 
 ## Resting the pointer on a small card has to bring up a readable one.
