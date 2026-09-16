@@ -118,10 +118,37 @@ A card opts out with `"frame": "plain"`, which draws the laid-out face instead.
 That is for a card finished before its type has a frame, so it can keep the look
 it shipped with. No card uses it at the moment.
 
-A card's art should be cropped to the proportions of its frame's art window —
-for the Hero frame, the `"art"` slot in `src/ui/card_view.gd`, which is roughly
-5 wide to 5.4 tall. Art of another shape still works: it is scaled to cover the
-window and cropped, rather than squashed.
+### Cropping the art
+
+A card's art is scaled to **cover** its frame's window and clipped, never
+squashed, so a crop of the wrong shape silently loses whatever is nearest the
+edges. The Hero frame's window is the `"art"` slot in `src/ui/card_view.gd`:
+0.589 of the card wide by 0.432 tall, which on a 5:7 card is an aspect of
+**0.974** — very slightly taller than it is wide.
+
+When a supplied card face is the source, cut the portrait from **that card's own
+art window**, at that aspect:
+
+1. Find the window's inner edges on the supplied image. Crop a narrow strip
+   across each edge and read off where the ornate border stops — every card
+   face is a different size, so these cannot be assumed from another card.
+2. If the window is wider than 0.974, the full height fits and some width has
+   to go: choose which side deliberately. Sorbet reaches to the right of her
+   window, so her crop is taken flush with the window's right edge and gives up
+   background on the left.
+3. `tools/crop_art.gd` does the cut:
+   `godot --headless --path . --script tools/crop_art.gd -- SRC DST X Y W H`.
+
+The crops in use, for reference:
+
+| Card | Source window | Crop taken |
+| --- | --- | --- |
+| Parfait | x 252–948, y 170–890 | `252 172 696 715` |
+| Sorbet | x 248–978, y 150–875 | `272 150 706 725` |
+
+Getting this wrong is not obvious from a thumbnail. Check it by rendering the
+card large and comparing against the supplied face — an arm or a hand reaching
+for the edge of the frame is exactly what a too-tight crop takes first.
 
 To give another type a frame: add the painted template to `assets/frames/`,
 teach `tools/prepare_hero_frame.gd` to paint its placeholder text out, and add
