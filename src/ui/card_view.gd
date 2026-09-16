@@ -21,6 +21,27 @@ const BASE_HEIGHT := 420.0
 ## How much of the foot of a card a badge covers.
 const BADGE_H := 22.0
 
+## Painted frames, by the card type they belong to. A card of a type with a
+## frame is drawn on it, with every live value placed over the region the
+## template painted for it, instead of being laid out from scratch.
+const FRAMES := {"hero": "res://assets/frames/hero_frame.png"}
+
+## Where each live value sits on the Hero frame, as a fraction of the card.
+## These come from the painted template: the gem and the two medallions down
+## the left, the art window, the name banner, the rules panel, the Affinity
+## banner and the two footer lines.
+const HERO_SLOTS := {
+    "energy": Rect2(0.100, 0.104, 0.130, 0.062),
+    "attack": Rect2(0.100, 0.294, 0.130, 0.050),
+    "defense": Rect2(0.100, 0.448, 0.130, 0.050),
+    "art": Rect2(0.279, 0.135, 0.561, 0.432),
+    "name": Rect2(0.262, 0.582, 0.576, 0.054),
+    "rules": Rect2(0.178, 0.666, 0.664, 0.160),
+    "affinity": Rect2(0.392, 0.916, 0.208, 0.034),
+    "set": Rect2(0.075, 0.933, 0.290, 0.026),
+    "rarity": Rect2(0.635, 0.933, 0.290, 0.026),
+}
+
 var def: CardDef = null
 var card_width: float = BASE_WIDTH
 var clickable: bool = false
@@ -41,7 +62,136 @@ func set_card(card: CardDef) -> void:
         c.queue_free()
     if def == null:
         return
-    _build()
+    var frame := _frame_for(def)
+    if frame != "":
+        _build_framed(frame)
+    else:
+        _build()
+
+
+## The painted frame this card is drawn on, or "" for the plain face.
+##
+## A card can opt out with `"frame": "plain"` in its data, which is how a card
+## that was finished before its type had a frame keeps the look it shipped
+## with.
+static func _frame_for(card: CardDef) -> String:
+    if card.frame == "plain":
+        return ""
+    for type in FRAMES:
+        if card.has_type(String(type)):
+            var path := String(FRAMES[type])
+            if ResourceLoader.exists(path):
+                return path
+    return ""
+
+
+## Draw the card on its painted frame.
+##
+## The frame carries everything that is the same on every card of its type —
+## the type banner, the stat captions, the ornament — so all this adds is the
+## values that differ, each anchored over the region the template painted for
+## it. Anchors are fractions of the card, so the whole face scales together.
+func _build_framed(frame_path: String) -> void:
+    var scale_factor := card_width / BASE_WIDTH
+    custom_minimum_size = Vector2(card_width, BASE_HEIGHT * scale_factor)
+    size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+    clip_contents = true
+    mouse_filter = Control.MOUSE_FILTER_STOP if clickable else Control.MOUSE_FILTER_PASS
+    tooltip_text = "%s — %s" % [def.name, def.text if def.text != "" else "No rules text."]
+
+    var blank := UiTheme.panel_style(Color(0, 0, 0, 0), Color(0, 0, 0, 0), 0, 0)
+    blank.content_margin_left = 0
+    blank.content_margin_right = 0
+    blank.content_margin_top = 0
+    blank.content_margin_bottom = 0
+    add_theme_stylebox_override("panel", blank)
+
+    var frame := TextureRect.new()
+    frame.texture = load(frame_path)
+    frame.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    frame.stretch_mode = TextureRect.STRETCH_SCALE
+    frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    add_child(frame)
+
+    var layer := Control.new()
+    layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    add_child(layer)
+
+    # Real art covers the window. A card with none keeps the silhouette the
+    # template painted there, which is a better placeholder than a sigil.
+    if ArtLibrary.texture_for(def.art) != null:
+        var art := CardArt.new()
+        art.setup(def.art)
+        art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        _anchor(art, HERO_SLOTS["art"])
+        layer.add_child(art)
+
+    layer.add_child(_slot(str(def.hero_max_energy), HERO_SLOTS["energy"],
+        int(24 * scale_factor), Color.WHITE, true))
+    layer.add_child(_slot(str(def.attack), HERO_SLOTS["attack"],
+        int(24 * scale_factor), Color.WHITE, true))
+    layer.add_child(_slot(str(def.defense), HERO_SLOTS["defense"],
+        int(24 * scale_factor), Color.WHITE, true))
+    layer.add_child(_slot(def.name, HERO_SLOTS["name"], int(13 * scale_factor), UiTheme.INK))
+    # The banner and the footer lines are small painted spaces, so they carry
+    # the short form: the Affinity, the card's id, its rarity. The rest of what
+    # a card is stays in its tooltip and in the collection.
+    # The Affinity ribbon is small and bronze, so its word is set in the
+    # Affinity's own colour and outlined, the way the stat numbers are.
+    layer.add_child(_slot(UiTheme.affinity_line(def).to_upper(), HERO_SLOTS["affinity"],
+        int(9 * scale_factor), UiTheme.affinity_color(
+            String(def.affinities[0]) if not def.affinities.is_empty() else "neutral"
+        ).lightened(0.45), true))
+    layer.add_child(_slot(def.id, HERO_SLOTS["set"], int(9 * scale_factor),
+        UiTheme.PARCHMENT_DARK))
+    layer.add_child(_slot(UiTheme.rarity_line(def), HERO_SLOTS["rarity"],
+        int(9 * scale_factor), UiTheme.RARITY_COLOR.get(def.rarity, UiTheme.PARCHMENT_DARK)))
+
+    # The rules panel takes the meta line and the rules text together, the way
+    # the plain face does, so nothing a card says is left off the frame.
+    var rules := UiTheme.vbox(int(2 * scale_factor))
+    rules.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    var meta := _meta_line()
+    if meta != "":
+        var meta_label := UiTheme.wrapped(meta, int(10 * scale_factor), UiTheme.PARCHMENT_DARK.darkened(0.55))
+        meta_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+        rules.add_child(meta_label)
+    var body_label := UiTheme.wrapped(
+        def.text if def.text.strip_edges() != "" else "No rules text.",
+        int(12 * scale_factor), UiTheme.INK)
+    body_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    body_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
+    rules.add_child(body_label)
+    _anchor(rules, HERO_SLOTS["rules"])
+    layer.add_child(rules)
+
+    _add_badge_layer(scale_factor)
+
+
+## One value, centred over the region the template painted for it.
+func _slot(text: String, where: Rect2, font_size: int, colour: Color,
+        outlined: bool = false) -> Label:
+    var l := UiTheme.label(text, font_size, colour, HORIZONTAL_ALIGNMENT_CENTER)
+    l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+    l.clip_text = true
+    l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    if outlined:
+        # A number sits on cut stone, which is busy: an outline keeps it read.
+        l.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.75))
+        l.add_theme_constant_override("outline_size", maxi(2, int(font_size / 6)))
+    _anchor(l, where)
+    return l
+
+
+static func _anchor(c: Control, where: Rect2) -> void:
+    c.anchor_left = where.position.x
+    c.anchor_top = where.position.y
+    c.anchor_right = where.end.x
+    c.anchor_bottom = where.end.y
+    c.offset_left = 0.0
+    c.offset_top = 0.0
+    c.offset_right = 0.0
+    c.offset_bottom = 0.0
 
 
 func _build() -> void:
@@ -66,7 +216,7 @@ func _build() -> void:
     root.set_anchors_preset(Control.PRESET_FULL_RECT)
     face.add_child(root)
 
-    root.add_child(_banner(UiTheme.type_banner(def), int(13 * scale_factor)))
+    root.add_child(_banner(UiTheme.type_banner(def), int(14 * scale_factor)))
 
     # --- stat bubbles in a left gutter, portrait to their right --------------
     # The template runs the Energy, Attack and Defense bubbles down the left of
@@ -78,7 +228,7 @@ func _build() -> void:
     root.add_child(art_row)
 
     var bubbles := UiTheme.vbox(int(4 * scale_factor))
-    bubbles.custom_minimum_size = Vector2(46 * scale_factor, 0)
+    bubbles.custom_minimum_size = Vector2(50 * scale_factor, 0)
     bubbles.mouse_filter = Control.MOUSE_FILTER_IGNORE
     art_row.add_child(bubbles)
 
@@ -109,32 +259,19 @@ func _build() -> void:
             bubbles.add_child(_bubble("%+d" % def.defense, "Defense", UiTheme.DEFENSE, scale_factor))
 
     # --- name banner ---------------------------------------------------------
-    root.add_child(_banner(def.name, int(15 * scale_factor), true))
+    root.add_child(_banner(def.name, int(17 * scale_factor), true))
 
     # --- rules text ----------------------------------------------------------
     var text_panel := UiTheme.panel(UiTheme.PARCHMENT, UiTheme.GOLD_DIM, 1, 4)
     text_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
     var text_box := UiTheme.vbox(int(2 * scale_factor))
-    var meta: Array = []
-    var tags := UiTheme.tag_line(def)
-    if tags != "":
-        meta.append(tags)
-    if def.is_character() and def.attack_cost > 0:
-        var attack_line := "Attack: %d Energy" % def.attack_cost
-        if not def.attack_tags.is_empty():
-            var at_bits: Array = []
-            for at in def.attack_tags:
-                at_bits.append(String(at).capitalize())
-            attack_line += " — " + " • ".join(at_bits)
-        meta.append(attack_line)
-    if def.has_type("companion") and def.energy_contribution > 0:
-        meta.append("+%d max Energy" % def.energy_contribution)
-    if not meta.is_empty():
-        var meta_label := UiTheme.wrapped(" • ".join(meta), int(10 * scale_factor), UiTheme.GOLD_DIM)
+    var meta := _meta_line()
+    if meta != "":
+        var meta_label := UiTheme.wrapped(meta, int(11 * scale_factor), UiTheme.GOLD_DIM)
         meta_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
         text_box.add_child(meta_label)
     var body := def.text if def.text.strip_edges() != "" else "No rules text."
-    var body_label := UiTheme.wrapped(body, int(11.5 * scale_factor), UiTheme.INK)
+    var body_label := UiTheme.wrapped(body, int(13 * scale_factor), UiTheme.INK)
     body_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     body_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
     text_box.add_child(body_label)
@@ -146,13 +283,13 @@ func _build() -> void:
     aff_row.alignment = BoxContainer.ALIGNMENT_CENTER
     var aff_colour := UiTheme.affinity_color(
         String(def.affinities[0]) if not def.affinities.is_empty() else "neutral")
-    aff_row.add_child(UiTheme.label(UiTheme.affinity_line(def), int(12 * scale_factor), aff_colour))
+    aff_row.add_child(UiTheme.label(UiTheme.affinity_line(def), int(13 * scale_factor), aff_colour))
     root.add_child(aff_row)
 
     # --- footer --------------------------------------------------------------
     var footer := UiTheme.hbox(4)
     var id_label := UiTheme.label("%s%s" % ["" if def.authored else "PROXY • ", def.id],
-        int(9 * scale_factor), UiTheme.PARCHMENT_DARK)
+        int(10 * scale_factor), UiTheme.PARCHMENT_DARK)
     id_label.clip_text = true
     footer.add_child(id_label)
     var gap := Control.new()
@@ -163,27 +300,13 @@ func _build() -> void:
         restriction = " • NAMED"
     elif def.unique:
         restriction = " • UNIQUE"
-    var rarity_label := UiTheme.label(UiTheme.rarity_line(def) + restriction, int(9 * scale_factor),
+    var rarity_label := UiTheme.label(UiTheme.rarity_line(def) + restriction, int(10 * scale_factor),
         UiTheme.RARITY_COLOR.get(def.rarity, UiTheme.TEXT_DIM))
     rarity_label.clip_text = true
     footer.add_child(rarity_label)
     root.add_child(footer)
 
-    # Badges overlay the bottom of the face rather than adding a row below it,
-    # so a card keeps its trading-card proportions however many it carries.
-    var badge_layer := Control.new()
-    badge_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    add_child(badge_layer)
-    _badge_row = UiTheme.hbox(4)
-    _badge_row.alignment = BoxContainer.ALIGNMENT_CENTER
-    _badge_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    _badge_row.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
-    # A fixed height, not a scaled one: a badge has to stay readable on a card
-    # small enough to fit a hand, and a scaled band would be too short for its
-    # own text and spill past the clipped edge of the face.
-    _badge_row.offset_top = -BADGE_H
-    _badge_row.offset_bottom = 0
-    badge_layer.add_child(_badge_row)
+    _add_badge_layer(scale_factor)
 
     if clickable:
         # Every control inside the face is decoration. With them transparent to
@@ -220,14 +343,52 @@ func _bubble(value: String, caption: String, colour: Color, scale_factor: float)
     var circle := PanelContainer.new()
     circle.add_theme_stylebox_override("panel",
         UiTheme.panel_style(colour, UiTheme.GOLD, 2, int(18 * scale_factor)))
-    circle.custom_minimum_size = Vector2(38 * scale_factor, 34 * scale_factor)
-    var v := UiTheme.label(value, int(17 * scale_factor), Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER)
+    circle.custom_minimum_size = Vector2(42 * scale_factor, 36 * scale_factor)
+    var v := UiTheme.label(value, int(19 * scale_factor), Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER)
     v.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
     circle.add_child(v)
     holder.add_child(circle)
-    holder.add_child(UiTheme.label(caption.to_upper(), int(8 * scale_factor),
+    holder.add_child(UiTheme.label(caption.to_upper(), int(9 * scale_factor),
         UiTheme.PARCHMENT, HORIZONTAL_ALIGNMENT_CENTER))
     return holder
+
+
+## The line of extra facts a card carries above its rules text: its tags, what
+## an attack costs, what a Companion adds to maximum Energy.
+func _meta_line() -> String:
+    var meta: Array = []
+    var tags := UiTheme.tag_line(def)
+    if tags != "":
+        meta.append(tags)
+    if def.is_character() and def.attack_cost > 0:
+        var attack_line := "Attack: %d Energy" % def.attack_cost
+        if not def.attack_tags.is_empty():
+            var at_bits: Array = []
+            for at in def.attack_tags:
+                at_bits.append(String(at).capitalize())
+            attack_line += " — " + " • ".join(at_bits)
+        meta.append(attack_line)
+    if def.has_type("companion") and def.energy_contribution > 0:
+        meta.append("+%d max Energy" % def.energy_contribution)
+    return " • ".join(meta)
+
+
+## Badges overlay the bottom of the face rather than adding a row below it, so
+## a card keeps its trading-card proportions however many it carries.
+func _add_badge_layer(_scale_factor: float) -> void:
+    var badge_layer := Control.new()
+    badge_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    add_child(badge_layer)
+    _badge_row = UiTheme.hbox(4)
+    _badge_row.alignment = BoxContainer.ALIGNMENT_CENTER
+    _badge_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    _badge_row.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+    # A fixed height, not a scaled one: a badge has to stay readable on a card
+    # small enough to fit a hand, and a scaled band would be too short for its
+    # own text and spill past the clipped edge of the face.
+    _badge_row.offset_top = -BADGE_H
+    _badge_row.offset_bottom = 0
+    badge_layer.add_child(_badge_row)
 
 
 ## Extra badges under the card, such as owned counts or deck quantities.

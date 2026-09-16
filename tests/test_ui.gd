@@ -41,6 +41,7 @@ func run(t: TestHarness) -> void:
     if app == null:
         return
     _every_screen_builds(t)
+    _hero_cards_use_the_frame(t)
     _play_a_starter(t)
     await _play_cards_from_hand(t)
     await _drag_and_drop(t)
@@ -386,6 +387,42 @@ func _drag_and_drop(t: TestHarness) -> void:
     screen.call("_refresh")
     await _frames(t, 2)
     t.eq(_first_draggable_card(screen), null, "no card can be picked up on the opponent's turn")
+
+
+## Hero cards are drawn on the painted Hero frame, and a card that opts out
+## keeps the face it shipped with.
+func _hero_cards_use_the_frame(t: TestHarness) -> void:
+    t.begin("Hero cards are drawn on the Hero frame")
+    var heroes: Array = []
+    var plain: Array = []
+    var wrong: Array = []
+    for d in app.catalog.all_defs():
+        var card: CardDef = d
+        if not card.has_type("hero"):
+            if CardView._frame_for(card) != "":
+                wrong.append("%s is not a Hero but asked for a frame" % card.id)
+            continue
+        heroes.append(card.id)
+        if card.frame == "plain":
+            plain.append(card.id)
+            if CardView._frame_for(card) != "":
+                wrong.append("%s opted out but was framed anyway" % card.id)
+        elif CardView._frame_for(card) != CardView.FRAMES["hero"]:
+            wrong.append("%s is a Hero but was not framed" % card.id)
+    t.ge(float(heroes.size()), 7.0, "there is a Hero for every Affinity")
+    t.empty(wrong, "every Hero is on the frame, and only Heroes are")
+    t.eq(plain, ["PAS_HERO_01"],
+        "Parfait is the one card keeping the face it was finished with")
+
+    # Framed or plain, a card is still a trading card.
+    for id in ["DEV_HERO_01", "PAS_HERO_01"]:
+        var view := CardView.create(app.catalog.get_def(String(id)), 300.0)
+        _root.add_child(view)
+        var want := 300.0 * CardView.BASE_HEIGHT / CardView.BASE_WIDTH
+        t.le(absf(view.get_combined_minimum_size().y - want), 1.0,
+            "%s keeps trading-card proportions (%.1f, wanted %.1f)" % [
+                id, view.get_combined_minimum_size().y, want])
+        view.queue_free()
 
 
 ## Resting the pointer on a small card has to bring up a readable one.

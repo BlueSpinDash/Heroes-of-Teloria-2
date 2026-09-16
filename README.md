@@ -67,6 +67,27 @@ apiece. Your hand is pinned below the board and never scrolls away, so a card
 the engine will accept is always reachable. Cards are drawn at standard
 trading-card proportions, 2.5 by 3.5.
 
+## Card faces
+
+A card type can have a painted frame. Heroes have one: `assets/frames/` holds
+the painted template and the frame built from it by
+`tools/prepare_hero_frame.gd`, which paints out the placeholder name, stat
+numbers and lorem rules text so the game can fill them in, and leaves
+everything that is the same on every Hero — the HERO banner, the MAX ENERGY,
+ATTACK and DEFENSE captions, the ornament. The live card then anchors each
+value over the region the template painted for it, as a fraction of the card,
+so the whole face scales together.
+
+Rebuild the frame after replacing the template:
+
+```sh
+godot --headless --path . --script tools/prepare_hero_frame.gd
+```
+
+A card can opt out with `"frame": "plain"` in its data, which is how a card
+finished before its type had a frame keeps the look it shipped with. Parfait,
+the Unyielding Flame is the one card that does.
+
 Cards on the table are drawn small enough to fit it, which leaves their rules
 text too small to read, so resting the pointer on one brings the same card up
 at a size meant for reading. It works on everything that stands for a card: a

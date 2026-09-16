@@ -67,7 +67,8 @@
         "energy_refund",
         "hero"
       ]
-    }
+    },
+    "frame": "plain"
   },
   {
     "id": "PAS_HERO_02",
