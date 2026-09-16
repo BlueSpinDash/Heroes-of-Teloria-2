@@ -19,3 +19,11 @@ xvfb-run -a godot --path . --resolution 1440x900 --script tools/ui_drive.gd
 | `08_battle_effects.png` | Battle, with damage floats and cards in flight to the Wound Deck |
 | `09_shop_reveal.png` | Shop, a booster revealed with slots and conversions |
 | `10_card_editor.png` | Card editor, with the regenerated rules text and validation |
+
+The battle screen's own artwork lives in `assets/board/`. `board_full.png` is
+the painted board; `tools/slice_board.gd` cuts the plates the screen uses out
+of it. Re-run it after replacing the painting:
+
+```sh
+godot --headless --path . --script tools/slice_board.gd
+```

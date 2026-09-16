@@ -45,20 +45,27 @@ godot --path .
 The board reads as two mirrored halves around a shared middle.
 
 ```
-             opponent's Companion Zone | decks | Hero
-  ------------------------------------------------------------
-                    Terrain  (shared, one active at a time)
-                    Action Sequence  (shared, resolves left to right)
-  ------------------------------------------------------------
-  Hero | decks | your Companion Zone
-                              your hand  (pinned to the bottom)
+              opponent's Companion Zone
+   Wound | Exhaust | Hero | Hit          (the opponent's decks, mirrored)
+  ------------------------------------------------------------------
+   Action Sequence  (resolves left to right)        |  Location
+  ------------------------------------------------------------------
+   Hit | Hero | Exhaust | Wound          (your decks)
+              your Companion Zone
+                        your hand  (pinned to the bottom)
 ```
 
+The screen is built from one painted board, sliced into plates by
+`tools/slice_board.gd`. Each zone is one of those plates, scaled to cover its
+place on screen and clipped rather than squashed, so the artwork and the
+caption painted onto it stay true at any size.
+
 Each player has their own Hero, their three decks (Hit, Exhaust and Wound) and
-their own Companion Zone. The Terrain and the Action Sequence sit once in the
+their own Companion Zone. The Action Sequence and the Location sit once in the
 middle because the rules give the two players one of each between them, not one
 apiece. Your hand is pinned below the board and never scrolls away, so a card
-the engine will accept is always reachable.
+the engine will accept is always reachable. Cards are drawn at standard
+trading-card proportions, 2.5 by 3.5.
 
 Resolution is not silent. When something takes damage the number floats off it,
 and the cards it loses fly from the deck they leave into the Wound Deck, so the

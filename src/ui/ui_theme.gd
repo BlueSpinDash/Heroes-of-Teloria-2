@@ -215,6 +215,21 @@ static func primary_button(text: String, tooltip: String = "") -> Button:
     return b
 
 
+## A button for the board, where a zone's height is budgeted against a painted
+## plate and a full-size control would not fit.
+static func small_button(text: String, tooltip: String = "") -> Button:
+    var b := button(text, tooltip)
+    b.add_theme_font_size_override("font_size", fs(11))
+    for state in ["normal", "hover", "pressed", "disabled", "focus"]:
+        var sb: StyleBoxFlat = b.get_theme_stylebox(state)
+        sb.content_margin_top = 2
+        sb.content_margin_bottom = 2
+        sb.content_margin_left = 6
+        sb.content_margin_right = 6
+    b.custom_minimum_size = Vector2(0, 24)
+    return b
+
+
 static func separator(height: int = 1) -> Control:
     var c := ColorRect.new()
     c.color = GOLD_DIM

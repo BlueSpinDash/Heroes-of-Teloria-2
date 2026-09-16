@@ -15,8 +15,11 @@ signal pressed(def_id: String)
 ## click-only, which every card also remains.
 var drag_payload = null
 
+## Standard trading-card proportions: 2.5 by 3.5 inches, so 5:7.
 const BASE_WIDTH := 300.0
-const BASE_HEIGHT := 452.0
+const BASE_HEIGHT := 420.0
+## How much of the foot of a card a badge covers.
+const BADGE_H := 22.0
 
 var def: CardDef = null
 var card_width: float = BASE_WIDTH
@@ -52,9 +55,16 @@ func _build() -> void:
     var frame := UiTheme.frame_color(def)
     add_theme_stylebox_override("panel", UiTheme.panel_style(frame, UiTheme.GOLD, 2, 8))
 
+    # The face is laid out inside a plain Control rather than directly in the
+    # PanelContainer, so its contents cannot push the card taller than the
+    # trading-card ratio. Anything that will not fit is clipped, and the card's
+    # tooltip still carries the full rules text.
+    var face := Control.new()
+    face.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    add_child(face)
     var root := UiTheme.vbox(int(4 * scale_factor))
-    root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-    add_child(root)
+    root.set_anchors_preset(Control.PRESET_FULL_RECT)
+    face.add_child(root)
 
     root.add_child(_banner(UiTheme.type_banner(def), int(13 * scale_factor)))
 
@@ -63,7 +73,7 @@ func _build() -> void:
     # the card rather than over the artwork, so they get their own column here
     # and never sit on top of a character's face.
     var art_row := UiTheme.hbox(int(4 * scale_factor))
-    art_row.custom_minimum_size = Vector2(0, 200 * scale_factor)
+    art_row.custom_minimum_size = Vector2(0, 168 * scale_factor)
     art_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     root.add_child(art_row)
 
@@ -159,9 +169,21 @@ func _build() -> void:
     footer.add_child(rarity_label)
     root.add_child(footer)
 
+    # Badges overlay the bottom of the face rather than adding a row below it,
+    # so a card keeps its trading-card proportions however many it carries.
+    var badge_layer := Control.new()
+    badge_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    add_child(badge_layer)
     _badge_row = UiTheme.hbox(4)
     _badge_row.alignment = BoxContainer.ALIGNMENT_CENTER
-    root.add_child(_badge_row)
+    _badge_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    _badge_row.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+    # A fixed height, not a scaled one: a badge has to stay readable on a card
+    # small enough to fit a hand, and a scaled band would be too short for its
+    # own text and spill past the clipped edge of the face.
+    _badge_row.offset_top = -BADGE_H
+    _badge_row.offset_bottom = 0
+    badge_layer.add_child(_badge_row)
 
     if clickable:
         # Every control inside the face is decoration. With them transparent to

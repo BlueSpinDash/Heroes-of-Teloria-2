@@ -487,12 +487,10 @@ func _assert_board_zones_visible(t: TestHarness, screen: Control) -> void:
     var zones := {
         "your Companion Zone": screen.get("_own_companion_zone"),
         "the opponent's Companion Zone": screen.get("_opp_companion_zone"),
-        "the Terrain zone": screen.get("_terrain_zone"),
+        "the Location zone": screen.get("_location_zone"),
         "the Action Sequence": screen.get("_sequence_zone"),
-        "your decks": screen.get("_own_piles"),
-        "the opponent's decks": screen.get("_opp_piles"),
-        "your Hero": screen.get("_own_hero_holder"),
-        "the opponent's Hero": screen.get("_opp_hero_holder"),
+        "your decks and Hero": screen.get("_own_piles"),
+        "the opponent's decks and Hero": screen.get("_opp_piles"),
     }
     var missing: Array = []
     for name in zones:
