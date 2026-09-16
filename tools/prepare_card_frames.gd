@@ -75,6 +75,49 @@ const FRAMES := {
             [650, 1392, 150, 32, 790, 1388, 180, 40],
         ],
     },
+    "taahma": {
+        "src": "_taahma_template_src.png",
+        "out": "taahma_frame.png",
+        # This gem is pale stone and its number is inked dark, where the Hero's
+        # and the Skill's are white on blue.
+        "inpaints": [[145, 205, 49, 93]],
+        "patches": [
+            [265, 882, 545, 10, 265, 888, 545, 72],
+            [192, 1200, 676, 9, 192, 1020, 676, 214],
+            [330, 1420, 120, 24, 95, 1416, 200, 30],
+            [640, 1420, 150, 24, 815, 1416, 180, 30],
+        ],
+    },
+    "companion": {
+        "src": "_companion_template_src.png",
+        "out": "companion_frame.png",
+        "inpaints": [
+            [112, 186, 75, 100, "vertical"],
+            [112, 504, 75, 66, "horizontal"],
+            [112, 740, 75, 64, "horizontal"],
+        ],
+        "patches": [
+            [265, 897, 545, 10, 265, 903, 545, 74],
+            [192, 1200, 676, 9, 192, 1030, 676, 193],
+            [330, 1420, 120, 24, 80, 1416, 200, 30],
+            [640, 1420, 150, 24, 830, 1416, 200, 30],
+        ],
+    },
+    "equipment": {
+        "src": "_equipment_template_src.png",
+        "out": "equipment_frame.png",
+        "inpaints": [
+            [112, 197, 80, 94, "vertical"],
+            [112, 505, 80, 60, "horizontal"],
+            [112, 746, 80, 60, "horizontal"],
+        ],
+        "patches": [
+            [265, 912, 545, 10, 265, 918, 545, 74],
+            [192, 1215, 676, 9, 192, 1045, 676, 195],
+            [330, 1444, 120, 20, 80, 1440, 200, 24],
+            [640, 1444, 150, 20, 835, 1440, 200, 24],
+        ],
+    },
 }
 
 
@@ -95,7 +138,8 @@ func _build(name: String, spec: Dictionary) -> bool:
     print("%s: template %dx%d" % [name, img.get_width(), img.get_height()])
     var card := _trim(img)
     for f in spec.get("inpaints", []):
-        _inpaint(card, Rect2i(int(f[0]), int(f[1]), int(f[2]), int(f[3])))
+        _inpaint(card, Rect2i(int(f[0]), int(f[1]), int(f[2]), int(f[3])),
+            String(f[4]) if (f as Array).size() > 4 else "vertical")
     for p in spec["patches"]:
         _patch(card, Rect2i(int(p[0]), int(p[1]), int(p[2]), int(p[3])),
             Rect2i(int(p[4]), int(p[5]), int(p[6]), int(p[7])))
@@ -184,11 +228,25 @@ func _near(a: Color, b: Color) -> bool:
 
 ## Draw a mark out of a surface whose lighting changes across it.
 ##
-## Each column of the rect is refilled by fading between the pixel just above
-## it and the pixel just below, so the column meets the untouched surface at
-## both ends with no seam and the surface's own vertical shading carries
-## through. Nothing either side of the rect is touched.
-func _inpaint(img: Image, at: Rect2i) -> void:
+## Each line of the rect is refilled by fading between the pixel just outside
+## one end and the pixel just outside the other, so it meets the untouched
+## surface at both ends with no seam and the surface's own shading carries
+## through. Nothing beyond the rect is touched.
+##
+## A gem is shaded top to bottom, so its lines run down it; a medallion carries
+## its icon directly above its number, leaving clean surface only to the sides,
+## so there the lines run across.
+func _inpaint(img: Image, at: Rect2i, direction: String = "vertical") -> void:
+    if direction == "horizontal":
+        var left := at.position.x - 1
+        var right := at.position.x + at.size.x
+        for y in range(at.position.y, at.position.y + at.size.y):
+            var before := img.get_pixel(left, y)
+            var after := img.get_pixel(right, y)
+            for x in range(at.position.x, right):
+                img.set_pixel(x, y, before.lerp(after,
+                    float(x - left) / float(right - left)))
+        return
     var top := at.position.y - 1
     var bottom := at.position.y + at.size.y
     for x in range(at.position.x, at.position.x + at.size.x):

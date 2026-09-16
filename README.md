@@ -69,14 +69,24 @@ trading-card proportions, 2.5 by 3.5.
 
 ## Card faces
 
-A card type can have a painted frame. Heroes and Skills have one:
-`assets/frames/` holds the painted templates and the frames built from them by
-`tools/prepare_card_frames.gd`, which paints out the placeholder name, stat
-numbers and lorem rules text so the game can fill them in, and leaves
-everything that is the same on every card of the type — the HERO or SKILL
-banner, the stat captions, the ornament. The live card then anchors each value
-over the region the template painted for it, as a fraction of the card, so the
-whole face scales together.
+Every card type but the Location has a painted frame: Heroes, Skills,
+Companions, Equipment and Ta'ahma. `assets/frames/` holds the painted templates
+and the frames built from them by `tools/prepare_card_frames.gd`, which paints
+out the placeholder name, stat numbers and lorem rules text so the game can
+fill them in, and leaves everything that is the same on every card of the type
+— the type banner, the stat captions, the ornament. The live card then anchors
+each value over the region the template painted for it, as a fraction of the
+card, so the whole face scales together.
+
+Painting out is done two ways. A **patch** stretches a clean piece of the same
+surface over the words, which works on parchment and stone. On a cut gem or a
+medallion, where every facet is lit differently, a patch taken from elsewhere
+lands as a visible block, so an **inpaint** refills that region line by line
+between the clean surface on either side of it — down a gem, across a medallion
+that carries its icon directly above its number.
+
+Two frames are pale stone rather than dark, so their numbers and footers are
+inked dark instead of white. That follows the frame, not the card.
 
 Each window has its corners cut back by a gothic arch, so art is clipped to the
 window's shape rather than laid over it as a rectangle. A frame can also hand
@@ -102,6 +112,12 @@ carries its own name, numbers and rules text, which means the game can no
 longer restate what the card does when the card changes: the face has to be
 redrawn instead. The card still carries real effect data underneath, because
 that is what the game plays. `docs/ADDING_CARDS.md` sets out the trade.
+
+Everything on the table that stands for a card is drawn as that card: your
+Hero, both players' Companions, the Location in play, each step of the Action
+Sequence, and your hand. A card in play carries one badge for whatever a player
+most needs at a glance — what its statistics are now, what it is preventing,
+whether it has already acted — and the rest in its tooltip.
 
 Cards on the table are drawn small enough to fit it, which leaves their rules
 text too small to read, so resting the pointer on one brings the same card up

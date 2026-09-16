@@ -43,6 +43,24 @@ const FRAMES := {
         "art_radius": 0.090,
         "ornaments": {"energy_gem": "res://assets/frames/skill_energy_gem.png"},
     },
+    "companion": {
+        "path": "res://assets/frames/companion_frame.png",
+        "group": "companion_card",
+        "art_radius": 0.090,
+    },
+    "equipment": {
+        "path": "res://assets/frames/equipment_frame.png",
+        "group": "equipment_card",
+        "art_radius": 0.090,
+    },
+    # This frame is pale stone throughout, so its numbers are inked dark where
+    # every other frame's are white on a coloured gem.
+    "taahma": {
+        "path": "res://assets/frames/taahma_frame.png",
+        "group": "taahma_card",
+        "art_radius": 0.090,
+        "ink": "dark",
+    },
 }
 
 ## The layout group whose slots place this card's pieces, or "" when the card
@@ -186,18 +204,19 @@ func _build_framed(spec: Dictionary) -> void:
 
     # The Energy gem carries a Hero's maximum Energy and every other card's
     # cost, which is what that gem means on each of them.
+    var stat_ink := UiTheme.INK if String(spec.get("ink", "")) == "dark" else Color.WHITE
     var stat_size := int(Layout.num("card_text", "stat_size") * scale_factor)
     if places.has("energy"):
         var energy_text := str(def.hero_max_energy) if def.has_type("hero") \
             else UiTheme.cost_text(def)
         pieces["energy"] = _slot(energy_text, slot(group, "energy"), stat_size,
-            Color.WHITE, true)
+            stat_ink, true)
     if places.has("attack"):
         pieces["attack"] = _slot(str(def.attack), slot(group, "attack"), stat_size,
-            Color.WHITE, true)
+            stat_ink, true)
     if places.has("defense"):
         pieces["defense"] = _slot(str(def.defense), slot(group, "defense"), stat_size,
-            Color.WHITE, true)
+            stat_ink, true)
 
     # The name banner is a fixed painted width, so the name is set to fit it
     # rather than clipped: a card's name is the one thing on it that must
@@ -214,13 +233,17 @@ func _build_framed(spec: Dictionary) -> void:
     # is small and bronze, so its word is set in the Affinity's own colour and
     # outlined, the way the stat numbers are.
     var small := int(Layout.num("card_text", "small_size") * scale_factor)
-    pieces["affinity"] = _slot(UiTheme.affinity_line(def).to_upper(), slot(group, "affinity"),
-        small, UiTheme.affinity_color(
-            String(def.affinities[0]) if not def.affinities.is_empty() else "neutral"
-        ).lightened(0.45), true)
-    pieces["set"] = _slot(def.id, slot(group, "set"), small, UiTheme.PARCHMENT_DARK)
+    pieces["affinity"] = _affinity_plate(def, slot(group, "affinity"), small)
+    # The footer sits on the frame's own stone, which is dark on some frames and
+    # pale on others, so it takes the frame's ink like the numbers do.
+    var dark_frame := String(spec.get("ink", "")) == "dark"
+    var footer_ink := UiTheme.INK if dark_frame else UiTheme.PARCHMENT_DARK
+    var rarity_ink: Color = UiTheme.RARITY_COLOR.get(def.rarity, UiTheme.PARCHMENT_DARK)
+    if dark_frame:
+        rarity_ink = rarity_ink.darkened(0.45)
+    pieces["set"] = _slot(def.id, slot(group, "set"), small, footer_ink)
     pieces["rarity"] = _slot(UiTheme.rarity_line(def), slot(group, "rarity"), small,
-        UiTheme.RARITY_COLOR.get(def.rarity, UiTheme.PARCHMENT_DARK))
+        rarity_ink)
 
     # The rules panel takes the meta line and the rules text together, the way
     # the plain face does, so nothing a card says is left off the frame. The
@@ -270,6 +293,35 @@ func _stack(group: String, pieces: Dictionary) -> void:
 
 
 ## One value, centred over the region the template painted for it.
+## The Affinity on its ribbon, on a scrap of parchment of its own.
+##
+## Every template prints a placeholder there, and the ribbon is an arc, so
+## there is no straight clean band to stretch over the word. A card lays its
+## own label over it instead, which reads as a printed one and works the same
+## on every frame.
+func _affinity_plate(card: CardDef, where: Rect2, font_size: int) -> Control:
+    var host := Control.new()
+    host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    var plate := Panel.new()
+    plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    plate.add_theme_stylebox_override("panel", UiTheme.panel_style(
+        Color(0.90, 0.85, 0.73, 0.96), Color(0.35, 0.28, 0.16, 0.55), 1,
+        maxi(2, int(font_size / 3))))
+    plate.set_anchors_preset(Control.PRESET_FULL_RECT)
+    host.add_child(plate)
+    var word := UiTheme.label(UiTheme.affinity_line(card).to_upper(), font_size,
+        UiTheme.affinity_color(
+            String(card.affinities[0]) if not card.affinities.is_empty() else "neutral"
+        ).darkened(0.35), HORIZONTAL_ALIGNMENT_CENTER)
+    word.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+    word.clip_text = true
+    word.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    word.set_anchors_preset(Control.PRESET_FULL_RECT)
+    host.add_child(word)
+    _anchor(host, where)
+    return host
+
+
 func _slot(text: String, where: Rect2, font_size: int, colour: Color,
         outlined: bool = false) -> Label:
     var l := UiTheme.label(text, font_size, colour, HORIZONTAL_ALIGNMENT_CENTER)

@@ -495,6 +495,21 @@ func _hero_cards_use_the_frame(t: TestHarness) -> void:
             counted[group] = int(counted.get(group, 0)) + 1
     t.ge(float(int(counted.get("hero_card", 0))), 7.0, "every Affinity's Hero is framed")
     t.ge(float(int(counted.get("skill_card", 0))), 50.0, "and the Skills are framed too")
+    t.ge(float(int(counted.get("companion_card", 0))), 50.0, "as are the Companions")
+    t.ge(float(int(counted.get("equipment_card", 0))), 20.0, "the Equipment")
+    t.ge(float(int(counted.get("taahma_card", 0))), 10.0, "and the Ta'ahma")
+    # Every card type with a painted template is drawn on it. Locations have
+    # no template yet, so they are the one type still on the laid-out face.
+    var unframed: Dictionary = {}
+    for d2 in app.catalog.all_defs():
+        var c2: CardDef = d2
+        if c2.frame == "printed":
+            continue
+        if CardView._frame_for(c2).is_empty():
+            for ty in c2.types:
+                unframed[String(ty)] = int(unframed.get(String(ty), 0)) + 1
+    t.eq(unframed.keys(), ["location"],
+        "only Locations are still drawn without a frame: %s" % str(unframed))
     t.empty(wrong, "every card is on the frame for its own type, and only those are")
     t.empty(plain, "no card opts out of its frame")
     # A card supplied as a finished face is drawn from that face instead. It

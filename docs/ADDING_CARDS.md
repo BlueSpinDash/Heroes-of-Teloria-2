@@ -114,8 +114,9 @@ checkbox, and I set it whenever I replace a card.
 ## Which face a card is drawn on
 
 A card type can have a painted frame, and a card of that type is drawn on it
-automatically. Heroes and Skills have one. The frame carries everything that is
-the same on every card of its type — the type banner, the stat captions, the ornament —
+automatically. Every type but the Location has one: Hero, Skill, Companion,
+Equipment and Ta'ahma. The frame carries everything that is the same
+on every card of its type — the type banner, the stat captions, the ornament —
 and the live card fills in the name, the numbers, the art, the rules text, the
 Affinity and the footer, each anchored over the region the template painted for
 it.
@@ -186,6 +187,11 @@ over it as a plain rectangle squares those arches off. The card clips its art
 to the window's shape instead (`art_radius` in `FRAMES`, a fraction of the
 card's width), which leaves the frame's own corners showing.
 
+The Affinity is the one thing no frame can have painted out cleanly: its
+ribbon is an arc, so there is no straight clean band to stretch across the
+placeholder word. Every card lays its own small parchment label over it
+instead, which reads as a printed one and works the same on all five frames.
+
 A frame can also have **ornaments**: pieces of the painted frame that belong
 *over* the artwork rather than behind it. The Skill frame's Energy gem is one —
 the printed card paints it across the top-left corner of the art window. It is
@@ -244,11 +250,23 @@ Getting this wrong is not obvious from a thumbnail. Check it by rendering the
 card large and comparing against the supplied face — an arm or a hand reaching
 for the edge of the frame is exactly what a too-tight crop takes first.
 
+Locations are the one type still drawn on the laid-out face: no template has
+been supplied for them. A UI test pins that, so adding the template and the
+frame is all it takes and nothing else has to be remembered.
+
 To give another type a frame: add the painted template to `assets/frames/` as
 `_<type>_template_src.png`, add it to the table in
 `tools/prepare_card_frames.gd` with the placeholder text to paint out, and add
 the type to `FRAMES` in `src/ui/card_view.gd` and its slot rectangles and
-stacking order to `src/ui/layout.gd`.
+stacking order to `src/ui/layout.gd`. A frame whose stone is pale rather than
+dark takes `"ink": "dark"` in `FRAMES`, which inks its numbers and footer dark.
+
+Measuring a template goes faster read off the picture than guessed: the
+placeholder text is the only dark ink on a pale panel and the only white ink on
+a gem, so a scan for either finds every region that has to be painted out, and
+the rendered card settles the rest. The **Layout** screen edits the slots on a
+real card, so a value that is a pixel or two out is nudged there rather than in
+the source.
 
 Painting out is done two ways. A **patch** stretches a clean piece of the same
 surface over the words, which works on parchment and stone. On a cut gem, where

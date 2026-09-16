@@ -47,6 +47,37 @@ const DEFAULT_RECTS := {
         "set": Rect2(0.075, 0.933, 0.290, 0.026),
         "rarity": Rect2(0.635, 0.933, 0.290, 0.026),
     },
+    "companion_card": {
+        "energy": Rect2(0.106, 0.127, 0.130, 0.062),
+        "attack": Rect2(0.106, 0.330, 0.130, 0.042),
+        "defense": Rect2(0.106, 0.488, 0.130, 0.041),
+        "art": Rect2(0.223, 0.131, 0.617, 0.446),
+        "name": Rect2(0.285, 0.610, 0.530, 0.048),
+        "rules": Rect2(0.190, 0.697, 0.650, 0.124),
+        "affinity": Rect2(0.400, 0.930, 0.200, 0.026),
+        "set": Rect2(0.075, 0.946, 0.290, 0.024),
+        "rarity": Rect2(0.635, 0.946, 0.290, 0.024),
+    },
+    "equipment_card": {
+        "energy": Rect2(0.104, 0.137, 0.130, 0.058),
+        "attack": Rect2(0.104, 0.336, 0.130, 0.038),
+        "defense": Rect2(0.104, 0.500, 0.130, 0.038),
+        "art": Rect2(0.223, 0.131, 0.617, 0.446),
+        "name": Rect2(0.285, 0.630, 0.530, 0.046),
+        "rules": Rect2(0.190, 0.716, 0.650, 0.127),
+        "affinity": Rect2(0.400, 0.960, 0.200, 0.028),
+        "set": Rect2(0.075, 0.966, 0.290, 0.022),
+        "rarity": Rect2(0.635, 0.966, 0.290, 0.022),
+    },
+    "taahma_card": {
+        "energy": Rect2(0.120, 0.132, 0.115, 0.070),
+        "art": Rect2(0.186, 0.131, 0.652, 0.446),
+        "name": Rect2(0.285, 0.597, 0.530, 0.048),
+        "rules": Rect2(0.190, 0.690, 0.650, 0.135),
+        "affinity": Rect2(0.400, 0.932, 0.200, 0.028),
+        "set": Rect2(0.075, 0.944, 0.290, 0.024),
+        "rarity": Rect2(0.635, 0.944, 0.290, 0.024),
+    },
 }
 
 ## group -> key -> where it sits in the stack, back to front. A piece with a
@@ -79,6 +110,21 @@ const DEFAULT_LAYERS := {
         "rarity": 100,
         "badges": 110,
     },
+    "companion_card": {
+        "frame": 10, "art": 20, "energy": 30, "attack": 40, "defense": 50,
+        "name": 60, "rules": 70, "affinity": 80, "set": 90, "rarity": 100,
+        "badges": 110,
+    },
+    "equipment_card": {
+        "frame": 10, "art": 20, "energy": 30, "attack": 40, "defense": 50,
+        "name": 60, "rules": 70, "affinity": 80, "set": 90, "rarity": 100,
+        "badges": 110,
+    },
+    "taahma_card": {
+        "frame": 10, "art": 20, "energy": 30,
+        "name": 60, "rules": 70, "affinity": 80, "set": 90, "rarity": 100,
+        "badges": 110,
+    },
 }
 
 ## What each piece in the stack is, for a screen that lists them.
@@ -107,11 +153,15 @@ const DEFAULT_NUMBERS = {
         "small_size": [9.0, 5.0, 20.0, "The Affinity banner and the two footer lines."],
     },
     "battle_board": {
-        "hand_card_w": [122.0, 60.0, 260.0, "Width of a card in the hand strip."],
-        "hand_strip_h": [218.0, 120.0, 420.0, "Height of the pinned hand strip."],
-        "companion_strip_h": [82.0, 50.0, 200.0, "Height of the row inside a Companion Zone."],
-        "deck_plate_h": [76.0, 50.0, 160.0, "Height of the deck plates and the Hero plate."],
-        "middle_h": [110.0, 70.0, 240.0, "Height of the Action Sequence and Location row."],
+        "hand_card_w": [108.0, 60.0, 260.0, "Width of a card in the hand strip."],
+        "hand_strip_h": [196.0, 120.0, 420.0, "Height of the pinned hand strip."],
+        "board_card_w": [62.0, 40.0, 200.0,
+            "How wide a card standing on the board is drawn"],
+        "seq_card_w": [56.0, 36.0, 180.0,
+            "How wide a card in the Action Sequence is drawn"],
+        "companion_strip_h": [97.0, 50.0, 260.0, "Height of the row inside a Companion Zone."],
+        "deck_plate_h": [78.0, 50.0, 160.0, "Height of the deck plates."],
+        "middle_h": [110.0, 70.0, 300.0, "Height of the Action Sequence and Location row."],
         "location_w": [206.0, 120.0, 400.0, "Width of the Location plate."],
     },
 }
