@@ -383,6 +383,14 @@ func _drag_and_drop(t: TestHarness) -> void:
     t.eq(st.sequence.size(), slots_before + 1, "dropping it committed the card")
     t.eq(st.player(0).energy_current, energy_before - 1, "and paid its cost")
 
+    # --- a zone is a boundary, not a row of anchor points -----------------
+    st.action_priority = 0
+    _force_hand(st, 0, ["PAS_SKILL_01"])
+    st.player(0).energy_current = 4
+    screen.call("_refresh")
+    await _frames(t, 2)
+    _zones_take_a_drop_anywhere(t, screen)
+
     # --- a targeted card drops onto a legal character --------------------
     st.action_priority = 0
     _force_hand(st, 0, ["PAS_SKILL_06"])
@@ -929,6 +937,57 @@ func _card_zoom_reads_cards(t: TestHarness, screen: Control) -> void:
         screen.call("_refresh")
         await _frames(t, 2)
         t.ok(not zoom.call("showing"), "a refresh clears the reader with the chips")
+
+
+## A zone takes a card anywhere inside its boundary, including over the cards
+## already standing in it, and says so while the card is being dragged.
+func _zones_take_a_drop_anywhere(t: TestHarness, screen: Control) -> void:
+    var zones: Array = screen.get("_drop_zones")
+    if not t.ok(zones.size() >= 3, "every zone that takes a card is a region"):
+        return
+    for z in zones:
+        t.ok(not (z as BattleDropTarget).drop_hint.is_empty(),
+            "the %s zone says what dropping there would do" % (z as Control).name)
+    var zone: Control = screen.get("_sequence_zone")
+    if not t.ne(zone, null, "the Action Sequence is one of them"):
+        return
+    var card := _first_draggable_card(screen)
+    if not t.ne(card, null, "a card can be picked up to drag over it"):
+        return
+    var payload = card.call("_get_drag_data", Vector2.ZERO)
+    var size := zone.get_rect().size
+    for at in [Vector2.ZERO, size * 0.5, size - Vector2.ONE,
+            Vector2(size.x - 1.0, 1.0), Vector2(1.0, size.y - 1.0)]:
+        t.ok(zone.call("_can_drop_data", at, payload),
+            "the Sequence takes the card at %s" % at)
+    t.eq(_swallows_mouse(zone), [],
+        "and nothing inside it stands between the drop and the zone")
+
+    var bands: Array = screen.call("_bands_for", payload)
+    var hints: Array = []
+    for b in bands:
+        var band := b as Dictionary
+        hints.append(String(band.get("hint", "")))
+        var rect: Rect2 = band.get("rect", Rect2())
+        t.ok(rect.size.x > 0.0 and rect.size.y > 0.0, "a banded zone has an area to aim at")
+    t.ok(hints.has(zone.get("drop_hint")),
+        "the Sequence is banded while the card is in the air")
+    t.eq(screen.call("_bands_for", {"kind": "nothing"}), [],
+        "and no zone is banded for something none of them takes")
+
+
+## The names of things inside a zone that would swallow a drop before it could
+## reach the zone. Real controls are allowed to: a button is meant to take the
+## mouse for itself.
+func _swallows_mouse(node: Node) -> Array:
+    var found: Array = []
+    for child in node.get_children():
+        if child is Button or child is LineEdit or child is OptionButton or child is SpinBox:
+            continue
+        if child is Control and (child as Control).mouse_filter == Control.MOUSE_FILTER_STOP:
+            found.append(String((child as Control).name))
+        found.append_array(_swallows_mouse(child))
+    return found
 
 
 func _first_draggable_card(screen: Control) -> Control:

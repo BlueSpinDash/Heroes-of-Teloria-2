@@ -28,11 +28,20 @@ var _targets_prechosen: bool = false
 
 # Drag and drop.
 var _drop_targets: Array = []
+## The zones among those targets: the ones that are a region rather than a
+## single card, so a drop lands anywhere inside them.
+var _drop_zones: Array = []
 var _dragging: bool = false
 
 # AI turn handling.
 var _thinker: AiThinker = null
 var _ai_pause: float = 0.0
+## How long the movement just replayed still has to run. The opponent waits it
+## out, so a round's worth of cards changing hands is watched rather than
+## skipped past. Your own input is never held: this only paces the opponent.
+var _replay_hold: float = 0.0
+## However much happens at once, the opponent is never held longer than this.
+const MAX_REPLAY_HOLD := 3.5
 
 # Layout metrics, budgeted against the window rather than left to grow. The
 # board is painted art, so each zone is sized to the plate behind it. These are
@@ -78,6 +87,9 @@ var _events_seen: int = 0
 
 ## A full-size card face, shown while the pointer rests on a small one.
 var _zoom: CardZoom
+
+## The zone boundaries, banded over the board while a card is being dragged.
+var _zone_bounds: ZoneBounds
 
 
 func setup(application: App, _args: Dictionary = {}) -> void:
@@ -169,7 +181,9 @@ func _build() -> void:
     hand_zone.size_flags_vertical = Control.SIZE_SHRINK_END
     root.add_child(hand_zone)
 
-    # Added last so they draw over the board. Neither takes input.
+    # Added last so they draw over the board. None of them takes input.
+    _zone_bounds = ZoneBounds.new()
+    add_child(_zone_bounds)
     _effects = BoardEffects.new()
     add_child(_effects)
     _zoom = CardZoom.new()
@@ -277,6 +291,9 @@ func _process(delta: float) -> void:
     if actor != 1:
         _thinker = null
         return
+    if _replay_hold > 0.0:
+        _replay_hold -= delta
+        return
     if _thinker == null:
         _thinker = AiThinker.new(st, 1)
         _ai_pause = 0.35  # a beat so the player can read what just happened
@@ -302,8 +319,9 @@ func _process(delta: float) -> void:
 
 
 ## While a card or character is being dragged, every place it could legally go
-## lights up. Nothing is rebuilt mid-drag, only restyled, so the drag itself is
-## never interrupted.
+## lights up, and every zone that would take it is banded from edge to edge, so
+## it reads as the region it is rather than as a row of anchor points. Nothing
+## is rebuilt mid-drag, only restyled, so the drag itself is never interrupted.
 func _update_drag_state() -> void:
     var vp := get_viewport()
     if vp == null:
@@ -319,6 +337,25 @@ func _update_drag_state() -> void:
         if tgt is BattleDropTarget and is_instance_valid(tgt):
             var target := tgt as BattleDropTarget
             target.set_highlight(now and target.can_accept(payload))
+    if _zone_bounds != null and is_instance_valid(_zone_bounds):
+        _zone_bounds.show_zones(_bands_for(payload) if now else [])
+
+
+## The zones a payload could be dropped into, as bands to draw. A zone that is
+## scrolled out of sight is banded only as far as it is actually visible.
+func _bands_for(payload) -> Array:
+    var bands: Array = []
+    for z in _drop_zones:
+        if not (z is BattleDropTarget) or not is_instance_valid(z):
+            continue
+        var zone := z as BattleDropTarget
+        if not zone.can_accept(payload):
+            continue
+        var rect := ZoneBounds.visible_rect(zone)
+        if rect.size.x <= 0.0 or rect.size.y <= 0.0:
+            continue
+        bands.append({"rect": rect, "hint": zone.drop_hint})
+    return bands
 
 
 func _after_command() -> void:
@@ -339,12 +376,14 @@ func _refresh() -> void:
     _chips = {}
     _pile_chips = {}
     _drop_targets = []
+    _drop_zones = []
     # The thing being read is about to be freed, so nothing is being read.
     if _zoom != null and is_instance_valid(_zoom):
         _zoom.dismiss()
     for zone in [_sequence_zone, _location_zone, _own_companion_zone]:
         if zone != null:
             _drop_targets.append(zone)
+            _drop_zones.append(zone)
 
     _refresh_top()
     _refresh_piles()
@@ -354,6 +393,11 @@ func _refresh() -> void:
     _refresh_hand()
     _refresh_controls()
     _refresh_log()
+    # The cards that just went into the zones would otherwise stand between a
+    # drop and the zone under them, so the zones are reopened now that they are
+    # filled.
+    for z in _drop_zones:
+        (z as BattleDropTarget).open_to_drops()
     # Positions are only known once the new layout has been measured.
     call_deferred("_play_new_events")
 
@@ -380,11 +424,12 @@ func _refresh_top() -> void:
             12, UiTheme.ENERGY.lightened(0.4)))
         row.add_child(UiTheme.label("Hand %d" % p.hand.size(), 11, UiTheme.TEXT_DIM))
         if i == 1:
-            # The opponent's hand is face down: only its size is public.
+            # The opponent's hand is face down: only its size is public, so it
+            # is drawn as that many card backs and nothing else.
             for _b in min(p.hand.size(), 10):
-                var back := UiTheme.panel(UiTheme.FRAME["hero"], UiTheme.GOLD_DIM, 1, 3)
-                back.custom_minimum_size = Vector2(14, 20)
-                back.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+                var back := CardView.face_down(15.0)
+                if back == null:
+                    break
                 row.add_child(back)
         if p.passed_actions:
             row.add_child(UiTheme.label("passed", 11, UiTheme.GOLD))
@@ -1142,12 +1187,40 @@ func _owner_of(iid: String, fallback: int) -> int:
     return ci.owner if ci != null else fallback
 
 
+## Where a player's hand is on screen. Yours is the strip along the bottom; the
+## opponent's is the row of backs beside their name, which is the only place
+## their hand exists as far as this screen is concerned.
+func _hand_pos(player: int) -> Vector2:
+    if player == 0 and _hand_row != null and is_instance_valid(_hand_row):
+        var r := _hand_row.get_global_rect()
+        if r.size.x > 0.0:
+            return Vector2(r.position.x + minf(r.size.x * 0.5, 240.0),
+                r.position.y + r.size.y * 0.5)
+    if player == 1 and _top != null and is_instance_valid(_top):
+        return _top.get_global_rect().get_center()
+    return get_global_rect().get_center()
+
+
+## Where a zone is on screen, for a card arriving somewhere that has no chip of
+## its own yet.
+func _zone_pos(zone: Control) -> Vector2:
+    if zone != null and is_instance_valid(zone):
+        return zone.get_global_rect().get_center()
+    return get_global_rect().get_center()
+
+
 ## Show what the engine just did. Purely cosmetic: the state is already final
 ## by the time any of this is drawn, and play never waits for it.
+## Show what the engine just did. Purely cosmetic: the state is already final
+## by the time any of this is drawn, and play never waits for it — but the
+## opponent does, so a round's worth of movement is not skipped past before it
+## has been seen.
 func _play_new_events() -> void:
     if st == null or _effects == null or not is_instance_valid(_effects):
         return
     var i := _events_seen
+    if i >= st.events.size():
+        return
     _events_seen = st.events.size()
     var delay := 0.0
     var shown := 0
@@ -1220,10 +1293,78 @@ func _play_new_events() -> void:
                 delay += 0.1
                 shown += 1
             "deployed":
+                # Out of the hand and onto the board: the card is one the
+                # player has seen, so it flies face up.
                 var iid3 := String(e.get("iid", ""))
-                _effects.float_text(_screen_pos_of(iid3), "Enters play", UiTheme.HEAL_TEXT, 18, delay)
-                delay += 0.15
+                var owner3 := _owner_of(iid3, 0)
+                var zone3: Control = _own_companion_zone if owner3 == 0 \
+                    else _opp_companion_zone
+                _effects.fly_card(_hand_pos(owner3), _zone_pos(zone3),
+                    "Enters play", UiTheme.HEAL_TEXT, delay, st.def_of(iid3))
+                delay += 0.3
                 shown += 1
+            "drew":
+                # Off the top of the Hit Deck and into a hand. Face down: a
+                # card is not a card anyone has seen until it is in a hand,
+                # and the opponent's never is.
+                var drew_p := int(e.get("player", 0))
+                var drew_n: int = mini(int(e.get("count", 0)), 5)
+                for k in drew_n:
+                    _effects.fly_card(_pile_pos(drew_p, "hit"), _hand_pos(drew_p),
+                        "" if k > 0 else "Drawn", UiTheme.GOLD,
+                        delay + 0.13 * float(k))
+                if drew_n > 0:
+                    delay += 0.2 + 0.13 * float(drew_n)
+                    shown += 1
+            "milled":
+                var mill_p := int(e.get("player", 0))
+                var mill_n: int = mini(int(e.get("count", 0)), 5)
+                for k in mill_n:
+                    _effects.fly_card(_pile_pos(mill_p, "hit"),
+                        _pile_pos(mill_p, "exhaust"), "" if k > 0 else "Exhausted",
+                        UiTheme.TEXT_DIM, delay + 0.1 * float(k))
+                if mill_n > 0:
+                    delay += 0.2 + 0.1 * float(mill_n)
+                    shown += 1
+            "recovered":
+                var rec_p := int(e.get("player", 0))
+                _effects.fly_card(_pile_pos(rec_p, "exhaust"), _hand_pos(rec_p),
+                    "Recovered", UiTheme.HEAL_TEXT, delay)
+                delay += 0.25
+                shown += 1
+            "bounced":
+                var iid4 := String(e.get("iid", ""))
+                _effects.fly_card(_screen_pos_of(iid4), _hand_pos(_owner_of(iid4, 0)),
+                    "To hand", UiTheme.GOLD, delay, st.def_of(iid4))
+                delay += 0.3
+                shown += 1
+            "attached":
+                var iid5 := String(e.get("iid", ""))
+                _effects.fly_card(_hand_pos(_owner_of(iid5, 0)),
+                    _screen_pos_of(String(e.get("host", ""))),
+                    "Attached", UiTheme.GOLD, delay, st.def_of(iid5))
+                delay += 0.3
+                shown += 1
+            "location_placed":
+                var iid6 := String(e.get("iid", ""))
+                _effects.fly_card(_hand_pos(_owner_of(iid6, 0)),
+                    _zone_pos(_location_zone), "Location", UiTheme.GOLD, delay,
+                    st.def_of(iid6))
+                delay += 0.3
+                shown += 1
+            "committed", "committed_attack":
+                # Into the Action Sequence. A committed card is face up, and
+                # an attack is the character stepping forward.
+                var iid7 := String(e.get("iid", e.get("attacker", "")))
+                var from7 := _hand_pos(int(e.get("player", 0))) if kind == "committed" \
+                    else _screen_pos_of(iid7)
+                _effects.fly_card(from7, _zone_pos(_sequence_zone),
+                    "Committed" if kind == "committed" else "Attacks",
+                    UiTheme.GOLD, delay, st.def_of(iid7))
+                delay += 0.28
+                shown += 1
+    if shown > 0:
+        _replay_hold = minf(delay + BoardEffects.fly_length(), MAX_REPLAY_HOLD)
 
 
 func _can_act() -> bool:

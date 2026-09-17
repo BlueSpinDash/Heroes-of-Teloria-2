@@ -9,7 +9,10 @@ extends Control
 ## itself when it finishes.
 
 const FLOAT_TIME := 1.0
-const FLY_TIME := 0.55
+const FLY_TIME := 0.62
+## How wide a card is drawn while it is in flight. Big enough to recognise,
+## small enough that several crossing the board at once still read.
+const FLY_CARD_W := 54.0
 
 
 func _init() -> void:
@@ -40,29 +43,63 @@ func float_text(at: Vector2, text: String, colour: Color, font_size: int = 24,
     tw.tween_callback(l.queue_free)
 
 
-## A card gliding from where it was to the pile it is going to, so a card
-## leaving play is something you see rather than something you notice later.
+## A card gliding from where it was to where it is going, so a card changing
+## hands, decks or zones is something you watch rather than something you
+## notice afterwards.
+##
+## It flies as a card: face down by default, which is what a card in a Hit,
+## Exhaust or Wound Deck is, or face up when `face` names the card — a
+## Companion coming out of your hand is one you have already seen. The caption
+## rides underneath and says what is happening to it.
 func fly_card(from: Vector2, to: Vector2, label: String, colour: Color,
-        delay: float = 0.0) -> void:
-    var ghost := UiTheme.panel(UiTheme.BG_PANEL, colour, 2, 4)
-    ghost.custom_minimum_size = Vector2(96, 34)
-    ghost.size = Vector2(96, 34)
-    ghost.position = from - Vector2(48, 17)
+        delay: float = 0.0, face: CardDef = null) -> void:
+    var card: Control = null
+    if face != null:
+        card = CardView.create(face, FLY_CARD_W)
+    else:
+        card = CardView.face_down(FLY_CARD_W)
+    if card == null:
+        # No back supplied and no card named: fall back to a plain marker
+        # rather than dropping the movement altogether.
+        card = UiTheme.panel(UiTheme.BG_PANEL, colour, 2, 4)
+        card.custom_minimum_size = Vector2(FLY_CARD_W, FLY_CARD_W * 1.4)
+    card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+    var ghost := Control.new()
+    var card_h := FLY_CARD_W * CardView.BASE_HEIGHT / CardView.BASE_WIDTH
+    ghost.size = Vector2(FLY_CARD_W, card_h + 14.0)
+    ghost.pivot_offset = ghost.size * 0.5
+    ghost.position = from - ghost.size * 0.5
     ghost.modulate.a = 0.0
     ghost.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    var text := UiTheme.label(label, 10, colour, HORIZONTAL_ALIGNMENT_CENTER)
-    text.clip_text = true
-    ghost.add_child(text)
+    ghost.add_child(card)
+    if label != "":
+        var text := UiTheme.label(label, 9, colour, HORIZONTAL_ALIGNMENT_CENTER)
+        text.clip_text = true
+        text.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        text.position = Vector2(-10, card_h + 1.0)
+        text.size = Vector2(FLY_CARD_W + 20.0, 13)
+        text.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+        text.add_theme_constant_override("outline_size", 4)
+        ghost.add_child(text)
     add_child(ghost)
 
     var tw := create_tween()
     tw.tween_interval(delay)
-    tw.tween_property(ghost, "modulate:a", 1.0, 0.1)
-    tw.tween_property(ghost, "position", to - Vector2(48, 17), FLY_TIME) \
+    tw.tween_property(ghost, "modulate:a", 1.0, 0.12)
+    tw.parallel().tween_property(ghost, "scale", Vector2.ONE, 0.12) \
+        .from(Vector2(0.7, 0.7))
+    tw.tween_property(ghost, "position", to - ghost.size * 0.5, FLY_TIME) \
         .set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
-    tw.parallel().tween_property(ghost, "scale", Vector2(0.55, 0.55), FLY_TIME)
-    tw.tween_property(ghost, "modulate:a", 0.0, 0.18)
+    tw.parallel().tween_property(ghost, "scale", Vector2(0.62, 0.62), FLY_TIME)
+    tw.tween_property(ghost, "modulate:a", 0.0, 0.2)
     tw.tween_callback(ghost.queue_free)
+
+
+## How long one flight takes from being asked for to being gone, so a caller
+## can hold the game still until the player has seen it.
+static func fly_length() -> float:
+    return 0.12 + FLY_TIME + 0.2
 
 
 ## A brief ring around something that just resolved or was targeted.

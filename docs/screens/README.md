@@ -16,7 +16,7 @@ xvfb-run -a godot --path . --resolution 1440x900 --script tools/ui_drive.gd
 | `04_deck_builder.png` | Deck builder, with the Energy curve and live legality |
 | `05_opponents.png` | Opponent selection, all seven Affinities |
 | `07_battle_sequence.png` | Battle, mid-round, with the Action Sequence and chain |
-| `08_battle_effects.png` | Battle, with damage floats and cards in flight to the Wound Deck |
+| `08_battle_effects.png` | Battle, with a card flying from the Hit Deck to the hand as it is drawn |
 | `09_shop_reveal.png` | Shop, a booster revealed with slots and conversions |
 | `10_card_editor.png` | Card editor, with the regenerated rules text and validation |
 | `12_card_reader.png` | Battle, with a hand card brought up at a readable size |
@@ -33,6 +33,7 @@ xvfb-run -a godot --path . --resolution 1440x900 --script tools/ui_drive.gd
 | `27_board_cards.png` | A match in progress: every card drawn as a card, and the decks face down |
 | `28_layout_board.png` | The Layout screen laying out the board, with a bar on every edge a number controls |
 | `29_layout_card.png` | The Layout screen laying out a card, with its slots and stacking order |
+| `30_zone_bounds.png` | Battle, mid-drag: every zone that would take the card banded from edge to edge |
 
 The battle screen's own artwork lives in `assets/board/`. `board_full.png` is
 the painted board; `tools/slice_board.gd` cuts the plates the screen uses out

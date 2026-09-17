@@ -18,8 +18,8 @@ establish no Teloria lore or final balance.
 | Opponents | Seven Affinity AI profiles sharing one legal-command API, with a restricted observation model. |
 | Progression | Gold, boosters, duplicate conversion, idempotent rewards, durable pack transactions. |
 | Persistence | Versioned save with atomic writes, backup rotation, export and import. |
-| Interface | Home, Collection, Deck builder, Opponent selection, Battle, Results, Shop, Card editor, Settings. Cards and attacks can be dragged onto their targets or played by clicking. |
-| Tests | 811 assertions across five suites, all passing. |
+| Interface | Home, Collection, Deck builder, Opponent selection, Battle, Results, Shop, Card editor, Settings. Cards and attacks can be dragged onto their targets or anywhere into a zone, or played by clicking. |
+| Tests | 1049 assertions across five suites, all passing. |
 
 ## Requirements
 
@@ -135,9 +135,27 @@ no input and never touches match state.
 Resolution is not silent. When something takes damage the number floats off it,
 and the cards it loses fly from the deck they leave into the Wound Deck, so the
 count you see tick up has a visible cause. Destruction, exhaustion, shields,
-Energy gains and drains, and deployments all get the same treatment. The
-animations are cosmetic: they replay what the engine already decided and can
-never change an outcome.
+Energy gains and drains, and deployments all get the same treatment.
+
+Every card that changes place flies there, drawn as a card rather than as a
+marker: face down when it is a card you are not meant to see, face up when it
+is. Draws leave the Hit Deck for the hand, milled cards leave it for the
+Exhaust Deck, a recovered card comes back out of it, a bounced card returns to
+its owner's hand, a deployed Companion flies from the hand into the Companion
+Zone, and a card committed to the Action Sequence flies there before it
+resolves. While that is playing out the opponent waits, up to a few seconds, so
+a round's worth of movement can be watched rather than skipped past — your own
+input is never held.
+
+The animations are cosmetic: they replay what the engine already decided and
+can never change an outcome.
+
+A zone is a region, not an anchor point. While a card is being dragged, every
+zone that would accept it is banded from edge to edge and named with what
+dropping there would do, and letting go anywhere inside that band plays the
+card — over the cards already standing in the zone, over its painted caption,
+over its empty space. Characters are still dropped on individually, because
+choosing one is the point.
 
 ## Adjusting the layout
 
