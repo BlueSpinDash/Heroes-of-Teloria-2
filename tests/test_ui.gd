@@ -44,6 +44,7 @@ func run(t: TestHarness) -> void:
     _hero_cards_use_the_frame(t)
     await _a_supplied_face_can_be_used_whole(t)
     await _layout_editor_moves_card_parts(t)
+    await _layout_editor_resizes_the_board(t)
     await _start_a_new_save_through_the_screen(t)
     _play_a_starter(t)
     await _play_cards_from_hand(t)
@@ -702,6 +703,93 @@ func _layout_editor_moves_card_parts(t: TestHarness) -> void:
     DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
     t.ok(Layout.rect("hero_card", "art").is_equal_approx(was),
         "the test left the layout as it found it")
+
+
+## The board is laid out in the same screen as a card, and dragging one of its
+## bars has to move the board the same way dragging a card's box moves the card.
+##
+## The numbers are in pixels and so is the drag, so a bar follows the pointer
+## exactly: that is the whole reason the preview is drawn at the size a match
+## draws it rather than scaled to fit.
+func _layout_editor_resizes_the_board(t: TestHarness) -> void:
+    t.begin("the Layout screen resizes the board")
+    app.goto("layout")
+    var screen := _screen()
+    if not t.ne(screen, null, "the Layout screen opened"):
+        return
+    screen.call("_set_mode", "board")
+    await _frames(t, 2)
+    t.eq(String(screen.get("_mode")), "board", "it is laying out the board")
+    var holder := screen.get("_board_holder") as Control
+    if not t.ne(holder, null, "the board preview was built"):
+        return
+    t.ok(holder.get_child_count() >= 10,
+        "with a row for every zone and a bar between them: %d" % holder.get_child_count())
+
+    # Drag the bar under the Companion Zones down, and the zones grow by what
+    # the pointer moved.
+    var was := Layout.num("battle_board", "companion_strip_h")
+    t.ok(not Layout.is_changed("battle_board", "companion_strip_h"),
+        "the zones start at their shipped height")
+    var rows: Dictionary = screen.get("_board_rows")
+    if not t.ok(rows.has("companion_strip_h"), "the zone rows follow that number"):
+        return
+    var zone_row := ((rows["companion_strip_h"] as Array)[0] as Dictionary)["node"] as Control
+    var before := zone_row.custom_minimum_size.y
+
+    # The real gesture: press the bar, move the pointer, let go.
+    var press := InputEventMouseButton.new()
+    press.button_index = MOUSE_BUTTON_LEFT
+    press.pressed = true
+    screen.call("_grab_input", press, "companion_strip_h", "v", 1.0)
+    t.eq(String(screen.get("_grab_key")), "companion_strip_h",
+        "pressing the bar starts a drag on that number")
+    var motion := InputEventMouseMotion.new()
+    motion.relative = Vector2(0, 18)
+    screen.call("_input", motion)
+    motion.relative = Vector2(0, 12)
+    screen.call("_input", motion)
+    t.eq(Layout.num("battle_board", "companion_strip_h"), was + 30.0,
+        "dragging the bar down by 30 makes the zones 30 taller")
+    var release := InputEventMouseButton.new()
+    release.button_index = MOUSE_BUTTON_LEFT
+    release.pressed = false
+    screen.call("_input", release)
+    t.eq(String(screen.get("_grab_key")), "", "letting go ends the drag")
+    await _frames(t, 2)
+    rows = screen.get("_board_rows")
+    zone_row = ((rows["companion_strip_h"] as Array)[0] as Dictionary)["node"] as Control
+    t.eq(zone_row.custom_minimum_size.y, before + 30.0,
+        "and the preview row grew with it")
+    t.ok(Layout.is_changed("battle_board", "companion_strip_h"),
+        "which counts as a change against the shipped value")
+
+    # A number is still held inside its stated range however far it is dragged.
+    var bounds := Layout.limits("battle_board", "companion_strip_h")
+    Layout.set_num("battle_board", "companion_strip_h", bounds.y + 400.0)
+    t.eq(Layout.num("battle_board", "companion_strip_h"), bounds.y,
+        "a drag past the maximum is held at the maximum")
+
+    # The card widths are the same story, and the card really is drawn at it.
+    var card_was := Layout.num("battle_board", "board_card_w")
+    Layout.set_num("battle_board", "board_card_w", card_was + 20.0)
+    screen.call("_rebuild_board")
+    await _frames(t, 2)
+    var cards: Dictionary = screen.get("_board_rows")
+    var holder2 := ((cards["board_card_w"] as Array)[0] as Dictionary)["node"] as Control
+    t.eq(holder2.custom_minimum_size.x, card_was + 20.0,
+        "a wider board card is drawn wider")
+    var face := holder2.get_child(0) as CardView
+    if t.ne(face, null, "and the card in it is a real card"):
+        t.eq(face.card_width, card_was + 20.0, "drawn at that width")
+
+    # Leave the game as it was found, and back to the card so the rest of the
+    # walkthrough starts where it expects to.
+    Layout.reset_all()
+    screen.call("_set_mode", "card")
+    await _frames(t, 2)
+    t.ok(not Layout.is_changed("battle_board", "companion_strip_h"),
+        "the test left the board as it found it")
 
 
 ## A copy of a card put back on its painted frame, with a real picture in the

@@ -137,16 +137,31 @@ never change an outcome.
 ## Adjusting the layout
 
 Positions, sizes and stacking order the interface reads — where each piece sits
-on a Hero card, the type sizes on a card face, the heights of the board's zones
-— are not constants in the screens. They live in `src/ui/layout.gd` as named
-values, and the **Layout** screen edits them against a live card: drag a box to
-move it, drag its corner to resize, nudge with the arrow keys, or type exact
-fractions.
+on a card, the type sizes on a card face, the heights of the board's zones —
+are not constants in the screens. They live in `src/ui/layout.gd` as named
+values, and the **Layout** screen edits them against the real thing.
+
+It lays out two things, and which one is showing is a tab:
+
+**A card.** The preview is a real `CardView` on its painted frame, so what is
+dragged is exactly what a player sees. Drag a box to move it, drag its corner
+to resize, nudge with the arrow keys, or type exact fractions. Stepping through
+the preview moves the editing to that card's frame, so a Skill's slots are
+reached by previewing a Skill.
 
 A card is drawn back to front in the order the layout gives, and the painted
 frame is one of the pieces rather than a backdrop. The stacking list moves any
 piece forward or back, so artwork can be sent behind the frame, a number
 brought in front of a banner, and so on.
+
+**The board.** The preview is the board a match is played on, built from the
+same numbers the battle screen reads and standing real cards in its zones. A
+gold bar sits on every edge a number controls: the bars across the board set
+the heights of its rows, and the upright ones set the width of the Location
+plate and of the cards. The preview is drawn at the size a match draws it, so a
+bar follows the pointer one pixel to one pixel — no scale to reason about. Each
+number is typed beside it as well, and is held inside its stated range however
+far it is dragged.
 
 ### Where a layout change goes
 

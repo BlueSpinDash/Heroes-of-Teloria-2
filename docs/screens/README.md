@@ -24,7 +24,6 @@ xvfb-run -a godot --path . --resolution 1440x900 --script tools/ui_drive.gd
 | `15_new_save.png` | Starting a save: choosing the Affinity it begins in |
 | `16_new_collection.png` | A new save's collection: one Affinity owned, the rest to earn |
 | `18_card_type.png` | Sorbet's Card Type choice, mid-resolution |
-| `19_layout.png` | The Layout screen, with a card's pieces boxed and editable |
 | `20_layers.png` | The same card with its artwork in front of the frame, then behind it |
 | `21_burning_rush.png` | Burning Rush, the first authored Skill, on the Skill frame |
 | `22_skill_frame.png` | The Skill frame: an authored Skill, a proxy, and a Hero beside them |
@@ -32,6 +31,8 @@ xvfb-run -a godot --path . --resolution 1440x900 --script tools/ui_drive.gd
 | `25_supplied_cards.png` | Every card supplied as a finished face, drawn from that face |
 | `26_frames.png` | The Companion, Equipment and Ta'ahma frames, with a proxy's values on them |
 | `27_board_cards.png` | A match in progress: everything that stands for a card is drawn as one |
+| `28_layout_board.png` | The Layout screen laying out the board, with a bar on every edge a number controls |
+| `29_layout_card.png` | The Layout screen laying out a card, with its slots and stacking order |
 
 The battle screen's own artwork lives in `assets/board/`. `board_full.png` is
 the painted board; `tools/slice_board.gd` cuts the plates the screen uses out

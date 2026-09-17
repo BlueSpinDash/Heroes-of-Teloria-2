@@ -420,8 +420,6 @@ func _fill_piles(row: HBoxContainer, player: int, order: Array) -> void:
 
 
 const PILE_LABEL := {"hit": "Hit Deck", "exhaust": "Exhaust Deck", "wound": "Wound Deck"}
-## Each deck plate's own proportions, so it is never stretched out of shape.
-const PILE_ASPECT := {"hit": 330.0 / 162.0, "exhaust": 253.0 / 162.0, "wound": 218.0 / 162.0}
 
 
 ## A deck, on the plate painted for it. The plate already carries the deck's
@@ -432,7 +430,7 @@ func _pile_chip(player: int, kind: String) -> Control:
     var chip := PanelContainer.new()
     var v := BoardArt.back(chip, "deck_" + kind, UiTheme.GOLD_DIM, 1)
     chip.custom_minimum_size = Vector2(
-        DECK_PLATE_H * float(PILE_ASPECT.get(kind, 2.0)), DECK_PLATE_H)
+        DECK_PLATE_H * float(BoardArt.PILE_ASPECT.get(kind, 2.0)), DECK_PLATE_H)
     chip.size_flags_vertical = Control.SIZE_SHRINK_CENTER
     var key := "%d_%s" % [player, kind]
     chip.set_meta("pile", key)
