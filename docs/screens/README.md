@@ -34,6 +34,7 @@ xvfb-run -a godot --path . --resolution 1440x900 --script tools/ui_drive.gd
 | `28_layout_board.png` | The Layout screen laying out the board, with a bar on every edge a number controls |
 | `29_layout_card.png` | The Layout screen laying out a card, with its slots and stacking order |
 | `30_zone_bounds.png` | Battle, mid-drag: every zone that would take the card banded from edge to edge |
+| `31_card_creator.png` | The card creator: a Companion being made, with the price of every choice |
 
 The battle screen's own artwork lives in `assets/board/`. `board_full.png` is
 the painted board; `tools/slice_board.gd` cuts the plates the screen uses out

@@ -42,6 +42,7 @@ const SCREENS := {
     "results": "res://src/ui/screens/results_screen.gd",
     "shop": "res://src/ui/screens/shop_screen.gd",
     "editor": "res://src/ui/screens/editor_screen.gd",
+    "creator": "res://src/ui/screens/creator_screen.gd",
     "settings": "res://src/ui/screens/settings_screen.gd",
 }
 
@@ -113,6 +114,7 @@ func _adopt(p: PlayerProfile, target: int) -> void:
     match_state = null
     match_context = {}
     catalog = Catalog.load_bundled()
+    catalog.set_customs(profile.customs())
     catalog.set_overrides(profile.overrides())
     var errs := catalog.validate_all()
     if not errs.is_empty():
@@ -186,7 +188,8 @@ func _make_header() -> Control:
     # is hidden until there is one.
     _nav = UiTheme.hbox(10)
     for entry in [["Home", "home"], ["Collection", "collection"], ["Decks", "decks"],
-            ["Play", "opponents"], ["Shop", "shop"], ["Editor", "editor"], ["Layout", "layout"], ["Settings", "settings"]]:
+            ["Play", "opponents"], ["Shop", "shop"], ["Create", "creator"],
+            ["Editor", "editor"], ["Layout", "layout"], ["Settings", "settings"]]:
         var b := UiTheme.button(String(entry[0]))
         var target := String(entry[1])
         b.pressed.connect(func(): goto(target))

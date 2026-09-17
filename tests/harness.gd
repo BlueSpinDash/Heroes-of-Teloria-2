@@ -39,6 +39,11 @@ func ge(actual: float, minimum: float, message: String) -> bool:
     return ok(actual >= minimum, "%s (expected >= %s, got %s)" % [message, str(minimum), str(actual)])
 
 
+func gt(actual: float, floor_value: float, message: String) -> bool:
+    return ok(actual > floor_value,
+        "%s (expected > %s, got %s)" % [message, str(floor_value), str(actual)])
+
+
 func le(actual: float, maximum: float, message: String) -> bool:
     return ok(actual <= maximum, "%s (expected <= %s, got %s)" % [message, str(maximum), str(actual)])
 

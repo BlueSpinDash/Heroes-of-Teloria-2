@@ -3,18 +3,23 @@ extends RefCounted
 
 ## Loads, validates and serves card definitions.
 ##
-## Three layers exist:
+## Four layers exist:
 ##   * bundled   — the JSON files shipped in res://data/catalog (read-only),
 ##   * overrides — the player's edits from the card editor (saved separately),
-##   * effective — bundled with overrides applied, which is what play uses.
+##   * customs   — cards the player made in the card creator, which are whole
+##                 definitions of their own rather than edits of a shipped one,
+##   * effective — all of the above together, which is what play uses.
 ##
 ## "Restore to bundled" simply drops an override, so an edit can always be
-## undone without touching the shipped files.
+## undone without touching the shipped files. A custom card has no bundled
+## version behind it, so deleting one removes it outright — which is why that
+## is the creator's own deliberate action rather than a restore.
 
 const CATALOG_DIR := "res://data/catalog"
 
 var bundled: Dictionary = {}    # def_id -> Dictionary (raw)
 var overrides: Dictionary = {}  # def_id -> Dictionary (raw)
+var customs: Dictionary = {}    # def_id -> Dictionary (raw), created by the player
 var _effective: Dictionary = {} # def_id -> CardDef
 var _order: Array = []          # def ids in stable load order
 var load_errors: Array = []
@@ -75,9 +80,22 @@ func set_overrides(o: Dictionary) -> void:
     rebuild()
 
 
+## Load the player's created cards. They join the catalog as ordinary
+## definitions: the collection lists them, decks may hold them, and a match
+## freezes them like any other card.
+func set_customs(c: Dictionary) -> void:
+    customs = c.duplicate(true)
+    rebuild()
+
+
 func rebuild() -> void:
     _effective.clear()
     for cid in _order:
+        # The load order also holds ids that came from an import or from the
+        # card creator, which have no bundled definition behind them. Those are
+        # added by the passes below.
+        if not bundled.has(cid):
+            continue
         var raw: Dictionary = bundled[cid]
         if overrides.has(cid):
             raw = overrides[cid]
@@ -87,6 +105,22 @@ func rebuild() -> void:
         if not _effective.has(cid):
             _effective[String(cid)] = CardDef.from_dict(overrides[cid])
             _order.append(String(cid))
+    # Created cards come last, so they read as the newest thing in the
+    # collection, and an override of one still wins.
+    var custom_ids: Array = customs.keys()
+    custom_ids.sort()
+    for cid in custom_ids:
+        var raw_custom: Dictionary = overrides.get(cid, customs[cid])
+        _effective[String(cid)] = CardDef.from_dict(raw_custom)
+        if not _order.has(String(cid)):
+            _order.append(String(cid))
+    # A card the creator deleted is gone from the catalog, so it must not be
+    # left behind in the load order from an earlier rebuild.
+    var kept: Array = []
+    for cid in _order:
+        if _effective.has(cid):
+            kept.append(cid)
+    _order = kept
 
 
 func ids() -> Array:
@@ -115,6 +149,49 @@ func all_defs() -> Array:
 
 func is_overridden(def_id: String) -> bool:
     return overrides.has(def_id)
+
+
+## Whether this definition is a card the player made rather than one the game
+## shipped. The card's own face says so too, so it is never mistaken for one of
+## the game's own.
+func is_custom(def_id: String) -> bool:
+    return customs.has(def_id)
+
+
+## Store a created card, validating it exactly as a shipped definition is
+## validated. Returns the problems found, and stores nothing when there are any.
+func put_custom(def: CardDef) -> Array:
+    var raw := def.to_dict()
+    var cid := String(raw.get("id", ""))
+    if cid == "":
+        return ["A created card needs an id."]
+    if bundled.has(cid):
+        return ["%s is already a card the game ships." % cid]
+    raw["text"] = TextGen.render(CardDef.from_dict(raw))
+    var candidate := CardDef.from_dict(raw)
+    var errs := candidate.validate()
+    if not errs.is_empty():
+        return errs
+    # A display name shared with another card is a catalog error, so it is
+    # refused here rather than saved and reported later.
+    for other in all_defs():
+        var o: CardDef = other
+        if o.id != cid and o.name == candidate.name:
+            return ["%s already carries the name '%s'." % [o.id, candidate.name]]
+    customs[cid] = raw
+    rebuild()
+    return []
+
+
+## Remove a created card from the catalog entirely.
+func remove_custom(def_id: String) -> bool:
+    if not customs.has(def_id):
+        return false
+    customs.erase(def_id)
+    overrides.erase(def_id)
+    _effective.erase(def_id)
+    rebuild()
+    return true
 
 
 ## Drop an override so the bundled definition applies again.

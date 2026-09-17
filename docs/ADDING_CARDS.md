@@ -287,3 +287,23 @@ The card editor covers everything except writing new effect operations:
 Edits made in the app are stored in your save as overrides, so the shipped files
 stay clean and "Restore bundled version" always works. Edits I make go into
 `data/catalog/` and become the shipped card.
+
+## Making a card rather than replacing one
+
+The **Create** screen makes a new card instead of changing an existing one, and
+it is the easier road: nothing there needs a definition written by hand, because
+every choice is picked from what the engine already performs and priced, and the
+prices decide the card's Energy cost and its rarity. `src/core/card_forge.gd`
+holds the prices and the feature table; the README has the full description.
+
+Which screen you want:
+
+| You want to | Use |
+| --- | --- |
+| Replace a proxy with a card you have drawn | The **Editor**, or send me the face |
+| Make up a card of your own to play with | The **Create** screen |
+| Write an effect the engine cannot yet perform | Neither: the engine needs extending first, see `docs/EFFECT_SCHEMA.md` |
+
+A created card is marked CUSTOM on its face and belongs to the save it was made
+in. A shipped card never is, and a card you send me to draw properly becomes
+part of `data/catalog/` for everyone.

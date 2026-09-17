@@ -471,6 +471,7 @@ func _import_overrides() -> void:
         return
     for k in (incoming as Dictionary).keys():
         app.profile.set_override(String(k), (incoming as Dictionary)[k])
+    app.catalog.set_customs(app.profile.customs())
     app.catalog.set_overrides(app.profile.overrides())
     app.save_profile()
     app.toast("Imported %d override(s)." % (incoming as Dictionary).size())

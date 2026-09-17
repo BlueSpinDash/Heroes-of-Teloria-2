@@ -66,6 +66,12 @@ var placeholder: bool:
 var authored: bool:
     get: return _truthy(data.get("authored", false))
 
+## True when the player made this card in the card creator rather than the game
+## shipping it. It changes nothing about how the card plays; it is printed on
+## the face so a created card is never mistaken for one of the game's own.
+var custom: bool:
+    get: return _truthy(data.get("custom", false))
+
 ## Which face this card is drawn on. Empty means the painted frame for its
 ## type, if there is one; "plain" means the laid-out face, which is how a card
 ## finished before its type had a frame keeps the look it shipped with.
@@ -408,6 +414,8 @@ func validate() -> Array:
 
     if data.has("authored") and not (data["authored"] is bool):
         errs.append("%s: 'authored' must be true or false" % p)
+    if data.has("custom") and not (data["custom"] is bool):
+        errs.append("%s: 'custom' must be true or false" % p)
     if data.has("frame") and not (data["frame"] is String and frame in ["", "plain", "printed"]):
         errs.append("%s: 'frame' must be \"\", \"plain\" or \"printed\"" % p)
     # A printed face is the supplied picture and nothing else, so there has to
