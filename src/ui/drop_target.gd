@@ -56,6 +56,31 @@ func claim_mouse() -> void:
     _ignore_below(self)
 
 
+## Open this zone up so a card can be dropped anywhere inside it.
+##
+## Godot offers a drop to the control under the pointer and then walks up its
+## parents, but that walk stops dead at the first thing that swallows the
+## mouse. The plate art, the captions and the scrolling strips inside a zone
+## all swallow it by default, which would leave the cards already standing in
+## the zone as the only places a drop could land. So everything in here is set
+## to pass the mouse along instead: each piece still gets its own hover and its
+## own drags, and whatever it does not take for itself reaches the zone.
+func open_to_drops() -> void:
+    mouse_filter = Control.MOUSE_FILTER_STOP
+    _pass_below(self)
+
+
+static func _pass_below(node: Node) -> void:
+    for child in node.get_children():
+        if child is Button or child is LineEdit or child is OptionButton or child is SpinBox:
+            continue  # real controls keep the mouse to themselves
+        if child is Control:
+            var c := child as Control
+            if c.mouse_filter == Control.MOUSE_FILTER_STOP:
+                c.mouse_filter = Control.MOUSE_FILTER_PASS
+        _pass_below(child)
+
+
 static func _ignore_below(node: Node) -> void:
     for child in node.get_children():
         if child is Button or child is LineEdit or child is OptionButton or child is SpinBox:

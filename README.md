@@ -18,8 +18,8 @@ establish no Teloria lore or final balance.
 | Opponents | Seven Affinity AI profiles sharing one legal-command API, with a restricted observation model. |
 | Progression | Gold, boosters, duplicate conversion, idempotent rewards, durable pack transactions. |
 | Persistence | Versioned save with atomic writes, backup rotation, export and import. |
-| Interface | Home, Collection, Deck builder, Opponent selection, Battle, Results, Shop, Card editor, Settings. Cards and attacks can be dragged onto their targets or played by clicking. |
-| Tests | 811 assertions across five suites, all passing. |
+| Interface | Home, Collection, Deck builder, Opponent selection, Battle, Results, Shop, Card editor, Settings. Cards and attacks can be dragged onto their targets or anywhere into a zone, or played by clicking. |
+| Tests | 1049 assertions across five suites, all passing. |
 
 ## Requirements
 
@@ -69,24 +69,60 @@ trading-card proportions, 2.5 by 3.5.
 
 ## Card faces
 
-A card type can have a painted frame. Heroes have one: `assets/frames/` holds
-the painted template and the frame built from it by
-`tools/prepare_hero_frame.gd`, which paints out the placeholder name, stat
-numbers and lorem rules text so the game can fill them in, and leaves
-everything that is the same on every Hero — the HERO banner, the MAX ENERGY,
-ATTACK and DEFENSE captions, the ornament. The live card then anchors each
-value over the region the template painted for it, as a fraction of the card,
-so the whole face scales together.
+Every card type but the Location has a painted frame: Heroes, Skills,
+Companions, Equipment and Ta'ahma. `assets/frames/` holds the painted templates
+and the frames built from them by `tools/prepare_card_frames.gd`, which paints
+out the placeholder name, stat numbers and lorem rules text so the game can
+fill them in, and leaves everything that is the same on every card of the type
+— the type banner, the stat captions, the ornament. The live card then anchors
+each value over the region the template painted for it, as a fraction of the
+card, so the whole face scales together.
 
-Rebuild the frame after replacing the template:
+Painting out is done two ways. A **patch** stretches a clean piece of the same
+surface over the words, which works on parchment and stone. On a cut gem or a
+medallion, where every facet is lit differently, a patch taken from elsewhere
+lands as a visible block, so an **inpaint** refills that region line by line
+between the clean surface on either side of it — down a gem, across a medallion
+that carries its icon directly above its number.
+
+Two frames are pale stone rather than dark, so their numbers and footers are
+inked dark instead of white. That follows the frame, not the card.
+
+Each window has its corners cut back by a gothic arch, so art is clipped to the
+window's shape rather than laid over it as a rectangle. A frame can also hand
+back an ornament it paints across the window — the Skill frame's Energy gem —
+which is cut out as its own picture and drawn above the artwork, the way the
+printed card has it.
+
+Rebuild the frames after replacing a template:
 
 ```sh
-godot --headless --path . --script tools/prepare_hero_frame.gd
+godot --headless --path . --script tools/prepare_card_frames.gd
 ```
 
 A card can opt out with `"frame": "plain"` in its data, which is how a card
 finished before its type had a frame can keep the look it shipped with. No card
-uses it at the moment: every Hero, Parfait included, is on the frame.
+uses it at the moment: every Hero and every Skill is on its frame.
+
+`"frame": "printed"` goes the other way: the supplied card face is drawn whole,
+with nothing placed on it. This is how a card supplied as a finished painting
+is added — the face goes in `assets/cards/`, `tools/prepare_card_faces.gd`
+takes the backdrop off it, and the card is drawn from it. The picture then
+carries its own name, numbers and rules text, which means the game can no
+longer restate what the card does when the card changes: the face has to be
+redrawn instead. The card still carries real effect data underneath, because
+that is what the game plays. `docs/ADDING_CARDS.md` sets out the trade.
+
+Everything on the table that stands for a card is drawn as that card: your
+Hero, both players' Companions, the Location in play, each step of the Action
+Sequence, and your hand. A card in play carries one badge for whatever a player
+most needs at a glance — what its statistics are now, what it is preventing,
+whether it has already acted — and the rest in its tooltip.
+
+Cards in a Hit, Exhaust or Wound Deck are face down, so those decks show the
+card back — `assets/cards/card_back.png` — standing on the plate painted for
+them, with how many are in the deck across its foot. A deck with nothing in it
+shows its plate alone: there is no card there to be face down.
 
 Cards on the table are drawn small enough to fit it, which leaves their rules
 text too small to read, so resting the pointer on one brings the same card up
@@ -99,23 +135,56 @@ no input and never touches match state.
 Resolution is not silent. When something takes damage the number floats off it,
 and the cards it loses fly from the deck they leave into the Wound Deck, so the
 count you see tick up has a visible cause. Destruction, exhaustion, shields,
-Energy gains and drains, and deployments all get the same treatment. The
-animations are cosmetic: they replay what the engine already decided and can
-never change an outcome.
+Energy gains and drains, and deployments all get the same treatment.
+
+Every card that changes place flies there, drawn as a card rather than as a
+marker: face down when it is a card you are not meant to see, face up when it
+is. Draws leave the Hit Deck for the hand, milled cards leave it for the
+Exhaust Deck, a recovered card comes back out of it, a bounced card returns to
+its owner's hand, a deployed Companion flies from the hand into the Companion
+Zone, and a card committed to the Action Sequence flies there before it
+resolves. While that is playing out the opponent waits, up to a few seconds, so
+a round's worth of movement can be watched rather than skipped past — your own
+input is never held.
+
+The animations are cosmetic: they replay what the engine already decided and
+can never change an outcome.
+
+A zone is a region, not an anchor point. While a card is being dragged, every
+zone that would accept it is banded from edge to edge and named with what
+dropping there would do, and letting go anywhere inside that band plays the
+card — over the cards already standing in the zone, over its painted caption,
+over its empty space. Characters are still dropped on individually, because
+choosing one is the point.
 
 ## Adjusting the layout
 
 Positions, sizes and stacking order the interface reads — where each piece sits
-on a Hero card, the type sizes on a card face, the heights of the board's zones
-— are not constants in the screens. They live in `src/ui/layout.gd` as named
-values, and the **Layout** screen edits them against a live card: drag a box to
-move it, drag its corner to resize, nudge with the arrow keys, or type exact
-fractions.
+on a card, the type sizes on a card face, the heights of the board's zones —
+are not constants in the screens. They live in `src/ui/layout.gd` as named
+values, and the **Layout** screen edits them against the real thing.
+
+It lays out two things, and which one is showing is a tab:
+
+**A card.** The preview is a real `CardView` on its painted frame, so what is
+dragged is exactly what a player sees. Drag a box to move it, drag its corner
+to resize, nudge with the arrow keys, or type exact fractions. Stepping through
+the preview moves the editing to that card's frame, so a Skill's slots are
+reached by previewing a Skill.
 
 A card is drawn back to front in the order the layout gives, and the painted
 frame is one of the pieces rather than a backdrop. The stacking list moves any
 piece forward or back, so artwork can be sent behind the frame, a number
 brought in front of a banner, and so on.
+
+**The board.** The preview is the board a match is played on, built from the
+same numbers the battle screen reads and standing real cards in its zones. A
+gold bar sits on every edge a number controls: the bars across the board set
+the heights of its rows, and the upright ones set the width of the Location
+plate and of the cards. The preview is drawn at the size a match draws it, so a
+bar follows the pointer one pixel to one pixel — no scale to reason about. Each
+number is typed beside it as well, and is held inside its stated range however
+far it is dragged.
 
 ### Where a layout change goes
 

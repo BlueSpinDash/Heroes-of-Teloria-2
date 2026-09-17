@@ -48,11 +48,11 @@
     "flavor": "",
     "art": {
       "style": "supplied",
-      "image": "parfait_the_unyielding_flame.png",
-      "fit": "cover",
-      "seed": 50670,
-      "hue": 350,
-      "saturation": 0.45
+      "image": "res://assets/cards/parfait_the_unyielding_flame.png",
+      "fit": "contain",
+      "seed": 20101,
+      "hue": 10,
+      "saturation": 0.6
     },
     "patterns": [
       "affinity_engine",
@@ -67,7 +67,8 @@
         "energy_refund",
         "hero"
       ]
-    }
+    },
+    "frame": "printed"
   },
   {
     "id": "PAS_HERO_02",
@@ -131,15 +132,17 @@
   },
   {
     "id": "PAS_SKILL_01",
-    "revision": 1,
-    "placeholder": true,
-    "name": "Passion Proxy Skill 01",
+    "revision": 2,
+    "placeholder": false,
+    "authored": true,
+    "name": "Burning Rush",
+    "short_name": "Burning Rush",
     "types": [
       "skill"
     ],
     "tags": [
-      "magic",
-      "ranged"
+      "martial",
+      "melee"
     ],
     "affinities": [
       "passion"
@@ -156,30 +159,36 @@
     ],
     "effects": [
       {
-        "op": "damage_hero",
-        "who": "opponent",
-        "amount": 2
+        "op": "next_attack_bonus",
+        "amount": 1,
+        "scope": "either",
+        "affinity": "passion"
       }
     ],
     "triggers": [],
-    "text": "Deal 2 damage to the opposing Hero.",
-    "flavor": "Placeholder flavour for Passion Proxy Skill 01. Names, art and flavour are replaceable and never change mechanics.",
+    "text": "The next Passion character to attack after Burning Rush deals 1 additional damage.",
+    "flavor": "",
     "art": {
-      "style": "abstract_sigil",
-      "seed": 285,
-      "hue": 350,
-      "saturation": 0.45
+      "style": "supplied",
+      "image": "res://assets/cards/burning_rush.png",
+      "fit": "contain",
+      "seed": 50301,
+      "hue": 20,
+      "saturation": 0.55
     },
     "patterns": [
-      "hero_burn"
+      "next_attack_bonus",
+      "damage_boost"
     ],
     "ai_hints": {
       "role": "aggro",
-      "priority": 0.47,
+      "priority": 0.42,
       "patterns": [
-        "hero_burn"
+        "next_attack_bonus",
+        "damage_boost"
       ]
-    }
+    },
+    "frame": "printed"
   },
   {
     "id": "PAS_SKILL_02",
@@ -344,9 +353,9 @@
   },
   {
     "id": "PAS_SKILL_05",
-    "revision": 1,
-    "placeholder": true,
-    "name": "Passion Proxy Skill 05",
+    "revision": 2,
+    "placeholder": false,
+    "name": "Fevered Tempo",
     "types": [
       "skill"
     ],
@@ -368,28 +377,38 @@
       "action"
     ],
     "target": {
-      "kind": "opponent_companion",
+      "kind": "any_character",
       "count": 1
     },
     "effects": [
       {
         "op": "direct_damage",
         "target": "chosen",
-        "amount": 2,
+        "amount": {
+          "from": "count",
+          "of": "resolved_before",
+          "types": [
+            "skill"
+          ],
+          "scope": "either"
+        },
         "ignores_defense": false
       }
     ],
     "triggers": [],
-    "text": "Deal 2 damage to target Companion your opponent controls, reduced by its Defense.",
+    "text": "Deal damage equal to the number of Skill cards that resolved before Fevered Tempo this round to target character, reduced by its Defense.",
     "flavor": "Placeholder flavour for Passion Proxy Skill 05. Names, art and flavour are replaceable and never change mechanics.",
     "art": {
-      "style": "abstract_sigil",
-      "seed": 89809,
-      "hue": 350,
-      "saturation": 0.45
+      "style": "supplied",
+      "image": "res://assets/cards/fevered_tempo.png",
+      "fit": "contain",
+      "seed": 20505,
+      "hue": 10,
+      "saturation": 0.6
     },
     "patterns": [
-      "direct_damage"
+      "damage",
+      "chain_payoff"
     ],
     "ai_hints": {
       "role": "aggro",
@@ -397,7 +416,10 @@
       "patterns": [
         "direct_damage"
       ]
-    }
+    },
+    "authored": true,
+    "short_name": "Fevered Tempo",
+    "frame": "printed"
   },
   {
     "id": "PAS_SKILL_06",
@@ -1074,14 +1096,15 @@
   },
   {
     "id": "PAS_SKILL_18",
-    "revision": 1,
-    "placeholder": true,
-    "name": "Passion Proxy Skill 18",
+    "revision": 2,
+    "placeholder": false,
+    "name": "Counterpoint",
     "types": [
       "skill"
     ],
     "tags": [
-      "magic",
+      "martial",
+      "melee",
       "reaction"
     ],
     "affinities": [
@@ -1100,33 +1123,33 @@
     "reaction_window": "before",
     "effects": [
       {
-        "op": "chain_reward",
-        "require": {
-          "min": 2,
+        "op": "prevent_damage",
+        "target": "chosen",
+        "duration": "round",
+        "reflect": true,
+        "amount": {
+          "from": "count",
+          "of": "resolved_before",
           "affinity": "passion",
-          "scope": "either"
-        },
-        "then": [
-          {
-            "op": "energy_gain",
-            "who": "self",
-            "amount": 2
-          }
-        ]
+          "scope": "either",
+          "plus": 1
+        }
       }
     ],
     "triggers": [],
-    "text": "Reaction (before the Action): If the current chain contains at least 2 Passion Actions, you gain 2 Energy.",
+    "text": "Reaction (before the Action): For the round, reduce the next damage dealt to target character by 1 plus the number of Passion cards that resolved before Counterpoint this round. Whatever was dealing that damage takes as much as was prevented.",
     "flavor": "Placeholder flavour for Passion Proxy Skill 18. Names, art and flavour are replaceable and never change mechanics.",
     "art": {
-      "style": "abstract_sigil",
-      "seed": 40555,
-      "hue": 350,
-      "saturation": 0.45
+      "style": "supplied",
+      "image": "res://assets/cards/counterpoint.png",
+      "fit": "contain",
+      "seed": 20707,
+      "hue": 5,
+      "saturation": 0.6
     },
     "patterns": [
-      "chain_payoff",
-      "energy_reaction"
+      "defensive_reaction",
+      "count_scaling"
     ],
     "ai_hints": {
       "role": "aggro",
@@ -1135,7 +1158,14 @@
         "chain_payoff",
         "energy_reaction"
       ]
-    }
+    },
+    "authored": true,
+    "short_name": "Counterpoint",
+    "target": {
+      "kind": "any_character",
+      "count": 1
+    },
+    "frame": "printed"
   },
   {
     "id": "PAS_SKILL_19",
@@ -1261,128 +1291,9 @@
   },
   {
     "id": "PAS_COMP_01",
-    "revision": 1,
-    "placeholder": true,
-    "name": "Passion Proxy Companion 01",
-    "types": [
-      "companion"
-    ],
-    "tags": [],
-    "affinities": [
-      "passion"
-    ],
-    "rarity": "common",
-    "unique": false,
-    "character_id": "",
-    "cost": {
-      "kind": "fixed",
-      "amount": 1
-    },
-    "timing": [
-      "action"
-    ],
-    "energy_contribution": 1,
-    "attack": 2,
-    "defense": 1,
-    "attack_cost": 1,
-    "persistent": {
-      "kind": "companion"
-    },
-    "effects": [],
-    "triggers": [],
-    "text": "",
-    "flavor": "Placeholder flavour for Passion Proxy Companion 01. Names, art and flavour are replaceable and never change mechanics.",
-    "art": {
-      "style": "abstract_sigil",
-      "seed": 86919,
-      "hue": 350,
-      "saturation": 0.45
-    },
-    "patterns": [
-      "body",
-      "deploy"
-    ],
-    "ai_hints": {
-      "role": "aggro",
-      "priority": 0.47,
-      "patterns": [
-        "body",
-        "deploy"
-      ]
-    }
-  },
-  {
-    "id": "PAS_COMP_02",
-    "revision": 1,
-    "placeholder": true,
-    "name": "Passion Proxy Companion 02",
-    "types": [
-      "companion"
-    ],
-    "tags": [],
-    "affinities": [
-      "passion"
-    ],
-    "rarity": "common",
-    "unique": false,
-    "character_id": "",
-    "cost": {
-      "kind": "fixed",
-      "amount": 1
-    },
-    "timing": [
-      "action"
-    ],
-    "energy_contribution": 1,
-    "attack": 1,
-    "defense": 1,
-    "attack_cost": 1,
-    "persistent": {
-      "kind": "companion"
-    },
-    "effects": [],
-    "triggers": [
-      {
-        "on": {
-          "kind": "self_deployed"
-        },
-        "effects": [
-          {
-            "op": "damage_hero",
-            "who": "opponent",
-            "amount": 1
-          }
-        ]
-      }
-    ],
-    "text": "When this Companion enters play, deal 1 damage to the opposing Hero.",
-    "flavor": "Placeholder flavour for Passion Proxy Companion 02. Names, art and flavour are replaceable and never change mechanics.",
-    "art": {
-      "style": "abstract_sigil",
-      "seed": 64538,
-      "hue": 350,
-      "saturation": 0.45
-    },
-    "patterns": [
-      "deploy",
-      "etb_effect",
-      "hero_burn"
-    ],
-    "ai_hints": {
-      "role": "aggro",
-      "priority": 0.47,
-      "patterns": [
-        "deploy",
-        "etb_effect",
-        "hero_burn"
-      ]
-    }
-  },
-  {
-    "id": "PAS_COMP_03",
-    "revision": 1,
-    "placeholder": true,
-    "name": "Passion Proxy Companion 03",
+    "revision": 2,
+    "placeholder": false,
+    "name": "Vanguard Arbalist",
     "types": [
       "companion"
     ],
@@ -1400,26 +1311,188 @@
     "timing": [
       "action"
     ],
-    "energy_contribution": 2,
-    "attack": 3,
+    "energy_contribution": 1,
+    "attack": 1,
+    "defense": 2,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [],
+    "triggers": [
+      {
+        "on": {
+          "kind": "self_deployed"
+        },
+        "effects": [
+          {
+            "op": "search_and_attach",
+            "who": "self",
+            "zones": [
+              "hit",
+              "exhaust"
+            ],
+            "tag": "ammunition",
+            "to": "self"
+          }
+        ]
+      }
+    ],
+    "text": "When Vanguard Arbalist enters play, search your Hit Deck or Exhaust Deck for an Ammunition card and attach it to Vanguard Arbalist.",
+    "flavor": "Placeholder flavour for Passion Proxy Companion 01. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "supplied",
+      "image": "res://assets/cards/vanguard_arbalist.png",
+      "fit": "contain",
+      "seed": 20301,
+      "hue": 20,
+      "saturation": 0.5
+    },
+    "patterns": [
+      "body",
+      "etb_effect"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.47,
+      "patterns": [
+        "body",
+        "deploy"
+      ]
+    },
+    "authored": true,
+    "short_name": "Vanguard Arbalist",
+    "attack_tags": [
+      "martial",
+      "ranged"
+    ],
+    "frame": "printed"
+  },
+  {
+    "id": "PAS_COMP_02",
+    "revision": 2,
+    "placeholder": false,
+    "name": "Young Blood",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 2
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 1,
+    "attack": 1,
     "defense": 1,
     "attack_cost": 1,
     "persistent": {
       "kind": "companion"
     },
     "effects": [],
-    "triggers": [],
-    "text": "",
-    "flavor": "Placeholder flavour for Passion Proxy Companion 03. Names, art and flavour are replaceable and never change mechanics.",
+    "triggers": [
+      {
+        "on": {
+          "kind": "self_wounded"
+        },
+        "effects": [
+          {
+            "op": "draw",
+            "who": "self",
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "text": "When Young Blood enters your Wound Deck, you draw 1 card.",
+    "flavor": "Placeholder flavour for Passion Proxy Companion 02. Names, art and flavour are replaceable and never change mechanics.",
     "art": {
-      "style": "abstract_sigil",
-      "seed": 42157,
-      "hue": 350,
-      "saturation": 0.45
+      "style": "supplied",
+      "image": "res://assets/cards/young_blood.png",
+      "fit": "contain",
+      "seed": 20201,
+      "hue": 20,
+      "saturation": 0.5
     },
     "patterns": [
       "body",
-      "deploy"
+      "draw"
+    ],
+    "ai_hints": {
+      "role": "aggro",
+      "priority": 0.47,
+      "patterns": [
+        "deploy",
+        "etb_effect",
+        "hero_burn"
+      ]
+    },
+    "authored": true,
+    "short_name": "Young Blood",
+    "frame": "printed"
+  },
+  {
+    "id": "PAS_COMP_03",
+    "revision": 2,
+    "placeholder": false,
+    "name": "Vanguard Captain",
+    "types": [
+      "companion"
+    ],
+    "tags": [],
+    "affinities": [
+      "passion"
+    ],
+    "rarity": "common",
+    "unique": false,
+    "character_id": "",
+    "cost": {
+      "kind": "fixed",
+      "amount": 3
+    },
+    "timing": [
+      "action"
+    ],
+    "energy_contribution": 1,
+    "attack": 2,
+    "defense": 0,
+    "attack_cost": 1,
+    "persistent": {
+      "kind": "companion"
+    },
+    "effects": [
+      {
+        "op": "aura_stat_mod",
+        "scope": "self",
+        "defense": {
+          "from": "count",
+          "of": "attackers_in_sequence",
+          "scope": "either"
+        }
+      }
+    ],
+    "triggers": [],
+    "text": "Vanguard Captain's Defense is equal to the number of Heroes and Companions attacking in the Action Sequence.",
+    "flavor": "Placeholder flavour for Passion Proxy Companion 03. Names, art and flavour are replaceable and never change mechanics.",
+    "art": {
+      "style": "supplied",
+      "image": "res://assets/cards/vanguard_captain.png",
+      "fit": "contain",
+      "seed": 20303,
+      "hue": 15,
+      "saturation": 0.55
+    },
+    "patterns": [
+      "body",
+      "count_scaling"
     ],
     "ai_hints": {
       "role": "aggro",
@@ -1428,7 +1501,14 @@
         "body",
         "deploy"
       ]
-    }
+    },
+    "authored": true,
+    "short_name": "Vanguard Captain",
+    "attack_tags": [
+      "martial",
+      "melee"
+    ],
+    "frame": "printed"
   },
   {
     "id": "PAS_COMP_04",
@@ -1890,9 +1970,9 @@
   },
   {
     "id": "PAS_EQUIP_01",
-    "revision": 1,
-    "placeholder": true,
-    "name": "Passion Proxy Equipment 01",
+    "revision": 2,
+    "placeholder": false,
+    "name": "Rallying Banner",
     "types": [
       "equipment"
     ],
@@ -1905,12 +1985,11 @@
     "character_id": "",
     "cost": {
       "kind": "fixed",
-      "amount": 1
+      "amount": 3
     },
     "timing": [
       "action"
     ],
-    "attack": 2,
     "persistent": {
       "kind": "attachment",
       "slot": "equipment"
@@ -1921,22 +2000,28 @@
     },
     "effects": [
       {
-        "op": "aura_stat_mod",
-        "scope": "host",
-        "attack": 2
+        "op": "grant_reaction_attack",
+        "who": "self",
+        "affinity": "passion",
+        "cond": {
+          "kind": "host_in_sequence"
+        }
       }
     ],
     "triggers": [],
-    "text": "While this card is in play, its host gets +2 Attack.",
+    "text": "While its host is in the Action Sequence, other Passion Companions you control may enter the Action Sequence as Reactions.",
     "flavor": "Placeholder flavour for Passion Proxy Equipment 01. Names, art and flavour are replaceable and never change mechanics.",
     "art": {
-      "style": "abstract_sigil",
-      "seed": 44378,
-      "hue": 350,
-      "saturation": 0.45
+      "style": "supplied",
+      "image": "res://assets/cards/rallying_banner.png",
+      "fit": "contain",
+      "seed": 20501,
+      "hue": 5,
+      "saturation": 0.55
     },
     "patterns": [
-      "equipment_buff"
+      "equipment_buff",
+      "reaction_boost"
     ],
     "ai_hints": {
       "role": "aggro",
@@ -1944,7 +2029,10 @@
       "patterns": [
         "equipment_buff"
       ]
-    }
+    },
+    "authored": true,
+    "short_name": "Rallying Banner",
+    "frame": "printed"
   },
   {
     "id": "PAS_EQUIP_02",
@@ -2144,9 +2232,9 @@
   },
   {
     "id": "PAS_TAAHMA_01",
-    "revision": 1,
-    "placeholder": true,
-    "name": "Passion Proxy Ta'ahma 01",
+    "revision": 2,
+    "placeholder": false,
+    "name": "Why I Fight",
     "types": [
       "taahma"
     ],
@@ -2170,26 +2258,37 @@
     },
     "target": {
       "kind": "own_character_host",
-      "count": 1
+      "count": 1,
+      "character_id": "parfait"
     },
     "effects": [
       {
-        "op": "aura_stat_mod",
-        "scope": "host",
-        "attack": 1
+        "op": "aura_energy_max",
+        "who": "self",
+        "amount": {
+          "from": "count",
+          "of": "own_wound",
+          "types": [
+            "companion"
+          ],
+          "affinity": "passion"
+        }
       }
     ],
     "triggers": [],
-    "text": "While this card is in play, its host gets +1 Attack.",
+    "text": "Attach to Parfait. While this card is in play, your maximum Energy is increased by the number of Passion Companions in your Wound Deck.",
     "flavor": "Placeholder flavour for Passion Proxy Ta'ahma 01. Names, art and flavour are replaceable and never change mechanics.",
     "art": {
-      "style": "abstract_sigil",
-      "seed": 10758,
-      "hue": 350,
-      "saturation": 0.45
+      "style": "supplied",
+      "image": "res://assets/cards/why_i_fight.png",
+      "fit": "contain",
+      "seed": 20901,
+      "hue": 10,
+      "saturation": 0.6
     },
     "patterns": [
-      "taahma_buff"
+      "taahma_buff",
+      "max_energy_boost"
     ],
     "ai_hints": {
       "role": "aggro",
@@ -2197,7 +2296,10 @@
       "patterns": [
         "taahma_buff"
       ]
-    }
+    },
+    "authored": true,
+    "short_name": "Why I Fight",
+    "frame": "printed"
   },
   {
     "id": "PAS_TAAHMA_02",

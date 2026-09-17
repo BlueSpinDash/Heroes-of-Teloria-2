@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dt8oxhqr0dhsk"
-path="res://.godot/imported/sorbet_the_undone_architect.png-4825815ebdc629a90afd8c0ca2d67ee9.ctex"
+uid="uid://d4e3dv0qu0ag3"
+path="res://.godot/imported/vanguard_captain.png-3fe2f1ba8b416b2f396aeccc04585e00.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/art/sorbet_the_undone_architect.png"
-dest_files=["res://.godot/imported/sorbet_the_undone_architect.png-4825815ebdc629a90afd8c0ca2d67ee9.ctex"]
+source_file="res://assets/cards/vanguard_captain.png"
+dest_files=["res://.godot/imported/vanguard_captain.png-3fe2f1ba8b416b2f396aeccc04585e00.ctex"]
 
 [params]
 

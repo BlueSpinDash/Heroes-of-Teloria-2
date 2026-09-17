@@ -41,6 +41,12 @@ var location_iid: String = ""
 ## after its own resolution triggers have finished.
 var sequence_members: Array = []
 
+## Bonuses waiting for the next attack that qualifies, each
+## {"amount", "scope", "affinity", "controller", "source"}. A card that says
+## "the next X to resolve after this" leaves one here; the attack that matches
+## takes it and it is gone. Anything unclaimed lapses at Round End.
+var pending_attack_bonuses: Array = []
+
 ## Player choices raised by a resolving card. They are presented at the end of
 ## the current step rather than interrupting mid-effect (provisional ruling).
 var deferred_choices: Array = []
@@ -148,7 +154,7 @@ func _aura_energy_max(i: int) -> int:
             var who := String(e.get("who", "self"))
             var target_player := ci.controller if who == "self" else opponent_of(ci.controller)
             if target_player == i:
-                total += int(e.get("amount", 0))
+                total += _aura_value(iid, ci, e.get("amount", 0))
     return total
 
 
@@ -223,14 +229,60 @@ func _aura_stat_for(iid: String, field: String) -> int:
                 continue
             if not e.has(field):
                 continue
-            if _aura_applies(src, String(e.get("scope", "")), target):
-                total += int(e[field])
+            if not _aura_applies(src, String(e.get("scope", "")), target):
+                continue
+            if e.has("cond") and not _aura_condition(src_iid, src, e["cond"]):
+                continue
+            total += _aura_value(src_iid, src, e[field])
     return total
+
+
+## Cards in play that may be granting something, which is every card that can
+## carry a permanent effect.
+func grant_sources() -> Array:
+    return _aura_sources()
+
+
+## A condition carried by a grant, about the granting card and its host.
+func grant_condition(src_iid: String, cond) -> bool:
+    if not (cond is Dictionary):
+        return true
+    var src := inst(src_iid)
+    if src == null:
+        return false
+    match String((cond as Dictionary).get("kind", "")):
+        "host_in_sequence":
+            return src.attached_to != "" and sequence_members.has(src.attached_to)
+        "host_attacks_with":
+            var host := inst(src.attached_to)
+            if host == null:
+                return false
+            var hd := def_of(host.iid)
+            return hd != null and hd.attack_tags.has(String((cond as Dictionary).get("tag", "")))
+    return true
+
+
+## What an aura is worth right now. A plain number is itself; anything else is
+## a quantity read off the match, which is how a card prints a statistic as X.
+func _aura_value(src_iid: String, src: CardInstance, value) -> int:
+    if value is int or value is float:
+        return int(value)
+    return Counts.amount(self, value, {
+        "controller": src.controller, "slot_index": current_step,
+        "x_paid": 0, "self_iid": src_iid})
+
+
+## Conditions an aura may carry, which are about the source and its host
+## rather than about anything being targeted.
+func _aura_condition(src_iid: String, src: CardInstance, cond) -> bool:
+    return grant_condition(src_iid, cond)
 
 
 func _aura_applies(src: CardInstance, scope: String, target: CardInstance) -> bool:
     var sc := src.controller
     match scope:
+        "self":
+            return src.iid == target.iid
         "host":
             return src.attached_to == target.iid
         "own_companions":
@@ -417,6 +469,7 @@ func to_dict(include_catalog: bool = true, include_history: bool = true) -> Dict
         "players": pl,
         "instances": insts,
         "counters": counters.duplicate(),
+        "pending_attack_bonuses": pending_attack_bonuses.duplicate(true),
         "sequence": seq,
         "current_step": current_step,
         "round_history": round_history.duplicate(true) if include_history else [],
@@ -469,6 +522,7 @@ func clone_for_search() -> GameState:
     c.current_step = current_step
     c.location_iid = location_iid
     c.sequence_members = sequence_members.duplicate()
+    c.pending_attack_bonuses = pending_attack_bonuses.duplicate(true)
     c.deferred_choices = deferred_choices.duplicate(true)
     c.trigger_depth_limit = trigger_depth_limit
     c.pending = (pending as Dictionary).duplicate(true) if pending is Dictionary else null
@@ -498,6 +552,7 @@ static func from_dict(d: Dictionary) -> GameState:
     st.round_history = d.get("round_history", []).duplicate(true)
     st.location_iid = String(d.get("location_iid", ""))
     st.sequence_members = d.get("sequence_members", []).duplicate()
+    st.pending_attack_bonuses = d.get("pending_attack_bonuses", []).duplicate(true)
     st.deferred_choices = d.get("deferred_choices", []).duplicate(true)
     st.pending = d.get("pending", null)
     st.reaction_window = d.get("reaction_window", null)

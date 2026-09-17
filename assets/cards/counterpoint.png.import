@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cm1jxcwlnv0qc"
-path="res://.godot/imported/parfait_the_unyielding_flame.png-32dae964999faf853775174516a07eb0.ctex"
+uid="uid://d2h6eucee82r0"
+path="res://.godot/imported/counterpoint.png-ae49c0e86283fbc8d3a57dd42f492cdb.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/art/parfait_the_unyielding_flame.png"
-dest_files=["res://.godot/imported/parfait_the_unyielding_flame.png-32dae964999faf853775174516a07eb0.ctex"]
+source_file="res://assets/cards/counterpoint.png"
+dest_files=["res://.godot/imported/counterpoint.png-ae49c0e86283fbc8d3a57dd42f492cdb.ctex"]
 
 [params]
 

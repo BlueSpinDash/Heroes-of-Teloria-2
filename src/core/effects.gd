@@ -29,6 +29,7 @@ static func make_ctx(source_iid: String, controller: int, slot_index: int = -1,
         "targets": targets.duplicate(),
         "x_paid": x_paid,
         "target_kind": "",
+        "target_filter": {},
         "current_attacker": "",
         "current_target": "",
     }
@@ -69,13 +70,15 @@ static func exec_one(state: GameState, e: Dictionary, ctx: Dictionary) -> void:
 
         "damage_hero":
             var who := _who(state, e, ctx)
-            Mechanics.hero_damage(state, who, _amount(state, e.get("amount"), ctx), _source_label(state, ctx))
+            Mechanics.hero_damage(state, who, _amount(state, e.get("amount"), ctx),
+                _source_label(state, ctx), String(ctx.get("source_iid", "")))
 
         "direct_damage":
             var amt := _amount(state, e.get("amount"), ctx)
             var ig := bool(e.get("ignores_defense", false))
             for t in _resolve_targets(state, e.get("target"), ctx):
-                Mechanics.damage_character(state, String(t), amt, ig, _source_label(state, ctx))
+                Mechanics.damage_character(state, String(t), amt, ig,
+                    _source_label(state, ctx), String(ctx.get("source_iid", "")))
 
         "destroy":
             for t in _resolve_targets(state, e.get("target"), ctx):
@@ -132,13 +135,34 @@ static func exec_one(state: GameState, e: Dictionary, ctx: Dictionary) -> void:
                 _defer_choice(state, {
                     "kind": "choose_card_type", "player": who, "source": src_iid})
 
+        "next_attack_bonus":
+            # Left for the next attack that qualifies to claim. Nothing is
+            # applied here: which character it will be is not known yet.
+            var bonus := {
+                "amount": _amount(state, e.get("amount", 0), ctx),
+                "scope": String(e.get("scope", "controller")),
+                "affinity": String(e.get("affinity", "")),
+                "controller": int(ctx["controller"]),
+                "source": _source_label(state, ctx),
+            }
+            state.pending_attack_bonuses.append(bonus)
+            state.emit("attack_bonus_pending", {
+                "amount": bonus["amount"], "affinity": bonus["affinity"],
+                "message": "%s: the next %sattack to resolve deals %d more damage." % [
+                    String(bonus["source"]) if String(bonus["source"]) != "" else "A card",
+                    "%s " % String(bonus["affinity"]).capitalize() if String(bonus["affinity"]) != "" else "",
+                    int(bonus["amount"])]})
+
         "prevent_damage":
             var amt2 := _amount(state, e.get("amount"), ctx)
             for t in _resolve_targets(state, e.get("target"), ctx):
                 var ci2 := state.inst(String(t))
                 if ci2 == null:
                     continue
-                ci2.shields.append({"amount": amt2, "expires": String(e.get("duration", "round"))})
+                var shield := {"amount": amt2, "expires": String(e.get("duration", "round"))}
+                if bool(e.get("reflect", false)):
+                    shield["reflect"] = true
+                ci2.shields.append(shield)
                 var cd2 := state.def_of(String(t))
                 state.emit("shield_added", {
                     "iid": t, "amount": amt2,
@@ -177,6 +201,16 @@ static func exec_one(state: GameState, e: Dictionary, ctx: Dictionary) -> void:
                 "kind": "choose_cards", "purpose": "recover", "from": "exhaust",
                 "owner": who5, "player": who5,
                 "count": _amount(state, e.get("amount"), ctx), "optional": true})
+
+        "search_and_attach":
+            var host_iids := _resolve_targets(state, e.get("to"), ctx)
+            if not host_iids.is_empty():
+                _defer_choice(state, {
+                    "kind": "choose_cards", "purpose": "equip",
+                    "from": "decks", "zones": e.get("zones", []).duplicate(),
+                    "tag": String(e.get("tag", "")),
+                    "owner": _who(state, e, ctx), "player": _who(state, e, ctx),
+                    "host": String(host_iids[0]), "count": 1, "optional": true})
 
         "deploy_from_hand":
             var who6 := _who(state, e, ctx)
@@ -263,32 +297,7 @@ static func check_condition(state: GameState, cond: Dictionary, ctx: Dictionary)
 # ------------------------------------------------------------------- amounts ---
 
 static func _amount(state: GameState, spec, ctx: Dictionary) -> int:
-    if spec == null:
-        return 0
-    if spec is int or spec is float:
-        return int(spec)
-    if not (spec is Dictionary):
-        return 0
-    var controller: int = int(ctx["controller"])
-    var opp := state.opponent_of(controller)
-    var base := 0
-    match String(spec.get("from", "")):
-        "x":
-            base = int(ctx.get("x_paid", 0))
-        "chain_count":
-            base = AffinityChain.count(state, int(ctx["slot_index"]),
-                String(spec.get("affinity", "any")), String(spec.get("scope", "either")), controller)
-        "count":
-            match String(spec.get("of", "")):
-                "own_companions": base = state.player(controller).companions.size()
-                "opponent_companions": base = state.player(opp).companions.size()
-                "own_hand": base = state.player(controller).hand.size()
-                "opponent_hand": base = state.player(opp).hand.size()
-                "own_exhaust": base = state.player(controller).exhaust.size()
-                "opponent_exhaust": base = state.player(opp).exhaust.size()
-    if spec.has("multiplier"):
-        base = int(floor(float(base) * float(spec["multiplier"])))
-    return max(0, base)
+    return Counts.amount(state, spec, ctx)
 
 
 static func _who(state: GameState, e: Dictionary, ctx: Dictionary) -> int:
@@ -331,13 +340,14 @@ static func _resolve_targets(state: GameState, ref, ctx: Dictionary) -> Array:
             var kind := String(ctx.get("target_kind", ""))
             var out: Array = []
             for t in ctx.get("targets", []):
-                if kind == "" or Targeting.is_valid(state, kind, controller, String(t)):
+                var filter: Dictionary = ctx.get("target_filter", {})
+                if kind == "" or Targeting.is_valid(state, kind, controller, String(t), filter):
                     out.append(String(t))
                 else:
                     state.emit("target_invalid", {
                         "iid": t,
                         "message": "Declared target is no longer valid: %s That part of the card does nothing." % \
-                            Targeting.explain_invalid(state, kind, controller, String(t))})
+                            Targeting.explain_invalid(state, kind, controller, String(t), filter)})
             return out
         "self":
             return [String(ctx.get("source_iid", ""))]
@@ -424,7 +434,7 @@ static func _slot_index_for(state: GameState) -> int:
 ## provisional resolution order.
 static func _collect_matching(state: GameState, ev: Dictionary) -> Array:
     var out: Array = []
-    for iid in _trigger_sources(state):
+    for iid in _sources_for(state, ev):
         var ci := state.inst(String(iid))
         var cd := state.def_of(String(iid))
         if ci == null or cd == null:
@@ -450,6 +460,27 @@ static func _collect_matching(state: GameState, ev: Dictionary) -> Array:
             return int(a["entry"]) < int(b["entry"])
         return int(a["order"]) < int(b["order"]))
     return out
+
+
+## Events about a card ending up somewhere else, which the card itself is
+## entitled to answer even though it is no longer in play.
+const PARTING_EVENTS := ["leaves_play", "wounded"]
+
+
+## The sources that may answer this event.
+##
+## A card that has just left play is already out of the in-play list by the
+## time the queue runs — it was moved before the queue was processed. Its own
+## parting is the one event it can still answer, and a card that says what
+## happens when it dies would never say it otherwise.
+static func _sources_for(state: GameState, ev: Dictionary) -> Array:
+    var sources := _trigger_sources(state)
+    if not PARTING_EVENTS.has(String(ev.get("kind", ""))):
+        return sources
+    var gone := String(ev.get("iid", ""))
+    if gone != "" and not sources.has(gone):
+        sources.append(gone)
+    return sources
 
 
 static func _trigger_sources(state: GameState) -> Array:
@@ -530,6 +561,12 @@ static func _trigger_matches(state: GameState, src: CardInstance, on: Dictionary
             return ev_kind == "hero_damaged" and int(ev.get("player", -1)) == state.opponent_of(src.controller)
         "self_leaves_play":
             return ev_kind == "leaves_play" and String(ev.get("iid", "")) == src.iid
+        "self_wounded":
+            return ev_kind == "wounded" and String(ev.get("iid", "")) == src.iid
+        "host_attack_resolved":
+            return ev_kind == "attack_resolved" \
+                and src.attached_to != "" \
+                and String(ev.get("attacker", "")) == src.attached_to
     return false
 
 

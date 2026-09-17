@@ -107,6 +107,39 @@ static func all_defs() -> Array:
             "affinities": ["silence"], "cost": {"kind": "fixed", "amount": 2},
             "target": {"kind": "opponent_companion", "count": 1},
             "effects": [{"op": "destroy", "target": "chosen"}], "patterns": ["removal"]}),
+        # Burning Rush's confirmed shape: a bonus left for the next Passion
+        # character to attack after it, whoever controls them.
+        def({"id": "FIX_RUSH", "name": "Fixture Rush", "types": ["skill"], "tags": ["martial", "melee"],
+            "affinities": ["passion"], "cost": {"kind": "fixed", "amount": 1},
+            "effects": [{"op": "next_attack_bonus", "amount": 1, "scope": "either",
+                "affinity": "passion"}],
+            "patterns": ["next_attack_bonus"]}),
+        def({"id": "FIX_COMP_PAS", "name": "Fixture Passion Companion", "types": ["companion"],
+            "affinities": ["passion"], "cost": {"kind": "fixed", "amount": 1},
+            "energy_contribution": 1, "attack": 2, "defense": 1, "attack_cost": 1,
+            "persistent": {"kind": "companion"}, "patterns": ["deploy"]}),
+        def({"id": "FIX_YOUNG", "name": "Fixture Young Blood", "types": ["companion"],
+            "affinities": ["passion"], "cost": {"kind": "fixed", "amount": 1},
+            "energy_contribution": 1, "attack": 1, "defense": 1, "attack_cost": 1,
+            "persistent": {"kind": "companion"},
+            "triggers": [{"on": {"kind": "self_wounded"},
+                "effects": [{"op": "draw", "who": "self", "amount": 1}]}],
+            "patterns": ["body", "draw"]}),
+        def({"id": "FIX_TEMPO", "name": "Fixture Tempo", "types": ["skill"],
+            "tags": ["martial", "melee"], "affinities": ["passion"],
+            "cost": {"kind": "fixed", "amount": 1},
+            "target": {"kind": "any_character", "count": 1},
+            "effects": [{"op": "direct_damage", "target": "chosen",
+                "amount": {"from": "count", "of": "resolved_before",
+                    "types": ["skill"], "scope": "either"},
+                "ignores_defense": false}],
+            "patterns": ["damage", "chain_payoff"]}),
+        def({"id": "FIX_WRAPS", "name": "Fixture Wraps", "types": ["equipment"],
+            "affinities": [], "cost": {"kind": "fixed", "amount": 1}, "attack": 1,
+            "persistent": {"kind": "attachment", "slot": "equipment"},
+            "target": {"kind": "own_character_host", "count": 1},
+            "effects": [{"op": "aura_stat_mod", "scope": "host", "attack": 1}],
+            "patterns": ["equipment_buff"]}),
         def({"id": "FIX_BUFF", "name": "Fixture Buff", "types": ["skill"], "tags": ["martial"],
             "affinities": ["will"], "cost": {"kind": "fixed", "amount": 1},
             "target": {"kind": "own_character", "count": 1},
@@ -183,9 +216,34 @@ static func deck(hero: String, spec: Dictionary = {}, filler: String = "FIX_FILL
     return {"deck_id": "fixture_" + hero.to_lower(), "hero": hero, "cards": cards}
 
 
-static func match_of(deck0: Dictionary, deck1: Dictionary, seed_value: int = 1234) -> GameState:
-    return GameEngine.start_match(catalog(), rules(), [deck0, deck1], seed_value,
-        "fixture_match", ["P1", "P2"], [false, false], ["", ""])
+static func match_of(deck0: Dictionary, deck1: Dictionary, seed_value: int = 1234,
+        cat: Catalog = null) -> GameState:
+    return GameEngine.start_match(cat if cat != null else catalog(), rules(),
+        [deck0, deck1], seed_value, "fixture_match", ["P1", "P2"], [false, false], ["", ""])
+
+
+## The fixture definitions plus named cards from the shipped catalog, so a test
+## can put a real card on a board it controls completely. A finished card is
+## worth testing as it ships rather than as a copy of itself.
+static func catalog_with(ids: Array) -> Catalog:
+    var defs := all_defs()
+    var bundled := Catalog.load_bundled()
+    for id in ids:
+        var d := bundled.get_def(String(id))
+        if d != null:
+            defs.append(d)
+    return Catalog.from_defs(defs)
+
+
+## A controlled board whose catalog also holds the named shipped cards.
+static func fresh_with(ids: Array, deck0: Dictionary, deck1: Dictionary,
+        seed_value: int = 7) -> GameState:
+    var st := match_of(deck0, deck1, seed_value, catalog_with(ids))
+    setup_action_phase(st)
+    clear_hands(st)
+    st.first_player = 0
+    st.action_priority = 0
+    return st
 
 
 ## A match already in the Action Phase with empty hands and P1 on priority,

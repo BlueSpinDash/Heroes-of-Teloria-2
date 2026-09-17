@@ -6,7 +6,29 @@ extends RefCounted
 ## nothing, with no retarget and no refund.
 
 
-static func legal_targets(state: GameState, kind: String, chooser: int) -> Array:
+## Targets a card may choose.
+##
+## `filter` is the card's own target block, which may narrow the list further
+## than its kind does: a Ta'ahma written for one named character attaches to
+## that character and to nothing else.
+static func legal_targets(state: GameState, kind: String, chooser: int,
+        filter: Dictionary = {}) -> Array:
+    return _narrow(state, _of_kind(state, kind, chooser), filter)
+
+
+static func _narrow(state: GameState, iids: Array, filter: Dictionary) -> Array:
+    var character_id := String(filter.get("character_id", ""))
+    if character_id == "":
+        return iids
+    var out: Array = []
+    for iid in iids:
+        var cd := state.def_of(String(iid))
+        if cd != null and cd.character_id == character_id:
+            out.append(String(iid))
+    return out
+
+
+static func _of_kind(state: GameState, kind: String, chooser: int) -> Array:
     var opp := state.opponent_of(chooser)
     match kind:
         "own_companion":
@@ -60,8 +82,9 @@ static func _attachments(state: GameState, slot: String, controller: int) -> Arr
     return out
 
 
-static func is_valid(state: GameState, kind: String, chooser: int, iid: String) -> bool:
-    return legal_targets(state, kind, chooser).has(iid)
+static func is_valid(state: GameState, kind: String, chooser: int, iid: String,
+        filter: Dictionary = {}) -> bool:
+    return legal_targets(state, kind, chooser, filter).has(iid)
 
 
 ## Attacks may freely target the opposing Hero or any opposing Companion.
@@ -75,7 +98,13 @@ static func legal_attack_targets(state: GameState, attacker_controller: int) -> 
 
 
 ## A short reason a choice is illegal, for the "explain why" requirement.
-static func explain_invalid(state: GameState, kind: String, chooser: int, iid: String) -> String:
+static func explain_invalid(state: GameState, kind: String, chooser: int, iid: String,
+        filter: Dictionary = {}) -> String:
+    var named := String(filter.get("character_id", ""))
+    if named != "":
+        var named_def := state.def_of(iid)
+        if named_def == null or named_def.character_id != named:
+            return "This card attaches only to %s." % named.capitalize()
     var ci := state.inst(iid)
     if ci == null:
         return "That card is no longer in the match."

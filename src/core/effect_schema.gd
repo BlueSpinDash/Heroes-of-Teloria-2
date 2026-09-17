@@ -15,7 +15,11 @@ extends RefCounted
 
 const AFFINITIES := ["devotion", "passion", "will", "vigilance", "purpose", "harmony", "silence"]
 const CARD_TYPES := ["hero", "companion", "skill", "equipment", "location", "taahma"]
-const TAGS := ["reaction", "martial", "magic", "melee", "ranged"]
+const TAGS := ["reaction", "martial", "magic", "melee", "ranged",
+    # Kinds of Equipment, and how a card that looks for one names it.
+    "ammunition", "consumable",
+    # Descriptive, and how a card that looks for one names it.
+    "flying"]
 ## Tags that describe a character's attack, printed on its attack line.
 ## Separate from card TAGS because Martial and Magic are Skill tags: a Hero is
 ## not a Martial card, but its attack can be a Martial Melee attack.
@@ -55,12 +59,32 @@ const COUNT_OF := [
     "own_companions", "opponent_companions",
     "own_hand", "opponent_hand",
     "own_exhaust", "opponent_exhaust",
+    "own_wound", "opponent_wound",
+    # Slots of the Action Sequence that resolved before the one being read.
+    # The Sequence resolves in order, so everything earlier has resolved and
+    # nothing later has: it is the round's own record of what has happened.
+    "resolved_before",
+    # Characters standing in the Action Sequence, all of them or only those
+    # committed to an attack.
+    "characters_in_sequence", "attackers_in_sequence",
+    # Copies of the reading card its controller has in play, itself included.
+    "copies_in_play",
+]
+
+## Counts that may be narrowed by card type, by Affinity and by whose they are.
+const FILTERABLE_COUNTS := [
+    "own_companions", "opponent_companions", "own_hand", "opponent_hand",
+    "own_exhaust", "opponent_exhaust", "own_wound", "opponent_wound",
+    "resolved_before",
+]
+const SCOPED_COUNTS := [
+    "resolved_before", "characters_in_sequence", "attackers_in_sequence",
 ]
 
 const AURA_SCOPES := [
     "own_companions", "opponent_companions", "all_companions",
     "own_hero", "opponent_hero", "own_characters", "opponent_characters",
-    "host",
+    "host", "self",
 ]
 
 ## op -> {required: [...], optional: [...], persistent_only: bool}
@@ -74,18 +98,22 @@ const OPS := {
     "energy_drain": {"required": ["who", "amount"], "optional": []},
     "energy_max_mod": {"required": ["who", "amount", "duration"], "optional": []},
     "stat_mod": {"required": ["target", "duration"], "optional": ["attack", "defense"]},
-    "prevent_damage": {"required": ["target", "amount", "duration"], "optional": []},
+    "prevent_damage": {"required": ["target", "amount", "duration"], "optional": ["reflect"]},
     "mill": {"required": ["who", "amount"], "optional": []},
     "recover_from_exhaust": {"required": ["who", "amount"], "optional": []},
     "exhaust_from_hand": {"required": ["who", "amount", "chooser"], "optional": []},
     "random_exhaust_from_hand": {"required": ["who", "amount"], "optional": []},
     "deploy_from_hand": {"required": ["who"], "optional": []},
     "choose_card_type": {"required": ["chooser"], "optional": []},
+    "search_and_attach": {"required": ["who", "zones", "tag", "to"], "optional": []},
+    "next_attack_bonus": {"required": ["amount", "scope"], "optional": ["affinity"]},
     "conditional": {"required": ["cond", "then"], "optional": ["otherwise"]},
     "chain_reward": {"required": ["require", "then"], "optional": []},
     "repeat": {"required": ["amount", "effects"], "optional": []},
-    "aura_stat_mod": {"required": ["scope"], "optional": ["attack", "defense"], "persistent_only": true},
+    "aura_stat_mod": {"required": ["scope"], "optional": ["attack", "defense", "cond"], "persistent_only": true},
     "aura_energy_max": {"required": ["who", "amount"], "optional": [], "persistent_only": true},
+    "grant_reaction_attack": {"required": ["who"], "optional": ["affinity", "cond"],
+        "persistent_only": true},
 }
 
 ## condition kind -> required params
@@ -100,6 +128,10 @@ const CONDITIONS := {
     "has_attachment": ["target", "of"],
     "target_defense_at_most": ["max"],
     "target_attack_at_least": ["min"],
+    # For an aura on an attachment: what kind of attack its host makes.
+    "host_attacks_with": ["tag"],
+    # For an aura on an attachment: whether its host is in the Sequence.
+    "host_in_sequence": [],
 }
 
 ## trigger kind -> required params
@@ -112,11 +144,18 @@ const TRIGGERS := {
     "own_hero_damaged": [],
     "opponent_hero_damaged": [],
     "self_leaves_play": [],
+    "self_wounded": [],
     "attack_resolved": ["scope"],
+    # For an attachment: an attack made by the character it is attached to.
+    "host_attack_resolved": [],
     "chosen_type_card_resolved": ["scope"],
 }
 
 const ATTACHMENT_OF := ["equipment", "taahma"]
+
+## Decks a card may be told to search. A player's own only: nothing looks
+## through an opponent's deck.
+const SEARCHABLE_ZONES := ["hit", "exhaust"]
 
 
 static func is_authorable_op(op: String) -> bool:
@@ -153,8 +192,23 @@ static func validate_amount(value, path: String, allow_negative: bool = false) -
             if not SCOPES.has(String(value.get("scope", ""))):
                 errs.append("%s: chain_count needs a valid scope" % path)
         "count":
-            if not COUNT_OF.has(String(value.get("of", ""))):
+            var of := String(value.get("of", ""))
+            if not COUNT_OF.has(of):
                 errs.append("%s: count 'of' must be one of %s" % [path, str(COUNT_OF)])
+            else:
+                if value.has("scope"):
+                    if not SCOPED_COUNTS.has(of):
+                        errs.append("%s: count '%s' takes no scope" % [path, of])
+                    elif not SCOPES.has(String(value["scope"])):
+                        errs.append("%s: count scope must be one of %s" % [path, str(SCOPES)])
+                if (value.has("types") or value.has("affinity")) \
+                        and not FILTERABLE_COUNTS.has(of):
+                    errs.append("%s: count '%s' cannot be narrowed" % [path, of])
+                for t in value.get("types", []):
+                    if not CARD_TYPES.has(String(t)):
+                        errs.append("%s: '%s' is not a card type" % [path, str(t)])
+                if value.has("affinity") and not AFFINITIES.has(String(value["affinity"])):
+                    errs.append("%s: '%s' is not an Affinity" % [path, str(value["affinity"])])
     if value.has("multiplier") and not (value["multiplier"] is int or value["multiplier"] is float):
         errs.append("%s: multiplier must be numeric" % path)
     return errs
@@ -184,6 +238,8 @@ static func validate_condition(cond, path: String) -> Array:
         errs.append_array(validate_target_ref(cond["target"], path + ".target"))
     if cond.has("of") and kind == "has_attachment" and not ATTACHMENT_OF.has(String(cond["of"])):
         errs.append("%s: has_attachment 'of' must be equipment or taahma" % path)
+    if kind == "host_attacks_with" and not ATTACK_TAGS.has(String(cond.get("tag", ""))):
+        errs.append("%s: host_attacks_with 'tag' must be one of %s" % [path, str(ATTACK_TAGS)])
     return errs
 
 
@@ -247,6 +303,8 @@ static func validate_effects(effects, path: String, allow_persistent_only: bool)
                 errs.append("%s: op '%s' has unexpected field '%s'" % [p, op, str(k)])
         if e.has("who") and not WHO.has(String(e["who"])):
             errs.append("%s: 'who' must be self or opponent" % p)
+        if e.has("affinity") and not AFFINITIES.has(String(e["affinity"])):
+            errs.append("%s: '%s' is not an Affinity" % [p, str(e["affinity"])])
         if e.has("chooser") and not CHOOSERS.has(String(e["chooser"])):
             errs.append("%s: 'chooser' must be controller or opponent" % p)
         if e.has("duration") and not DURATIONS.has(String(e["duration"])):
@@ -255,8 +313,26 @@ static func validate_effects(effects, path: String, allow_persistent_only: bool)
             errs.append_array(validate_target_ref(e["target"], p + ".target"))
         if e.has("scope") and op == "aura_stat_mod" and not AURA_SCOPES.has(String(e["scope"])):
             errs.append("%s: aura scope must be one of %s" % [p, str(AURA_SCOPES)])
+        if e.has("scope") and op == "next_attack_bonus" and not SCOPES.has(String(e["scope"])):
+            errs.append("%s: scope must be one of %s" % [p, str(SCOPES)])
         if e.has("amount"):
             errs.append_array(validate_amount(e["amount"], p + ".amount", SIGNED_AMOUNT_OPS.has(op)))
+        if op == "grant_reaction_attack":
+            if e.has("affinity") and not AFFINITIES.has(String(e["affinity"])):
+                errs.append("%s: '%s' is not an Affinity" % [p, str(e["affinity"])])
+            if e.has("cond"):
+                errs.append_array(validate_condition(e["cond"], p + ".cond"))
+        if op == "search_and_attach":
+            for z in e.get("zones", []):
+                if not SEARCHABLE_ZONES.has(String(z)):
+                    errs.append("%s: '%s' is not a searchable deck" % [p, str(z)])
+            if e.get("zones", []).is_empty():
+                errs.append("%s: search_and_attach needs at least one deck to search" % p)
+            if not TAGS.has(String(e.get("tag", ""))):
+                errs.append("%s: search_and_attach 'tag' must be one of %s" % [p, str(TAGS)])
+            errs.append_array(validate_target_ref(e.get("to"), p + ".to"))
+        if e.has("reflect") and not (e["reflect"] is bool):
+            errs.append("%s: 'reflect' must be true or false" % p)
         if e.has("ignores_defense") and not (e["ignores_defense"] is bool):
             errs.append("%s: 'ignores_defense' must be stated explicitly as true or false" % p)
         if op == "stat_mod":
@@ -268,6 +344,14 @@ static func validate_effects(effects, path: String, allow_persistent_only: bool)
         if op == "aura_stat_mod":
             if not e.has("attack") and not e.has("defense"):
                 errs.append("%s: aura_stat_mod needs attack and/or defense" % p)
+            # An aura may be worth a number the match works out, which is how a
+            # card prints a statistic as X. It is re-read on every query, so it
+            # follows the board rather than being fixed when the card arrives.
+            for f in ["attack", "defense"]:
+                if e.has(f):
+                    errs.append_array(validate_amount(e[f], "%s.%s" % [p, f], true))
+        if op == "aura_stat_mod" and e.has("cond"):
+            errs.append_array(validate_condition(e["cond"], p + ".cond"))
         if op == "conditional":
             errs.append_array(validate_condition(e.get("cond"), p + ".cond"))
             errs.append_array(validate_effects(e.get("then", []), p + ".then", allow_persistent_only))

@@ -42,7 +42,9 @@ func run(t: TestHarness) -> void:
         return
     _every_screen_builds(t)
     _hero_cards_use_the_frame(t)
+    await _a_supplied_face_can_be_used_whole(t)
     await _layout_editor_moves_card_parts(t)
+    await _layout_editor_resizes_the_board(t)
     await _start_a_new_save_through_the_screen(t)
     _play_a_starter(t)
     await _play_cards_from_hand(t)
@@ -196,6 +198,7 @@ func _play_a_starter(t: TestHarness) -> void:
     t.ne(app.match_state, null, "a match state exists")
     t.eq(app.match_state.round_number, 1, "the match opens on round 1")
     t.eq(app.match_state.player(0).hand.size(), app.rules.draw_to, "you drew to five")
+    _decks_show_their_backs(t, screen)
 
     # Commit at least one Action through the real command path.
     var st: GameState = app.match_state
@@ -380,6 +383,14 @@ func _drag_and_drop(t: TestHarness) -> void:
     t.eq(st.sequence.size(), slots_before + 1, "dropping it committed the card")
     t.eq(st.player(0).energy_current, energy_before - 1, "and paid its cost")
 
+    # --- a zone is a boundary, not a row of anchor points -----------------
+    st.action_priority = 0
+    _force_hand(st, 0, ["PAS_SKILL_01"])
+    st.player(0).energy_current = 4
+    screen.call("_refresh")
+    await _frames(t, 2)
+    _zones_take_a_drop_anywhere(t, screen)
+
     # --- a targeted card drops onto a legal character --------------------
     st.action_priority = 0
     _force_hand(st, 0, ["PAS_SKILL_06"])
@@ -466,37 +477,93 @@ func _drag_and_drop(t: TestHarness) -> void:
     t.eq(_first_draggable_card(screen), null, "no card can be picked up on the opponent's turn")
 
 
-## Hero cards are drawn on the painted Hero frame, and a card that opts out
-## keeps the face it shipped with.
+## A card whose type has a painted frame is drawn on it, on the frame for its
+## own type, and a card that opts out keeps the face it shipped with.
 func _hero_cards_use_the_frame(t: TestHarness) -> void:
-    t.begin("Hero cards are drawn on the Hero frame")
-    var heroes: Array = []
+    t.begin("cards are drawn on the frame for their own type")
+    var counted: Dictionary = {}
     var plain: Array = []
+    var printed: Array = []
     var wrong: Array = []
     for d in app.catalog.all_defs():
         var card: CardDef = d
-        if not card.has_type("hero"):
-            if CardView._frame_for(card) != "":
-                wrong.append("%s is not a Hero but asked for a frame" % card.id)
-            continue
-        heroes.append(card.id)
+        var got := CardView._frame_for(card)
+        var want: Dictionary = {}
+        for type in CardView.FRAMES:
+            if card.has_type(String(type)):
+                want = CardView.FRAMES[type]
+                break
         if card.frame == "plain":
             plain.append(card.id)
-            if CardView._frame_for(card) != "":
-                wrong.append("%s opted out but was framed anyway" % card.id)
-        elif CardView._frame_for(card) != CardView.FRAMES["hero"]:
-            wrong.append("%s is a Hero but was not framed" % card.id)
-    t.ge(float(heroes.size()), 7.0, "there is a Hero for every Affinity")
-    t.empty(wrong, "every Hero is on the frame, and only Heroes are")
-    t.empty(plain, "no Hero opts out of the frame")
+            want = {}
+        if card.frame == "printed":
+            printed.append(card.id)
+        if got != want:
+            wrong.append("%s got %s, wanted %s" % [card.id, str(got), str(want)])
+        if not want.is_empty():
+            var group := String(want["group"])
+            counted[group] = int(counted.get(group, 0)) + 1
+    t.ge(float(int(counted.get("hero_card", 0))), 7.0, "every Affinity's Hero is framed")
+    t.ge(float(int(counted.get("skill_card", 0))), 50.0, "and the Skills are framed too")
+    t.ge(float(int(counted.get("companion_card", 0))), 50.0, "as are the Companions")
+    t.ge(float(int(counted.get("equipment_card", 0))), 20.0, "the Equipment")
+    t.ge(float(int(counted.get("taahma_card", 0))), 10.0, "and the Ta'ahma")
+    # Every card type with a painted template is drawn on it. Locations have
+    # no template yet, so they are the one type still on the laid-out face.
+    var unframed: Dictionary = {}
+    for d2 in app.catalog.all_defs():
+        var c2: CardDef = d2
+        if c2.frame == "printed":
+            continue
+        if CardView._frame_for(c2).is_empty():
+            for ty in c2.types:
+                unframed[String(ty)] = int(unframed.get(String(ty), 0)) + 1
+    t.eq(unframed.keys(), ["location"],
+        "only Locations are still drawn without a frame: %s" % str(unframed))
+    t.empty(wrong, "every card is on the frame for its own type, and only those are")
+    t.empty(plain, "no card opts out of its frame")
+    # A card supplied as a finished face is drawn from that face instead. It
+    # still names a frame, so that a missing picture falls back to one rather
+    # than to nothing.
+    t.ok(printed.size() >= 3, "the cards supplied as finished faces use them: %s" % str(printed))
+    for id in printed:
+        t.eq(CardView.frame_group(app.catalog.get_def(String(id))), "",
+            "%s is drawn from its own face, so it has no slots to place" % id)
+
+    # Each frame places only what it has room for: a Skill has no Attack or
+    # Defense medallion, so its layout has no place for those numbers.
+    t.ok(Layout.keys_of("hero_card").has("attack"), "the Hero frame has an Attack number")
+    t.ok(not Layout.keys_of("skill_card").has("attack"),
+        "the Skill frame has none, and the card does not try to draw one")
+
+    # The printed card paints its Energy gem over the top-left corner of the
+    # art window. The gem is cut off the frame so it can go back on above the
+    # artwork, instead of the window losing that corner to it.
+    var order := Layout.layer_order("skill_card")
+    t.ok(order.find("art") < order.find("energy_gem"),
+        "the Skill frame's Energy gem is drawn over the artwork")
+    t.ok(order.find("energy_gem") < order.find("energy"),
+        "and under the number that sits in it")
+    var gem := String((CardView.FRAMES["skill"] as Dictionary).get("ornaments", {}).get(
+        "energy_gem", ""))
+    t.ok(ResourceLoader.exists(gem), "and the gem exists as its own picture: %s" % gem)
+    var skill := CardView.create(_framed_with_art("PAS_SKILL_01"), 300.0)
+    _root.add_child(skill)
+    var textures := 0
+    for host in skill.get_children():
+        for piece in (host as Node).get_children():
+            if piece is TextureRect:
+                textures += 1
+    t.eq(textures, 2, "so a Skill draws two pictures: its frame and its gem")
+    skill.queue_free()
 
     # The opt-out still works, for a card finished before its type has a frame.
     var opted := CardDef.from_dict(app.catalog.get_def("PAS_HERO_01").data.duplicate(true))
     opted.data["frame"] = "plain"
-    t.eq(CardView._frame_for(opted), "", "a card can still ask for the plain face")
+    t.ok(CardView._frame_for(opted).is_empty(), "a card can still ask for the plain face")
 
     # Framed or plain, a card is still a trading card.
-    for id in ["DEV_HERO_01", "PAS_HERO_01"]:
+    for id in ["DEV_HERO_01", "PAS_HERO_01", "PAS_SKILL_02"]:
         var view := CardView.create(app.catalog.get_def(String(id)), 300.0)
         _root.add_child(view)
         var want := 300.0 * CardView.BASE_HEIGHT / CardView.BASE_WIDTH
@@ -504,6 +571,51 @@ func _hero_cards_use_the_frame(t: TestHarness) -> void:
             "%s keeps trading-card proportions (%.1f, wanted %.1f)" % [
                 id, view.get_combined_minimum_size().y, want])
         view.queue_free()
+
+
+## A card face that was drawn whole can be used whole.
+##
+## The frames exist so the game can state what a card does in its own words,
+## which is what lets a card be rebalanced without being repainted. A card can
+## still opt out and be the picture it was given — the picture then has to
+## carry its own name, numbers and rules text, because nothing is placed on it.
+func _a_supplied_face_can_be_used_whole(t: TestHarness) -> void:
+    t.begin("a card face supplied whole is drawn whole")
+    var printed := CardDef.from_dict(app.catalog.get_def("PAS_SKILL_01").data.duplicate(true))
+    printed.data["frame"] = "printed"
+    t.eq(CardView.frame_group(printed), "",
+        "a printed face belongs to no layout group, so the Layout screen leaves it alone")
+
+    var view := CardView.create(printed, 300.0)
+    _root.add_child(view)
+    await _frames(t, 2)
+    var face := view.find_child(CardView.PRINTED_FACE, true, false) as TextureRect
+    if t.ne(face, null, "the supplied picture is what the card draws"):
+        t.ne(face.texture, null, "and the picture is really loaded")
+        t.le(absf(face.size.x - 300.0), 1.5,
+            "it is given the whole face, not a window (%s)" % str(face.size))
+        t.eq(face.stretch_mode, TextureRect.STRETCH_KEEP_ASPECT_CENTERED,
+            "fitted whole rather than cropped to the box")
+    t.eq(_find_art(view), null, "nothing of the built face is drawn under it")
+    t.eq(view.find_child("PrintedFace", true, false).get_parent().get_child_count(), 1,
+        "and nothing is laid over it but the badges, which are their own layer")
+    view.queue_free()
+
+    # Without a picture there would be nothing to draw, so the catalog says so
+    # rather than shipping a blank card.
+    var blank := printed.data.duplicate(true)
+    blank["art"] = {"style": "supplied", "seed": 1, "hue": 20, "saturation": 0.5}
+    var errs := CardDef.from_dict(blank).validate()
+    t.ok(_mentions(errs, "printed face needs an 'image'"),
+        "a printed face with no picture is rejected: %s" % str(errs))
+    t.empty(printed.validate(), "and one with a picture is accepted")
+
+
+func _mentions(errs: Array, text: String) -> bool:
+    for e in errs:
+        if String(e).find(text) >= 0:
+            return true
+    return false
 
 
 ## The Layout screen has to actually move what a card draws, and a layout has
@@ -515,7 +627,7 @@ func _layout_editor_moves_card_parts(t: TestHarness) -> void:
     t.ok(not Layout.is_changed("hero_card", "art"), "the art window starts at its shipped value")
 
     # A card draws the slot it is given, so moving the slot moves the art.
-    var def := app.catalog.get_def("PAS_HERO_01")
+    var def := _framed_with_art("PAS_HERO_01")
     var before := CardView.create(def, 300.0)
     _root.add_child(before)
     await _frames(t, 2)
@@ -579,6 +691,22 @@ func _layout_editor_moves_card_parts(t: TestHarness) -> void:
     Layout.reset_layers("hero_card")
     t.ok(not Layout.layers_changed("hero_card"), "resetting the order restores it")
 
+    # The editor edits whichever frame the previewed card is drawn on, so a
+    # Skill's slots are reachable and not only a Hero's.
+    app.goto("layout")
+    var screen := _screen()
+    if t.ne(screen, null, "the Layout screen opened"):
+        var seen: Dictionary = {screen._group: true}
+        var stray: Array = []
+        for i in mini(screen._card_ids.size(), 30):
+            screen._step_card(1)
+            seen[screen._group] = true
+            if not Layout.keys_of(screen._group).has(screen._selected):
+                stray.append("%s has no %s" % [screen._group, screen._selected])
+        t.ok(seen.has("hero_card") and seen.has("skill_card"),
+            "stepping the preview reaches both frames: %s" % str(seen.keys()))
+        t.empty(stray, "and the selected box always belongs to the frame being edited")
+
     # Leave the game as it was found.
     Layout.reset_all()
     DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
@@ -586,13 +714,155 @@ func _layout_editor_moves_card_parts(t: TestHarness) -> void:
         "the test left the layout as it found it")
 
 
-## Which pieces a built card holds, in the order it draws them.
+## The board is laid out in the same screen as a card, and dragging one of its
+## bars has to move the board the same way dragging a card's box moves the card.
+##
+## The numbers are in pixels and so is the drag, so a bar follows the pointer
+## exactly: that is the whole reason the preview is drawn at the size a match
+## draws it rather than scaled to fit.
+func _layout_editor_resizes_the_board(t: TestHarness) -> void:
+    t.begin("the Layout screen resizes the board")
+    app.goto("layout")
+    var screen := _screen()
+    if not t.ne(screen, null, "the Layout screen opened"):
+        return
+    screen.call("_set_mode", "board")
+    await _frames(t, 2)
+    t.eq(String(screen.get("_mode")), "board", "it is laying out the board")
+    var holder := screen.get("_board_holder") as Control
+    if not t.ne(holder, null, "the board preview was built"):
+        return
+    t.ok(holder.get_child_count() >= 10,
+        "with a row for every zone and a bar between them: %d" % holder.get_child_count())
+
+    # Drag the bar under the Companion Zones down, and the zones grow by what
+    # the pointer moved.
+    var was := Layout.num("battle_board", "companion_strip_h")
+    t.ok(not Layout.is_changed("battle_board", "companion_strip_h"),
+        "the zones start at their shipped height")
+    var rows: Dictionary = screen.get("_board_rows")
+    if not t.ok(rows.has("companion_strip_h"), "the zone rows follow that number"):
+        return
+    var zone_row := ((rows["companion_strip_h"] as Array)[0] as Dictionary)["node"] as Control
+    var before := zone_row.custom_minimum_size.y
+
+    # The real gesture: press the bar, move the pointer, let go.
+    var press := InputEventMouseButton.new()
+    press.button_index = MOUSE_BUTTON_LEFT
+    press.pressed = true
+    screen.call("_grab_input", press, "companion_strip_h", "v", 1.0)
+    t.eq(String(screen.get("_grab_key")), "companion_strip_h",
+        "pressing the bar starts a drag on that number")
+    var motion := InputEventMouseMotion.new()
+    motion.relative = Vector2(0, 18)
+    screen.call("_input", motion)
+    motion.relative = Vector2(0, 12)
+    screen.call("_input", motion)
+    t.eq(Layout.num("battle_board", "companion_strip_h"), was + 30.0,
+        "dragging the bar down by 30 makes the zones 30 taller")
+    var release := InputEventMouseButton.new()
+    release.button_index = MOUSE_BUTTON_LEFT
+    release.pressed = false
+    screen.call("_input", release)
+    t.eq(String(screen.get("_grab_key")), "", "letting go ends the drag")
+    await _frames(t, 2)
+    rows = screen.get("_board_rows")
+    zone_row = ((rows["companion_strip_h"] as Array)[0] as Dictionary)["node"] as Control
+    t.eq(zone_row.custom_minimum_size.y, before + 30.0,
+        "and the preview row grew with it")
+    t.ok(Layout.is_changed("battle_board", "companion_strip_h"),
+        "which counts as a change against the shipped value")
+
+    # A number is still held inside its stated range however far it is dragged.
+    var bounds := Layout.limits("battle_board", "companion_strip_h")
+    Layout.set_num("battle_board", "companion_strip_h", bounds.y + 400.0)
+    t.eq(Layout.num("battle_board", "companion_strip_h"), bounds.y,
+        "a drag past the maximum is held at the maximum")
+
+    # The card widths are the same story, and the card really is drawn at it.
+    var card_was := Layout.num("battle_board", "board_card_w")
+    Layout.set_num("battle_board", "board_card_w", card_was + 20.0)
+    screen.call("_rebuild_board")
+    await _frames(t, 2)
+    var cards: Dictionary = screen.get("_board_rows")
+    var holder2 := ((cards["board_card_w"] as Array)[0] as Dictionary)["node"] as Control
+    t.eq(holder2.custom_minimum_size.x, card_was + 20.0,
+        "a wider board card is drawn wider")
+    var face := holder2.get_child(0) as CardView
+    if t.ne(face, null, "and the card in it is a real card"):
+        t.eq(face.card_width, card_was + 20.0, "drawn at that width")
+
+    # Leave the game as it was found, and back to the card so the rest of the
+    # walkthrough starts where it expects to.
+    Layout.reset_all()
+    screen.call("_set_mode", "card")
+    await _frames(t, 2)
+    t.ok(not Layout.is_changed("battle_board", "companion_strip_h"),
+        "the test left the board as it found it")
+
+
+## A card in the Hit, Exhaust or Wound Deck is face down, so a deck with
+## anything in it shows the card back. A deck with nothing in it shows its
+## painted plate alone: there is no card there to be face down.
+func _decks_show_their_backs(t: TestHarness, screen: Control) -> void:
+    var st: GameState = app.match_state
+    t.ok(ResourceLoader.exists(CardView.BACK_PATH),
+        "the card back is in the project: %s" % CardView.BACK_PATH)
+    t.ne(CardView.face_down(60.0), null, "a face-down card can be drawn")
+    var chips: Dictionary = screen.get("_pile_chips")
+    var wrong: Array = []
+    for kind in ["hit", "exhaust", "wound"]:
+        for player in 2:
+            var chip := chips.get("%d_%s" % [player, String(kind)]) as Control
+            if chip == null:
+                wrong.append("no plate for P%d's %s" % [player + 1, String(kind)])
+                continue
+            var full := st.player(player).pile(String(kind)).size() > 0
+            var shown := _has_card_back(chip)
+            if full != shown:
+                wrong.append("P%d's %s holds %d and %s a back" % [
+                    player + 1, String(kind), st.player(player).pile(String(kind)).size(),
+                    "shows" if shown else "does not show"])
+    t.empty(wrong, "every deck shows a back when it holds cards and none when it does not")
+    # The one that has to be true whatever the starting deal is.
+    var hit := chips.get("0_hit") as Control
+    if t.ne(hit, null, "your Hit Deck has a plate"):
+        t.ok(st.player(0).hit.size() > 0, "and cards in it")
+        t.ok(_has_card_back(hit), "so it shows the card back")
+
+
+func _has_card_back(node: Node) -> bool:
+    if node is TextureRect:
+        var tex := (node as TextureRect).texture
+        if tex != null and tex.resource_path == CardView.BACK_PATH:
+            return true
+    for child in node.get_children():
+        if _has_card_back(child):
+            return true
+    return false
+
+
+## A copy of a card put back on its painted frame, with a real picture in the
+## window. The finished cards are drawn from the faces they were supplied as,
+## which have no window to place anything in — so a test about placing things
+## in a window has to make one.
+func _framed_with_art(id: String) -> CardDef:
+    var def := app.catalog.get_def(id).duplicate_def()
+    def.data["frame"] = ""
+    def.data["art"] = {"style": "supplied", "fit": "cover", "seed": 1, "hue": 20,
+        "saturation": 0.5, "image": String(CardView.FRAMES["hero"]["path"])}
+    return def
+
+
+## Which pieces a built card holds, in the order it draws them. The artwork is
+## wrapped in the control that clips it to the window's shape, so it is looked
+## for below the piece rather than at it.
 func _piece_order(def: CardDef) -> Array:
     var view := CardView.create(def, 300.0)
     var out: Array = []
     for host in view.get_children():
         for piece in (host as Node).get_children():
-            if piece is CardArt:
+            if _find_art(piece) != null:
                 out.append("art")
             elif piece is TextureRect:
                 out.append("frame")
@@ -600,11 +870,22 @@ func _piece_order(def: CardDef) -> Array:
     return out
 
 
-## Where a built card actually drew its art, in the card's own coordinates.
+func _find_art(node: Node) -> CardArt:
+    if node is CardArt:
+        return node as CardArt
+    for child in node.get_children():
+        var found := _find_art(child)
+        if found != null:
+            return found
+    return null
+
+
+## Where a built card actually drew its art, in the card's own coordinates. The
+## art fills its clipping window, so the window is what is measured.
 func _art_rect(view: CardView) -> Rect2:
     for layer in view.get_children():
         for child in (layer as Node).get_children():
-            if child is CardArt:
+            if _find_art(child) != null:
                 return Rect2((child as Control).position, (child as Control).size)
     return Rect2()
 
@@ -656,6 +937,57 @@ func _card_zoom_reads_cards(t: TestHarness, screen: Control) -> void:
         screen.call("_refresh")
         await _frames(t, 2)
         t.ok(not zoom.call("showing"), "a refresh clears the reader with the chips")
+
+
+## A zone takes a card anywhere inside its boundary, including over the cards
+## already standing in it, and says so while the card is being dragged.
+func _zones_take_a_drop_anywhere(t: TestHarness, screen: Control) -> void:
+    var zones: Array = screen.get("_drop_zones")
+    if not t.ok(zones.size() >= 3, "every zone that takes a card is a region"):
+        return
+    for z in zones:
+        t.ok(not (z as BattleDropTarget).drop_hint.is_empty(),
+            "the %s zone says what dropping there would do" % (z as Control).name)
+    var zone: Control = screen.get("_sequence_zone")
+    if not t.ne(zone, null, "the Action Sequence is one of them"):
+        return
+    var card := _first_draggable_card(screen)
+    if not t.ne(card, null, "a card can be picked up to drag over it"):
+        return
+    var payload = card.call("_get_drag_data", Vector2.ZERO)
+    var size := zone.get_rect().size
+    for at in [Vector2.ZERO, size * 0.5, size - Vector2.ONE,
+            Vector2(size.x - 1.0, 1.0), Vector2(1.0, size.y - 1.0)]:
+        t.ok(zone.call("_can_drop_data", at, payload),
+            "the Sequence takes the card at %s" % at)
+    t.eq(_swallows_mouse(zone), [],
+        "and nothing inside it stands between the drop and the zone")
+
+    var bands: Array = screen.call("_bands_for", payload)
+    var hints: Array = []
+    for b in bands:
+        var band := b as Dictionary
+        hints.append(String(band.get("hint", "")))
+        var rect: Rect2 = band.get("rect", Rect2())
+        t.ok(rect.size.x > 0.0 and rect.size.y > 0.0, "a banded zone has an area to aim at")
+    t.ok(hints.has(zone.get("drop_hint")),
+        "the Sequence is banded while the card is in the air")
+    t.eq(screen.call("_bands_for", {"kind": "nothing"}), [],
+        "and no zone is banded for something none of them takes")
+
+
+## The names of things inside a zone that would swallow a drop before it could
+## reach the zone. Real controls are allowed to: a button is meant to take the
+## mouse for itself.
+func _swallows_mouse(node: Node) -> Array:
+    var found: Array = []
+    for child in node.get_children():
+        if child is Button or child is LineEdit or child is OptionButton or child is SpinBox:
+            continue
+        if child is Control and (child as Control).mouse_filter == Control.MOUSE_FILTER_STOP:
+            found.append(String((child as Control).name))
+        found.append_array(_swallows_mouse(child))
+    return found
 
 
 func _first_draggable_card(screen: Control) -> Control:
@@ -935,7 +1267,15 @@ func _play_another_affinity(t: TestHarness) -> void:
 func _edit_a_proxy(t: TestHarness) -> void:
     t.begin("edit a proxy and keep every reference intact")
     var deck := app.profile.deck_by_id("walkthrough_deck")
-    var target := String((deck["cards"] as Dictionary).keys()[0])
+    # A proxy, not a finished card: a card drawn from a supplied face has no
+    # separate portrait to swap, and this walkthrough swaps one.
+    var target := ""
+    for id in (deck["cards"] as Dictionary).keys():
+        if app.catalog.get_def(String(id)).placeholder:
+            target = String(id)
+            break
+    if not t.ne(target, "", "the walkthrough deck holds a proxy to edit"):
+        return
     var owned_before := app.profile.owned_count(target)
     var rev_before := app.catalog.get_def(target).revision
 

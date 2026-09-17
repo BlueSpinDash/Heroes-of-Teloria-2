@@ -13,6 +13,12 @@ const AFFINITY_LABEL := {
     "silence": "Silence",
 }
 
+## How a card type is named in rules text.
+const TYPE_LABEL := {
+    "hero": "Hero", "companion": "Companion", "skill": "Skill",
+    "equipment": "Equipment", "location": "Location", "taahma": "Ta'ahma",
+}
+
 const TARGET_KIND_PHRASE := {
     "opponent_companion": "target Companion your opponent controls",
     "own_companion": "target Companion you control",
@@ -51,11 +57,19 @@ const AURA_SCOPE_PHRASE := {
     "own_characters": "each character you control",
     "opponent_characters": "each character your opponent controls",
     "host": "its host",
+    "self": "it",
 }
 
 
 static func render(def: CardDef) -> String:
     var parts: Array = []
+
+    # An attachment written for one named character says so first: it is the
+    # first thing that decides whether the card can be played at all.
+    if def.is_attachment() and def.target_spec is Dictionary:
+        var named := String((def.target_spec as Dictionary).get("character_id", ""))
+        if named != "":
+            parts.append("Attach to %s." % named.capitalize())
 
     var prefix := _timing_prefix(def)
     var body := render_effects(def.effects, def)
@@ -136,11 +150,37 @@ static func render_effect(e: Dictionary, def: CardDef) -> String:
                 _capitalise(_target(e.get("target"), def)),
                 _stat_change(e),
                 _duration_suffix(String(e.get("duration", "round")))]
+        "grant_reaction_attack":
+            var whose := "you control" if String(e.get("who", "self")) == "self" \
+                else "your opponent controls"
+            var kind_aff := String(e.get("affinity", ""))
+            var noun := "Companions" if kind_aff == "" \
+                else "%s Companions" % AFFINITY_LABEL.get(kind_aff, kind_aff)
+            var when := "While this card is in play"
+            if e.has("cond"):
+                when = "While %s" % _lower_first(render_condition(e["cond"], def))
+            return "%s, other %s %s may enter the Action Sequence as Reactions." % [
+                when, noun, whose]
+        "search_and_attach":
+            var decks: Array = []
+            for z in e.get("zones", []):
+                decks.append("%s Deck" % String(z).capitalize())
+            return "Search your %s for %s card and attach it to %s." % [
+                " or ".join(decks), _article(String(e.get("tag", "")).capitalize()),
+                _target(e.get("to"), def)]
         "prevent_damage":
-            return "Prevent the next %s that would be dealt to %s%s." % [
-                _damage_amount(e.get("amount"), def),
-                _target(e.get("target"), def),
-                _duration_suffix(String(e.get("duration", "round")))]
+            var by := _plain_amount(e.get("amount"), def)
+            var span := _duration_suffix(String(e.get("duration", "round")))
+            var shield_text := ""
+            if by.length() > 12 and span != "":
+                shield_text = "%s, reduce the next damage dealt to %s by %s." % [
+                    _capitalise(span.strip_edges()), _target(e.get("target"), def), by]
+            else:
+                shield_text = "Reduce the next damage dealt to %s by %s%s." % [
+                    _target(e.get("target"), def), by, span]
+            if bool(e.get("reflect", false)):
+                shield_text += " Whatever was dealing that damage takes as much as was prevented."
+            return shield_text
         "mill":
             var who6 := String(e.get("who", "opponent"))
             var owner6 := "your" if who6 == "self" else "your opponent's"
@@ -173,6 +213,17 @@ static func render_effect(e: Dictionary, def: CardDef) -> String:
             var subj10 := "You may put a Companion from your hand into play" if who10 == "self" \
                 else "Your opponent puts a Companion from their hand into play"
             return "%s." % subj10
+        "next_attack_bonus":
+            var aff0 := String(e.get("affinity", ""))
+            var who0 := String(e.get("scope", "controller"))
+            var whose0 := ""
+            if who0 == "controller":
+                whose0 = " you control"
+            elif who0 == "opponent":
+                whose0 = " your opponent controls"
+            return "The next %scharacter%s to attack after %s deals %s additional damage." % [
+                "%s " % AFFINITY_LABEL.get(aff0, aff0) if aff0 != "" else "",
+                whose0, _self_name(def, "this card"), _plain_amount(e.get("amount"), def)]
         "choose_card_type":
             var chooser := String(e.get("chooser", "controller"))
             return "%s a Card Type." % ("You choose" if chooser == "controller"
@@ -192,8 +243,14 @@ static func render_effect(e: Dictionary, def: CardDef) -> String:
             return "Repeat %s times: %s" % [
                 _plain_amount(e.get("amount"), def), _lower_first(render_effects(e.get("effects", []), def))]
         "aura_stat_mod":
-            return "While this card is in play, %s %s." % [
-                AURA_SCOPE_PHRASE.get(String(e.get("scope", "")), "each character"), _stat_change(e)]
+            var who_aura: String = AURA_SCOPE_PHRASE.get(String(e.get("scope", "")), "each character")
+            if String(e.get("scope", "")) == "self" and not e.has("cond"):
+                return _own_stat_line(e, def)
+            if e.has("cond"):
+                return "While this card is in play and %s, %s %s." % [
+                    _lower_first(render_condition(e["cond"], def)), who_aura,
+                    _stat_change(e, def)]
+            return "While this card is in play, %s %s." % [who_aura, _stat_change(e, def)]
         "aura_energy_max":
             var who11 := String(e.get("who", "self"))
             var owner11 := "your" if who11 == "self" else "your opponent's"
@@ -248,6 +305,10 @@ static func render_condition(cond: Dictionary, def: CardDef) -> String:
             return "%s has %s" % [_target(cond.get("target"), def), label]
         "target_defense_at_most":
             return "its Defense is %d or less" % int(cond.get("max", 0))
+        "host_attacks_with":
+            return "its host makes %s attacks" % String(cond.get("tag", "")).capitalize()
+        "host_in_sequence":
+            return "its host is in the Action Sequence"
         "target_attack_at_least":
             return "its Attack is %d or more" % int(cond.get("min", 0))
     return kind
@@ -297,6 +358,10 @@ static func render_trigger(trig: Dictionary, def: CardDef) -> String:
             lead = "Whenever the opposing Hero is damaged,"
         "self_leaves_play":
             lead = "When %s leaves play," % _self_name(def, "this card")
+        "self_wounded":
+            lead = "When %s enters your Wound Deck," % _self_name(def, "this card")
+        "host_attack_resolved":
+            lead = "After an attack by its host resolves,"
         "attack_resolved":
             var scope2 := String(on.get("scope", "either"))
             if scope2 == "controller":
@@ -305,7 +370,7 @@ static func render_trigger(trig: Dictionary, def: CardDef) -> String:
                 lead = "Whenever an attack your opponent committed resolves,"
             else:
                 lead = "Whenever any attack resolves,"
-    return "%s %s" % [lead, body]
+    return "%s %s" % [lead, _lower_first(body)]
 
 
 # ------------------------------------------------------------------ helpers ---
@@ -329,6 +394,8 @@ static func _target(ref, def: CardDef) -> String:
                 return "%s%s %s" % [base.substr(0, at), label, base.substr(at)]
         return "%s, if it is a %s card" % [base, label]
     var r := String(ref) if ref != null else "chosen"
+    if r == "self":
+        return _self_name(def, REF_PHRASE.get("self", "this card"))
     if r == "chosen":
         var spec = def.target_spec
         if spec is Dictionary:
@@ -342,6 +409,11 @@ static func _plain_amount(amount, def: CardDef) -> String:
         return str(int(amount))
     if not (amount is Dictionary):
         return str(amount)
+    if (amount as Dictionary).has("plus"):
+        var without: Dictionary = (amount as Dictionary).duplicate()
+        var fixed := int(without["plus"])
+        without.erase("plus")
+        return "%d plus %s" % [fixed, _plain_amount(without, def)]
     var src := String(amount.get("from", ""))
     match src:
         "x":
@@ -365,7 +437,55 @@ static func _plain_amount(amount, def: CardDef) -> String:
                 "opponent_hand": return "the number of cards in your opponent's hand"
                 "own_exhaust": return "the number of cards in your Exhaust Deck"
                 "opponent_exhaust": return "the number of cards in your opponent's Exhaust Deck"
+                "resolved_before": return _resolved_before_text(amount, def)
+                "own_wound": return "the number of %s in your Wound Deck" % _filtered(amount)
+                "opponent_wound": return "the number of %s in your opponent's Wound Deck" \
+                    % _filtered(amount)
+                "attackers_in_sequence":
+                    return "the number of %s attacking in the Action Sequence" \
+                        % _whose_characters(amount)
+                "characters_in_sequence":
+                    return "the number of %s in the Action Sequence" % _whose_characters(amount)
+                "copies_in_play":
+                    return "the number of %s you control" % _self_name(def, "copies of this card")
     return "an amount"
+
+
+## "Passion Companions", "cards" — how a narrowed pile count names what it is
+## counting.
+static func _filtered(amount: Dictionary) -> String:
+    var affinity := String(amount.get("affinity", ""))
+    var names: Array = []
+    for t in amount.get("types", []):
+        names.append(TYPE_LABEL.get(String(t), String(t).capitalize()) + "s")
+    var what := "cards" if names.is_empty() else " or ".join(names)
+    if affinity != "":
+        what = "%s %s" % [AFFINITY_LABEL.get(affinity, affinity), what]
+    return what
+
+
+static func _whose_characters(amount: Dictionary) -> String:
+    match String(amount.get("scope", "either")):
+        "controller": return "Heroes and Companions you control"
+        "opponent": return "Heroes and Companions your opponent controls"
+    return "Heroes and Companions"
+
+
+## "the number of Skill cards that resolved before Fevered Tempo this round"
+static func _resolved_before_text(amount: Dictionary, def: CardDef) -> String:
+    var names: Array = []
+    for t in amount.get("types", []):
+        names.append(TYPE_LABEL.get(String(t), String(t).capitalize()))
+    var what := "cards" if names.is_empty() else "%s cards" % " or ".join(names)
+    var affinity := String(amount.get("affinity", ""))
+    if affinity != "":
+        what = "%s %s" % [AFFINITY_LABEL.get(affinity, affinity), what]
+    var whose := ""
+    match String(amount.get("scope", "either")):
+        "controller": whose = " you committed"
+        "opponent": whose = " your opponent committed"
+    return "the number of %s%s that resolved before %s this round" % [
+        what, whose, _self_name(def, "this card")]
 
 
 static func _abs_amount(amount, def: CardDef) -> String:
@@ -394,15 +514,57 @@ static func _energy(amount, def: CardDef) -> String:
     return "Energy equal to %s" % _plain_amount(amount, def)
 
 
-static func _stat_change(e: Dictionary) -> String:
+## A card stating one of its own statistics: "X's Defense is equal to ...".
+static func _own_stat_line(e: Dictionary, def: CardDef) -> String:
     var bits: Array = []
-    if e.has("attack"):
-        bits.append("%+d Attack" % int(e["attack"]))
-    if e.has("defense"):
-        bits.append("%+d Defense" % int(e["defense"]))
+    for f in ["attack", "defense"]:
+        if not e.has(f):
+            continue
+        var v: Variant = e[f]
+        var label := String(f).capitalize()
+        if v is int or v is float:
+            bits.append("%s is %+d higher" % [label, int(v)])
+        else:
+            bits.append("%s is equal to %s" % [label, _plain_amount(v, def)])
+    if bits.is_empty():
+        return ""
+    return "%s's %s." % [_self_name(def, "This card"), " and its ".join(bits)]
+
+
+## "an Ammunition", "a Consumable" — a noun with the article it takes.
+static func _article(word: String) -> String:
+    var first := word.substr(0, 1).to_lower()
+    return "%s %s" % ["an" if "aeiou".contains(first) else "a", word]
+
+
+static func _stat_change(e: Dictionary, def: CardDef = null) -> String:
+    var bits: Array = []
+    for f in ["attack", "defense"]:
+        if not e.has(f):
+            continue
+        var v: Variant = e[f]
+        var label := String(f).capitalize()
+        if v is int or v is float:
+            bits.append("%+d %s" % [int(v), label])
+        else:
+            # A worked-out number is stated as what it equals rather than as a
+            # bonus: a card whose Defense is a count prints that Defense as X.
+            bits.append("%s equal to %s" % [label, _plain_amount(v, def)])
     if bits.is_empty():
         return "is unchanged"
-    return "gets " + " and ".join(bits)
+    var fixed: Array = []
+    var computed: Array = []
+    for b in bits:
+        if String(b).begins_with("+") or String(b).begins_with("-"):
+            fixed.append(b)
+        else:
+            computed.append(b)
+    var out: Array = []
+    if not fixed.is_empty():
+        out.append("gets " + " and ".join(fixed))
+    if not computed.is_empty():
+        out.append("has " + " and ".join(computed))
+    return " and ".join(out)
 
 
 static func _duration_suffix(duration: String) -> String:
@@ -435,6 +597,7 @@ static func _lower_first(s: String) -> String:
     var first := s.substr(0, 1)
     var rest := s.substr(1)
     var word := s.split(" ")[0]
-    if word in ["You", "Your", "Move", "Deal", "Destroy", "Return", "Prevent", "Repeat", "While", "If", "Each"]:
+    if word in ["You", "Your", "Move", "Deal", "Destroy", "Return", "Prevent",
+            "Repeat", "While", "If", "Each", "Search", "Reduce", "For", "The"]:
         return first.to_lower() + rest
     return s

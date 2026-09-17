@@ -24,7 +24,9 @@ const SLICES := {
 	"deck_hit": [150, 528, 330, 162],
 	"deck_hero": [630, 528, 405, 162],
 	"deck_exhaust": [1072, 528, 253, 162],
-	"deck_wound": [1362, 528, 218, 162],
+	# This plate is the same size as the Exhaust one beside it; cut narrower it
+	# lost its right border and the end of its painted caption.
+	"deck_wound": [1362, 528, 253, 162],
 }
 
 

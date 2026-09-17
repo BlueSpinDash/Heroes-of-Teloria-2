@@ -146,13 +146,14 @@ static func draw_up_to(state: GameState, pi: int, count: int) -> int:
 ## Damage removes cards: up to N random cards from Exhaust first, then the
 ## remainder at random from Hit, with no reshuffle during the operation. If
 ## Hit plus Exhaust cannot supply the full amount, that player loses.
-static func hero_damage(state: GameState, pi: int, amount: int, source_label: String = "") -> int:
+static func hero_damage(state: GameState, pi: int, amount: int, source_label: String = "",
+        source_iid: String = "") -> int:
     if amount <= 0:
         return 0
     var hero := state.hero_of(pi)
     var incoming := amount
     if hero != null and hero.shield_total() > 0:
-        incoming = _consume_shields(state, hero, incoming)
+        incoming = _consume_shields(state, hero, incoming, source_iid)
         if incoming <= 0:
             state.emit("damage_prevented", {
                 "player": pi, "amount": amount,
@@ -194,9 +195,17 @@ static func hero_damage(state: GameState, pi: int, amount: int, source_label: St
     return supplied
 
 
-static func _consume_shields(state: GameState, target: CardInstance, incoming: int) -> int:
+## Spend whatever prevention is on the target against incoming damage, and
+## return what is left of it.
+##
+## A shield may strike back: what it stops is dealt to whatever was dealing it.
+## Reflected damage carries no source of its own, so it cannot be reflected
+## again — a shield on each side is a standoff, not a loop.
+static func _consume_shields(state: GameState, target: CardInstance, incoming: int,
+        source_iid: String = "") -> int:
     var left := incoming
     var kept: Array = []
+    var reflected := 0
     for s in target.shields:
         var amount := int(s.get("amount", 0))
         if left <= 0:
@@ -204,6 +213,8 @@ static func _consume_shields(state: GameState, target: CardInstance, incoming: i
             continue
         var used: int = min(left, amount)
         left -= used
+        if bool((s as Dictionary).get("reflect", false)):
+            reflected += used
         if amount - used > 0:
             var partial: Dictionary = (s as Dictionary).duplicate()
             partial["amount"] = amount - used
@@ -213,12 +224,53 @@ static func _consume_shields(state: GameState, target: CardInstance, incoming: i
         state.emit("damage_prevented", {
             "target": target.iid, "prevented": incoming - left,
             "message": "%d damage was prevented." % (incoming - left)})
+    if reflected > 0 and source_iid != "":
+        var src := state.inst(source_iid)
+        if src != null:
+            var sd := state.def_of(source_iid)
+            state.emit("damage_reflected", {
+                "target": source_iid, "amount": reflected,
+                "message": "%s takes the %d damage it was stopped from dealing." % [
+                    sd.name if sd != null else source_iid, reflected]})
+            damage_character(state, source_iid, reflected, true, "reflected damage")
     return left
+
+
+## Damage an attack deals, after Attack and Defense have been worked out.
+##
+## An attack goes through the same prevention as anything else: a card that
+## reduces damage to a character has to reduce it whatever the damage is from,
+## or it would only work against Skills.
+static func attack_damage(state: GameState, attacker_iid: String, target_iid: String,
+        dmg: int, label: String) -> void:
+    var tci := state.inst(target_iid)
+    if tci == null:
+        return
+    var dealt := dmg
+    if tci.shield_total() > 0:
+        dealt = _consume_shields(state, tci, dealt, attacker_iid)
+    if tci.zone == "hero":
+        if dealt > 0:
+            hero_damage(state, tci.controller, dealt, label, attacker_iid)
+        else:
+            state.emit("no_damage", {
+                "message": "%s deals no damage to the opposing Hero." % label})
+        return
+    var td := state.def_of(target_iid)
+    var tlabel := td.name if td != null else target_iid
+    if dealt > 0:
+        state.emit("companion_damaged", {
+            "target": target_iid, "amount": dealt,
+            "message": "%s deals %d damage to %s." % [label, dealt, tlabel]})
+        destroy(state, target_iid, "attack damage")
+    else:
+        state.emit("no_damage", {
+            "message": "%s deals no damage to %s, which survives." % [label, tlabel]})
 
 
 ## Direct damage to a character. Companions are destroyed by any positive
 ## damage; damage never accumulates as hit points.
-static func damage_character(state: GameState, target_iid: String, amount: int, ignores_defense: bool, source_label: String = "") -> void:
+static func damage_character(state: GameState, target_iid: String, amount: int, ignores_defense: bool, source_label: String = "", source_iid: String = "") -> void:
     var ci := state.inst(target_iid)
     if ci == null:
         return
@@ -228,9 +280,9 @@ static func damage_character(state: GameState, target_iid: String, amount: int, 
     if not ignores_defense:
         dealt = max(0, amount - state.current_defense(target_iid))
     if ci.shield_total() > 0:
-        dealt = _consume_shields(state, ci, dealt)
+        dealt = _consume_shields(state, ci, dealt, source_iid)
     if ci.zone == "hero":
-        hero_damage(state, ci.controller, dealt, source_label)
+        hero_damage(state, ci.controller, dealt, source_label, source_iid)
         return
     if dealt <= 0:
         state.emit("no_damage", {
@@ -260,6 +312,10 @@ static func destroy(state: GameState, iid: String, reason: String = "") -> void:
         return
     _release_attachments(state, iid, "exhaust")
     state.trigger_events.append({"kind": "leaves_play", "iid": iid, "controller": ci.controller})
+    # Destruction is also the way a card in play enters its owner's Wound
+    # Deck, which is a different thing from leaving play: replacement and a
+    # bounce send a card to Exhaust and to hand instead.
+    state.trigger_events.append({"kind": "wounded", "iid": iid, "controller": ci.controller})
     var was_companion := ci.zone == "companions"
     var controller := ci.controller
     state.move_to_pile(iid, "wound")

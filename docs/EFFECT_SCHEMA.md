@@ -109,10 +109,24 @@ An amount is a plain integer or a dynamic object:
 | `7` | Exactly seven. |
 | `{"from": "x"}` | The Energy actually spent on this card's X cost. |
 | `{"from": "chain_count", "affinity": "passion", "scope": "either"}` | Matching Actions in the current Affinity chain. `affinity` may be `"any"`; `scope` is `controller`, `opponent` or `either`. |
-| `{"from": "count", "of": "own_companions"}` | A board or pile count. `of` is one of `own_companions`, `opponent_companions`, `own_hand`, `opponent_hand`, `own_exhaust`, `opponent_exhaust`. |
+| `{"from": "count", "of": "own_companions"}` | A board or pile count. `of` is one of `own_companions`, `opponent_companions`, `own_hand`, `opponent_hand`, `own_exhaust`, `opponent_exhaust`, `own_wound`, `opponent_wound`. |
+| `{"from": "count", "of": "resolved_before", "types": ["skill"]}` | Slots of the Action Sequence that resolved before the one being read. The Sequence resolves in order, so that is the round's own record of what has happened. |
+| `{"from": "count", "of": "attackers_in_sequence"}` | Characters committed to an attack in the Sequence. `characters_in_sequence` counts every character in it. |
+| `{"from": "count", "of": "copies_in_play"}` | Copies of the reading card its controller has in play, itself included. |
 
-Add `"multiplier": 0.5` to scale a dynamic amount. Negative amounts are only
-allowed on `energy_max_mod` and `aura_energy_max`.
+A pile count and `resolved_before` may be narrowed with `"types": [...]` and
+`"affinity": "passion"`; `resolved_before`, `attackers_in_sequence` and
+`characters_in_sequence` take a `"scope"` of `controller`, `opponent` or
+`either`.
+
+Add `"multiplier": 0.5` to scale a dynamic amount, and `"plus": 1` to add a
+fixed part to it. Negative amounts are only allowed on `energy_max_mod` and
+`aura_energy_max`.
+
+An `aura_stat_mod` may use a dynamic amount for `attack` or `defense`. It is
+re-read on every query rather than fixed when the card arrives, which is how a
+card prints a statistic as **X**: Vanguard Captain's Defense is the number of
+characters attacking in the Sequence.
 
 ## Targets
 
@@ -121,6 +135,11 @@ A card that needs the player to choose declares one `target` block:
 ```json
 "target": {"kind": "opponent_companion", "count": 1, "optional": false}
 ```
+
+An attachment may add `"character_id": "parfait"`, which restricts it to that
+one character. The restriction is checked when the card is committed, again
+when it resolves, and the generated text states it first, because it is the
+first thing that decides whether the card can be played at all.
 
 Kinds: `opponent_companion`, `own_companion`, `any_companion`,
 `opponent_character`, `own_character`, `any_character`, `own_equipment`,
@@ -158,7 +177,7 @@ Energy refund, and no restored action allowance.
 
 ## Effect operations
 
-Twenty operations. Anything else fails validation.
+Twenty-three operations. Anything else fails validation.
 
 **Damage and removal**
 
@@ -173,6 +192,7 @@ Twenty operations. Anything else fails validation.
 
 | Op | Fields | Effect |
 | --- | --- | --- |
+| `search_and_attach` | `who`, `zones`, `tag`, `to` | Look through the player's own `hit` and/or `exhaust` decks for a card with that tag and attach it to `to`. |
 | `draw` | `who`, `amount` | A required draw: failing it loses the match. |
 | `mill` | `who`, `amount` | Up to that many cards from the top of Hit to Exhaust. |
 | `recover_from_exhaust` | `who`, `amount` | Up to that many cards from Exhaust to hand, chosen by that player. |
@@ -180,6 +200,7 @@ Twenty operations. Anything else fails validation.
 | `random_exhaust_from_hand` | `who`, `amount` | A random discard. |
 | `deploy_from_hand` | `who` | Put a Companion from hand into play. |
 | `choose_card_type` | `chooser` | That player names one of the six Card Types. The card remembers it for the round, and `chosen_type_card_resolved` reads it. |
+| `next_attack_bonus` | `amount`, `scope`, optional `affinity` | Leaves a bonus for the next attack that qualifies. Claimed once, by the first attack to resolve whose attacker matches, then gone. Unclaimed, it lapses at Round End. |
 
 **Energy**
 
@@ -194,14 +215,15 @@ Twenty operations. Anything else fails validation.
 | Op | Fields | Effect |
 | --- | --- | --- |
 | `stat_mod` | `target`, `duration`, `attack` and/or `defense` | A temporary or permanent stat change. |
-| `prevent_damage` | `target`, `amount`, `duration` | Prevents the next N damage to that card. |
+| `prevent_damage` | `target`, `amount`, `duration`, optional `reflect` | Prevents the next N damage to that card. With `"reflect": true`, whatever was dealing it takes as much as was stopped. Reflected damage carries no source of its own, so a shield on each side is a standoff rather than a loop. |
 
 **Continuous, only on a card that stays in play**
 
 | Op | Fields | Effect |
 | --- | --- | --- |
-| `aura_stat_mod` | `scope`, `attack` and/or `defense` | A continuous stat aura while the source is in play. |
+| `aura_stat_mod` | `scope`, `attack` and/or `defense`, optional `cond` | A continuous stat aura while the source is in play. `scope` may be `self`, which is how a card states one of its own statistics. |
 | `aura_energy_max` | `who`, `amount` | A continuous maximum-Energy change. |
+| `grant_reaction_attack` | `who`, optional `affinity`, `cond` | Lets that player's Companions enter the Action Sequence during a Reaction window. Entering this way still spends the character's one appearance for the round. |
 
 Aura scopes: `own_companions`, `opponent_companions`, `all_companions`,
 `own_hero`, `opponent_hero`, `own_characters`, `opponent_characters`, `host`.
@@ -216,6 +238,10 @@ Aura scopes: `own_companions`, `opponent_companions`, `all_companions`,
 
 `who` is `self` or `opponent`, relative to the card's controller. `duration` is
 `step`, `round` or `permanent`.
+
+Conditions an attachment may carry on an aura or a grant: `host_attacks_with`
+(with a `tag`) and `host_in_sequence`. They are about the source and its host
+rather than about anything being targeted.
 
 ## Conditions
 
@@ -241,7 +267,13 @@ Aura scopes: `own_companions`, `opponent_companions`, `all_companions`,
 
 Kinds: `affinity_card_resolved`, `chosen_type_card_resolved`, `self_deployed`,
 `own_companion_deployed`, `self_attack_resolved`, `attack_resolved`,
-`round_end`, `own_hero_damaged`, `opponent_hero_damaged`, `self_leaves_play`.
+`host_attack_resolved`, `round_end`, `own_hero_damaged`,
+`opponent_hero_damaged`, `self_leaves_play`, `self_wounded`.
+
+`self_leaves_play` and `self_wounded` fire for a card that is already out of
+play — its own parting is the one event it can still answer. `self_wounded` is
+narrower: a card is Wounded when it is destroyed, where being replaced or
+bounced sends it to Exhaust and to hand instead.
 
 `affinity_card_resolved` on a **character** only fires while that character is
 actually in the Action Sequence. That is the Parfait pattern: she pays one
@@ -258,6 +290,12 @@ forgotten at Round End with everything else that lasts a round. That is the
 Sorbet pattern — she names a Card Type when her attack resolves, and every
 Vigilance Companion her controller has grows each time a card of that type
 resolves afterwards — and it is pinned as a fixture too.
+
+`next_attack_bonus` is added to the damage an attack **deals**, after Defense
+has been subtracted, not to the attacker's Attack. An attack that would bounce
+off a tougher target for nothing still lands the bonus. That is deliberate:
+"deals 1 additional damage" is about what arrives, and a bonus that Defense
+could absorb would do nothing in exactly the situations it is played for.
 
 Avoid `stat_mod` or `prevent_damage` with `"duration": "round"` inside a
 `round_end` trigger: round-duration effects expire moments later in the same
