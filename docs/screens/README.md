@@ -30,7 +30,7 @@ xvfb-run -a godot --path . --resolution 1440x900 --script tools/ui_drive.gd
 | `23_printed_faces.png` | Three cards drawn from the faces they were supplied as, beside one the game builds |
 | `25_supplied_cards.png` | Every card supplied as a finished face, drawn from that face |
 | `26_frames.png` | The Companion, Equipment and Ta'ahma frames, with a proxy's values on them |
-| `27_board_cards.png` | A match in progress: everything that stands for a card is drawn as one |
+| `27_board_cards.png` | A match in progress: every card drawn as a card, and the decks face down |
 | `28_layout_board.png` | The Layout screen laying out the board, with a bar on every edge a number controls |
 | `29_layout_card.png` | The Layout screen laying out a card, with its slots and stacking order |
 

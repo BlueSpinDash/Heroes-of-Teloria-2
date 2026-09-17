@@ -435,20 +435,41 @@ func _pile_chip(player: int, kind: String) -> Control:
     var key := "%d_%s" % [player, kind]
     chip.set_meta("pile", key)
     _pile_chips[key] = chip
-    var count_label := UiTheme.label(str(count), 24,
-        UiTheme.DANGER.lightened(0.35) if kind == "wound" else UiTheme.PARCHMENT,
-        HORIZONTAL_ALIGNMENT_CENTER)
-    count_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.95))
-    count_label.add_theme_constant_override("shadow_offset_x", 1)
-    count_label.add_theme_constant_override("shadow_offset_y", 1)
-    v.add_child(count_label)
+    # A deck with cards in it shows the top one, face down, standing on its
+    # painted plate. An empty deck shows the plate alone: there is no card
+    # there to be face down.
+    var ink: Color = UiTheme.DANGER.lightened(0.35) if kind == "wound" \
+        else UiTheme.PARCHMENT
+    var row := UiTheme.hbox(4)
+    row.size_flags_vertical = Control.SIZE_EXPAND_FILL
+    var back := CardView.face_down(_deck_back_w(), count, ink) if count > 0 else null
+    if back != null:
+        row.add_child(back)
+    else:
+        # Nothing in the deck: the plate's own caption is all there is to see,
+        # so the count goes where the cards would have been.
+        var empty := UiTheme.label("0", 22, ink.darkened(0.25),
+            HORIZONTAL_ALIGNMENT_CENTER)
+        empty.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.95))
+        empty.add_theme_constant_override("shadow_offset_x", 1)
+        empty.add_theme_constant_override("shadow_offset_y", 1)
+        empty.custom_minimum_size = Vector2(_deck_back_w(), 0)
+        empty.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+        row.add_child(empty)
     var gap := Control.new()
-    gap.size_flags_vertical = Control.SIZE_EXPAND_FILL
+    gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    v.add_child(gap)
+    row.add_child(gap)
+    v.add_child(row)
     chip.tooltip_text = "%s: %d card%s" % [String(PILE_LABEL.get(kind, kind)), count,
         "" if count == 1 else "s"]
     return chip
+
+
+## How wide a face-down card on a deck plate is: as tall as the plate's inside
+## allows, so the deck reads as cards rather than as a picture on a picture.
+func _deck_back_w() -> float:
+    return (DECK_PLATE_H - 16.0) * CardView.BASE_WIDTH / CardView.BASE_HEIGHT
 
 
 func _refresh_boards() -> void:

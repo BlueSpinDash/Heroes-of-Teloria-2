@@ -198,6 +198,7 @@ func _play_a_starter(t: TestHarness) -> void:
     t.ne(app.match_state, null, "a match state exists")
     t.eq(app.match_state.round_number, 1, "the match opens on round 1")
     t.eq(app.match_state.player(0).hand.size(), app.rules.draw_to, "you drew to five")
+    _decks_show_their_backs(t, screen)
 
     # Commit at least one Action through the real command path.
     var st: GameState = app.match_state
@@ -790,6 +791,47 @@ func _layout_editor_resizes_the_board(t: TestHarness) -> void:
     await _frames(t, 2)
     t.ok(not Layout.is_changed("battle_board", "companion_strip_h"),
         "the test left the board as it found it")
+
+
+## A card in the Hit, Exhaust or Wound Deck is face down, so a deck with
+## anything in it shows the card back. A deck with nothing in it shows its
+## painted plate alone: there is no card there to be face down.
+func _decks_show_their_backs(t: TestHarness, screen: Control) -> void:
+    var st: GameState = app.match_state
+    t.ok(ResourceLoader.exists(CardView.BACK_PATH),
+        "the card back is in the project: %s" % CardView.BACK_PATH)
+    t.ne(CardView.face_down(60.0), null, "a face-down card can be drawn")
+    var chips: Dictionary = screen.get("_pile_chips")
+    var wrong: Array = []
+    for kind in ["hit", "exhaust", "wound"]:
+        for player in 2:
+            var chip := chips.get("%d_%s" % [player, String(kind)]) as Control
+            if chip == null:
+                wrong.append("no plate for P%d's %s" % [player + 1, String(kind)])
+                continue
+            var full := st.player(player).pile(String(kind)).size() > 0
+            var shown := _has_card_back(chip)
+            if full != shown:
+                wrong.append("P%d's %s holds %d and %s a back" % [
+                    player + 1, String(kind), st.player(player).pile(String(kind)).size(),
+                    "shows" if shown else "does not show"])
+    t.empty(wrong, "every deck shows a back when it holds cards and none when it does not")
+    # The one that has to be true whatever the starting deal is.
+    var hit := chips.get("0_hit") as Control
+    if t.ne(hit, null, "your Hit Deck has a plate"):
+        t.ok(st.player(0).hit.size() > 0, "and cards in it")
+        t.ok(_has_card_back(hit), "so it shows the card back")
+
+
+func _has_card_back(node: Node) -> bool:
+    if node is TextureRect:
+        var tex := (node as TextureRect).texture
+        if tex != null and tex.resource_path == CardView.BACK_PATH:
+            return true
+    for child in node.get_children():
+        if _has_card_back(child):
+            return true
+    return false
 
 
 ## A copy of a card put back on its painted frame, with a real picture in the

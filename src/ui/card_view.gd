@@ -21,6 +21,53 @@ const BASE_HEIGHT := 420.0
 ## How much of the foot of a card a badge covers.
 const BADGE_H := 22.0
 
+## The back of a card: what a card looks like while it is face down.
+const BACK_PATH := "res://assets/cards/card_back.png"
+
+
+## A face-down card, at a given width, with how many are under it written
+## across its foot.
+##
+## Every card in a Hit, Exhaust or Wound Deck is face down, so this is what a
+## deck with anything in it shows. A deck with nothing in it shows nothing:
+## there is no card there to be face down. The count goes on the card rather
+## than beside it, so the deck takes no more of its painted plate than one
+## card's width and the plate's own caption still reads.
+##
+## Returns null when no back has been supplied, so a caller falls back to
+## whatever it drew before.
+static func face_down(width: float, count: int = -1,
+        ink: Color = UiTheme.PARCHMENT) -> Control:
+    if width <= 0.0 or not ResourceLoader.exists(BACK_PATH):
+        return null
+    var back := TextureRect.new()
+    back.texture = load(BACK_PATH)
+    back.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    back.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+    back.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    back.set_anchors_preset(Control.PRESET_FULL_RECT)
+    var host := Control.new()
+    host.custom_minimum_size = Vector2(width, width * BASE_HEIGHT / BASE_WIDTH)
+    host.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+    host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    host.add_child(back)
+    if count >= 0:
+        var strip := UiTheme.panel(Color(0, 0, 0, 0.62), Color(0, 0, 0, 0), 0, 3)
+        strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        strip.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+        var band := maxf(14.0, width * 0.34)
+        strip.offset_top = -band
+        strip.offset_bottom = 0
+        var label := UiTheme.label(str(count), int(maxf(10.0, width * 0.26)), ink,
+            HORIZONTAL_ALIGNMENT_CENTER)
+        label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+        label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        label.set_anchors_preset(Control.PRESET_FULL_RECT)
+        strip.add_child(label)
+        host.add_child(strip)
+    return host
+
+
 ## The name given to the picture on a card drawn from a supplied face, so the
 ## interface and the tests can find it without guessing at the node order.
 const PRINTED_FACE := "PrintedFace"

@@ -119,6 +119,11 @@ Sequence, and your hand. A card in play carries one badge for whatever a player
 most needs at a glance — what its statistics are now, what it is preventing,
 whether it has already acted — and the rest in its tooltip.
 
+Cards in a Hit, Exhaust or Wound Deck are face down, so those decks show the
+card back — `assets/cards/card_back.png` — standing on the plate painted for
+them, with how many are in the deck across its foot. A deck with nothing in it
+shows its plate alone: there is no card there to be face down.
+
 Cards on the table are drawn small enough to fit it, which leaves their rules
 text too small to read, so resting the pointer on one brings the same card up
 at a size meant for reading. It works on everything that stands for a card: a

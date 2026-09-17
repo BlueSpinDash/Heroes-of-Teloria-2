@@ -266,7 +266,20 @@ func _pv_decks(player: int) -> Control:
             h * float(BoardArt.PILE_ASPECT.get(String(kind), 2.0)), h)
         plate.size_flags_vertical = Control.SIZE_SHRINK_CENTER
         _follows("deck_plate_h", plate, "plate")
-        pv.add_child(UiTheme.label("0", 20, UiTheme.PARCHMENT, HORIZONTAL_ALIGNMENT_CENTER))
+        # A deck with cards in it shows the top one face down, so the preview
+        # shows that rather than a bare plate.
+        var stack := UiTheme.hbox(4)
+        stack.size_flags_vertical = Control.SIZE_EXPAND_FILL
+        var back := CardView.face_down(
+            (h - 12.0) * CardView.BASE_WIDTH / CardView.BASE_HEIGHT, 40)
+        if back != null:
+            _follows("deck_plate_h", back, "back_in_plate")
+            stack.add_child(back)
+        var gap := Control.new()
+        gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+        gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        stack.add_child(gap)
+        pv.add_child(stack)
         row.add_child(plate)
     return row
 
@@ -437,6 +450,9 @@ func _apply_board_sizes() -> void:
                 "card_in_plate":
                     var w := minf(Layout.num(BOARD, "board_card_w"), value / tall)
                     node.custom_minimum_size = Vector2(w, w * tall)
+                "back_in_plate":
+                    var bw := (value - 12.0) / tall
+                    node.custom_minimum_size = Vector2(bw, bw * tall)
 
 
 func _step_card(by: int) -> void:

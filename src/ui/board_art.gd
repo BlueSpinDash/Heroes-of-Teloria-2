@@ -13,7 +13,7 @@ const DIR := "res://assets/board/"
 
 ## Each deck plate's own proportions, so it is never stretched out of shape
 ## whatever height its row ends up.
-const PILE_ASPECT := {"hit": 330.0 / 162.0, "exhaust": 253.0 / 162.0, "wound": 218.0 / 162.0}
+const PILE_ASPECT := {"hit": 330.0 / 162.0, "exhaust": 253.0 / 162.0, "wound": 253.0 / 162.0}
 
 ## How far each plate is dimmed so text drawn over it stays readable.
 const PLATE_TINT := 0.72
