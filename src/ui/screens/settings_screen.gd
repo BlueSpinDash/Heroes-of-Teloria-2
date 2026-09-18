@@ -156,6 +156,7 @@ func _import() -> void:
     # old progress stays recoverable.
     app.profile = PlayerProfile.new(read["data"])
     app.catalog = Catalog.load_bundled()
+    app.catalog.set_customs(app.profile.customs())
     app.catalog.set_overrides(app.profile.overrides())
     app.match_state = null
     app.match_context = {}
@@ -246,6 +247,7 @@ func _reset() -> void:
     var target := app.slot
     app.profile = PlayerProfile.create_new(app.catalog, app.economy, affinity, save_name)
     app.catalog = Catalog.load_bundled()
+    app.catalog.set_customs(app.profile.customs())
     app.catalog.set_overrides(app.profile.overrides())
     app.match_state = null
     app.match_context = {}

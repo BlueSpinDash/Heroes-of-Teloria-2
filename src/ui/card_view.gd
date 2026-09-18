@@ -110,6 +110,20 @@ const FRAMES := {
     },
 }
 
+## The line printed in a card's footer where a real card prints its set and
+## number: the card's id, marked as a proxy when it is still placeholder
+## content, and marked CUSTOM when the player made it themselves. A created
+## card looks like a real card everywhere else, so this is what says where it
+## came from.
+static func _set_line(def: CardDef) -> String:
+    if def.custom:
+        # The footer is a small painted space, so a created card prints only
+        # the mark and its number. Everything the rest of the id would repeat —
+        # that it is custom, and what type it is — is already on the card.
+        return "CUSTOM • " + def.id.get_slice("_", def.id.get_slice_count("_") - 1)
+    return ("" if def.authored else "PROXY • ") + def.id
+
+
 ## The layout group whose slots place this card's pieces, or "" when the card
 ## is not drawn on a painted frame. The Layout screen asks so it can edit the
 ## group that belongs to whatever card is being previewed.
@@ -288,7 +302,7 @@ func _build_framed(spec: Dictionary) -> void:
     var rarity_ink: Color = UiTheme.RARITY_COLOR.get(def.rarity, UiTheme.PARCHMENT_DARK)
     if dark_frame:
         rarity_ink = rarity_ink.darkened(0.45)
-    pieces["set"] = _slot(def.id, slot(group, "set"), small, footer_ink)
+    pieces["set"] = _slot(_set_line(def), slot(group, "set"), small, footer_ink)
     pieces["rarity"] = _slot(UiTheme.rarity_line(def), slot(group, "rarity"), small,
         rarity_ink)
 
@@ -584,7 +598,7 @@ func _build() -> void:
 
     # --- footer --------------------------------------------------------------
     var footer := UiTheme.hbox(4)
-    var id_label := UiTheme.label("%s%s" % ["" if def.authored else "PROXY • ", def.id],
+    var id_label := UiTheme.label(_set_line(def),
         int(10 * scale_factor), UiTheme.PARCHMENT_DARK)
     id_label.clip_text = true
     footer.add_child(id_label)

@@ -28,6 +28,7 @@ func _defaults() -> void:
         "owned": {},
         "decks": [],
         "catalog_overrides": {},
+        "custom_cards": {},
         "rewarded_matches": {},
         "match_records": [],
         "pack_openings": [],
@@ -344,6 +345,43 @@ func clear_override(def_id: String) -> bool:
         o.erase(def_id)
         return true
     return false
+
+
+# ------------------------------------------------------------- created cards ---
+
+## Cards this save's player made in the card creator. They belong to the save
+## rather than to the game, so one profile's inventions never appear in
+## another's collection.
+func customs() -> Dictionary:
+    return raw.get("custom_cards", {})
+
+
+func set_custom(def_id: String, def_raw: Dictionary) -> void:
+    (raw["custom_cards"] as Dictionary)[def_id] = def_raw.duplicate(true)
+
+
+## Forget a created card, along with the copies of it this collection held.
+## Owned copies of a card that no longer exists would be a collection of
+## nothing, so they go with it.
+func clear_custom(def_id: String) -> bool:
+    var c: Dictionary = raw["custom_cards"]
+    if not c.has(def_id):
+        return false
+    c.erase(def_id)
+    (raw["owned"] as Dictionary).erase(def_id)
+    (raw["catalog_overrides"] as Dictionary).erase(def_id)
+    return true
+
+
+## Put copies of a created card into the collection directly.
+##
+## This is not a reward and not a purchase: the card was made, so its copies
+## exist. It bypasses `add_cards` because there is nothing to convert to gold —
+## a created card has no pack to come out of.
+func grant_custom_copies(def_id: String, count: int) -> void:
+    if count <= 0:
+        return
+    (raw["owned"] as Dictionary)[def_id] = count
 
 
 # ---------------------------------------------------------------- active match ---

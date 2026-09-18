@@ -18,8 +18,9 @@ establish no Teloria lore or final balance.
 | Opponents | Seven Affinity AI profiles sharing one legal-command API, with a restricted observation model. |
 | Progression | Gold, boosters, duplicate conversion, idempotent rewards, durable pack transactions. |
 | Persistence | Versioned save with atomic writes, backup rotation, export and import. |
-| Interface | Home, Collection, Deck builder, Opponent selection, Battle, Results, Shop, Card editor, Settings. Cards and attacks can be dragged onto their targets or anywhere into a zone, or played by clicking. |
-| Tests | 1049 assertions across five suites, all passing. |
+| Card creator | Make your own card: pick its type, Affinity, numbers and features, and the prices they add up to are its Energy cost and its rarity. |
+| Interface | Home, Collection, Deck builder, Opponent selection, Battle, Results, Shop, Card creator, Card editor, Settings. Cards and attacks can be dragged onto their targets or anywhere into a zone, or played by clicking. |
+| Tests | 1279 assertions across six suites, all passing. |
 
 ## Requirements
 
@@ -157,6 +158,59 @@ card — over the cards already standing in the zone, over its painted caption,
 over its empty space. Characters are still dropped on individually, because
 choosing one is the point.
 
+## Making your own cards
+
+The **Create** screen makes a card of your own, and the card tells you what it
+costs.
+
+Pick what it is — Companion, Skill, Equipment, Ta'ahma or Location — give it a
+name and an Affinity, set its numbers, and choose from a list of features: deal
+damage, draw, destroy a Companion, raise your maximum Energy, buff the
+Companions you control, answer your own Affinity in the Action Sequence, and so
+on. Import an image and it is copied into that save's own art folder, so moving
+the original later cannot blank the card.
+
+**Nothing is free, and you do not set the cost.** Every choice has a price in
+points: a Companion's body, each point of Attack or Defense, a second Affinity,
+being playable as a Reaction, and each feature — priced per point of whatever
+it does, so two damage costs twice what one does. Ten points make one Energy,
+and part of a point is still paid for. The card's printed Energy cost is what
+the total comes to, and its **rarity follows the same total**, so a card cannot
+be made cheaper or commoner than what is on it. The one thing that gives points
+back is making its attack cost more to declare.
+
+The ledger down the side itemises every line, so it is always clear which
+choice made the card cost what it does.
+
+`src/core/card_forge.gd` holds the whole pricing model — the prices, the
+feature table, and the effect data each feature comes to. Changing what a
+feature costs, or adding one built from effects the engine already performs, is
+an edit to that one file.
+
+What comes out is a real card, not a special case:
+
+* Its rules text is **generated from its effect data** by the same `TextGen` as
+  every shipped card, so a created card cannot promise something the engine
+  will not do. A feature that cannot be expressed in the vocabulary in
+  `docs/EFFECT_SCHEMA.md` is not offered.
+* It passes the same `CardDef.validate()` as the shipped catalog. Anything that
+  does not validate is refused and the reason is shown.
+* It joins the catalog, the collection gets its three copies, and a deck may
+  hold it. A match freezes it like any other card, so deleting the card later
+  cannot change a game in progress.
+* Its face is marked **CUSTOM**, so it is never mistaken for one of the game's
+  own cards.
+* It belongs to the save it was made in. One save's inventions never appear in
+  another's collection.
+
+A created card carries the design it was made from, so it can be reopened and
+changed rather than made once and frozen. Deleting one takes its copies with
+it, and a deck it leaves illegal is reported rather than quietly edited.
+
+A **Hero** is deliberately not creatable: a Hero has no play cost, so there is
+nothing for the prices to land on, and it would also have to be a unique named
+character with a place in the deck rules.
+
 ## Adjusting the layout
 
 Positions, sizes and stacking order the interface reads — where each piece sits
@@ -213,6 +267,7 @@ godot --headless --path . --script tools/run_tests.gd -- rules
 godot --headless --path . --script tools/run_tests.gd -- catalog
 godot --headless --path . --script tools/run_tests.gd -- progression
 godot --headless --path . --script tools/run_tests.gd -- ai
+godot --headless --path . --script tools/run_tests.gd -- forge
 godot --headless --path . --script tools/run_tests.gd -- ui
 ```
 

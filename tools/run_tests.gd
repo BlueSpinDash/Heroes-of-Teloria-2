@@ -12,6 +12,7 @@ const SUITES := {
     "catalog": "res://tests/test_catalog.gd",
     "progression": "res://tests/test_progression.gd",
     "ai": "res://tests/test_ai.gd",
+    "forge": "res://tests/test_forge.gd",
     "ui": "res://tests/test_ui.gd",
 }
 

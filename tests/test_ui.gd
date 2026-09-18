@@ -55,6 +55,7 @@ func run(t: TestHarness) -> void:
     _save_and_reload(t)
     _play_another_affinity(t)
     _edit_a_proxy(t)
+    await _create_a_card(t)
     _cleanup()
 
 
@@ -94,7 +95,8 @@ func _screen() -> Control:
 
 func _every_screen_builds(t: TestHarness) -> void:
     t.begin("every screen builds")
-    for name in ["saves", "home", "collection", "decks", "opponents", "shop", "editor", "layout", "settings"]:
+    for name in ["saves", "home", "collection", "decks", "opponents", "shop", "creator",
+            "editor", "layout", "settings"]:
         app.goto(String(name))
         var s := _screen()
         t.ne(s, null, "the %s screen was created" % name)
@@ -1314,6 +1316,148 @@ func _edit_a_proxy(t: TestHarness) -> void:
     t.eq(app.catalog.get_def(target).revision, rev_before, "restore brings back the bundled revision")
     t.ok(DeckValidator.validate(app.catalog, app.rules, deck_after, app.profile.owned())["ok"],
         "the deck is still legal after restoring")
+
+
+## The card creator, driven through the real screen: pick what the card is,
+## watch the price follow, forge it, and find it in the collection and legal in
+## a deck. A creator that cannot produce a card you can actually play would be a
+## toy, so this walks the whole way through.
+func _create_a_card(t: TestHarness) -> void:
+    t.begin("create a card and play with it")
+    app.goto("creator")
+    await _frames(t, 3)
+    var screen := _screen()
+    if not t.ne(screen, null, "the creator screen built"):
+        return
+
+    # Build a Companion by setting the design the way the controls would.
+    var design: Dictionary = CardForge.blank_design("companion", "passion")
+    design["name"] = "Walkthrough Warden"
+    design["flavor"] = "Made in the creator, in a test."
+    design["attack"] = 2
+    design["defense"] = 3
+    design["features"] = [{"id": "on_deploy_draw", "amount": 1}]
+    screen.set("_design", design)
+    screen.call("_refresh")
+    await _frames(t, 2)
+
+    # The price follows the design, and the card is drawn as a real card.
+    var priced: Dictionary = CardForge.price(design)
+    t.gt(float(int(priced["points"])), 0.0, "the design is worth something")
+    t.ok(_preview_card(screen) != null, "the screen previews it as a card")
+
+    var before_gold := app.profile.gold
+    var made_before := app.catalog.customs.size()
+    screen.call("_forge")
+    await _frames(t, 2)
+    t.eq(app.catalog.customs.size(), made_before + 1, "forging it made one card")
+
+    var def_id := ""
+    for cid in app.catalog.customs.keys():
+        if app.catalog.get_def(String(cid)).name == "Walkthrough Warden":
+            def_id = String(cid)
+    if not t.ne(def_id, "", "the card is in the catalog"):
+        return
+    var def := app.catalog.get_def(def_id)
+    t.eq(def.fixed_cost(), int(priced["cost"]), "and prints the cost its choices came to")
+    t.eq(def.rarity, String(priced["rarity"]), "at the rarity that total earned")
+    t.ok(def.custom, "marked as a card the player made")
+    t.eq(def.text, "When this Companion enters play, you draw 1 card.",
+        "with rules text generated from its own effects")
+    t.eq(app.profile.gold, before_gold, "making a card costs no gold: it is not a purchase")
+    t.eq(app.profile.owned_count(def_id), 3, "three copies are in the collection")
+    t.ok(app.profile.customs().has(def_id), "and the card belongs to this save")
+
+    # The face says where it came from, so it is never mistaken for a shipped card.
+    var card := CardView.create(def, 300.0)
+    t.ok(_text_appears(card, "CUSTOM"), "the card's face is marked CUSTOM")
+    card.queue_free()
+
+    # It is a real card everywhere else: the collection lists it, and a deck
+    # holding it is legal.
+    app.goto("collection")
+    await _frames(t, 3)
+    var collection := _screen()
+    # The collection is paged, and a created card is the newest thing in it, so
+    # it is searched for rather than assumed to be on the first page.
+    var search = collection.get("_search")
+    if t.ne(search, null, "the collection can be searched"):
+        (search as LineEdit).text = "Walkthrough Warden"
+        collection.call("_refilter")
+        await _frames(t, 2)
+        t.ok(_text_appears(collection, "Walkthrough Warden"),
+            "the collection lists the card that was made")
+
+    var deck := app.profile.deck_by_id("walkthrough_deck")
+    if deck.is_empty():
+        deck = app.profile.decks()[0]
+    var cards: Dictionary = (deck["cards"] as Dictionary).duplicate()
+    var dropped := ""
+    for id in cards.keys():
+        if int(cards[id]) >= 3 and String(id) != def_id:
+            dropped = String(id)
+            break
+    if dropped != "":
+        cards.erase(dropped)
+        cards[def_id] = 3
+        deck["cards"] = cards
+        app.profile.save_deck(deck)
+        var check := DeckValidator.validate(app.catalog, app.rules, deck, app.profile.owned())
+        t.ok(bool(check["ok"]),
+            "a deck holding the created card is legal: %s" % str(check["errors"]))
+        # And the match it starts freezes the card, so the deck plays.
+        app.end_match()
+        t.eq(app.start_match(String(deck.get("deck_id", "")), "silence"), "",
+            "a match starts with the created card in the deck")
+        app.end_match()
+
+    # Art is imported by copying the file, so the card keeps it.
+    app.goto("creator", {"def_id": def_id})
+    await _frames(t, 3)
+    screen = _screen()
+    if t.ne(screen, null, "the created card reopens in the creator"):
+        var reopened: Dictionary = screen.get("_design")
+        t.eq(String(reopened.get("name", "")), "Walkthrough Warden",
+            "with the design it was made from")
+        t.eq(int(reopened.get("defense", 0)), 3, "and the numbers it was given")
+        var art_src := "res://assets/art/parfait_the_unyielding_flame.png"
+        if FileAccess.file_exists(art_src):
+            t.eq(String(screen.call("import_art", art_src)), "", "art can be imported")
+            var after: Dictionary = screen.get("_design")
+            var image := String((after.get("art", {}) as Dictionary).get("image", ""))
+            t.ok(image.begins_with("user://custom_art/"),
+                "the image is copied into the save's own art folder")
+            t.ok(FileAccess.file_exists(image), "and the copy is really there")
+
+        # Deleting it takes the copies with it, and says which deck it broke.
+        screen.call("_delete")
+        await _frames(t, 2)
+        t.eq(app.catalog.get_def(def_id), null, "deleting the card removes it")
+        t.eq(app.profile.owned_count(def_id), 0, "along with the copies it held")
+
+
+## The CardView the creator is previewing, if any.
+func _preview_card(screen: Control) -> CardView:
+    var holder = screen.get("_preview_holder")
+    if holder == null:
+        return null
+    for child in (holder as Control).get_children():
+        if child is CardView:
+            return child as CardView
+    return null
+
+
+## Whether this text appears anywhere in a built subtree. Used to check what a
+## screen actually shows rather than what it was asked to show.
+func _text_appears(node: Node, text: String) -> bool:
+    if node is Label and (node as Label).text.contains(text):
+        return true
+    if node is Button and (node as Button).text.contains(text):
+        return true
+    for child in node.get_children():
+        if _text_appears(child, text):
+            return true
+    return false
 
 
 func _cleanup() -> void:
