@@ -1,0 +1,112 @@
+name: Release
+
+# Builds the downloadable game and publishes it as a GitHub release.
+#
+# It runs on a version tag (v0.1.0, v0.2.0, …) and can also be started by hand
+# from the Actions tab. The tests run first: a build that does not pass them is
+# not worth downloading, so a red suite stops the release.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to publish as (for a hand-started run)"
+        required: true
+        default: "v0.0.0-test"
+
+env:
+  GODOT_VERSION: 4.4.1
+
+jobs:
+  build:
+    name: Build and publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install a display for the interface tests
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq xvfb
+
+      - name: Fetch Godot ${{ env.GODOT_VERSION }} and its export templates
+        run: |
+          set -eux
+          base="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable"
+          curl -sSL -o godot.zip "${base}/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          unzip -q godot.zip
+          mv "Godot_v${GODOT_VERSION}-stable_linux.x86_64" godot
+          chmod +x godot
+          curl -sSL -o templates.tpz "${base}/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+          unzip -q templates.tpz
+          mkdir -p "$HOME/.local/share/godot/export_templates"
+          mv templates "$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable"
+
+      - name: Import the project
+        run: xvfb-run -a ./godot --headless --path . --import
+
+      - name: Run the tests
+        run: xvfb-run -a ./godot --headless --path . --script tools/run_tests.gd
+
+      - name: Export every platform
+        run: |
+          set -eux
+          mkdir -p build/windows build/linux build/macos
+          xvfb-run -a ./godot --headless --path . --export-release "Windows Desktop" build/windows/HeroesOfTeloria.exe
+          xvfb-run -a ./godot --headless --path . --export-release "Linux" build/linux/HeroesOfTeloria.x86_64
+          xvfb-run -a ./godot --headless --path . --export-release "macOS" build/macos/HeroesOfTeloria.zip
+
+      - name: Check the Linux build actually starts
+        # An export that boots is the least a download should have been checked
+        # for. It runs a few hundred frames and must exit cleanly.
+        run: xvfb-run -a ./build/linux/HeroesOfTeloria.x86_64 --quit-after 240
+
+      - name: Package the downloads
+        id: package
+        run: |
+          set -eux
+          tag="${GITHUB_REF_NAME}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            tag="${{ github.event.inputs.tag }}"
+          fi
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+          mkdir -p dist
+          (cd build/windows && zip -q -r "../../dist/HeroesOfTeloria-${tag}-windows.zip" .)
+          (cd build/linux && zip -q -r "../../dist/HeroesOfTeloria-${tag}-linux.zip" .)
+          cp build/macos/HeroesOfTeloria.zip "dist/HeroesOfTeloria-${tag}-macos.zip"
+          ls -lh dist
+
+      - name: Write the release notes
+        run: |
+          cat > notes.md <<'NOTES'
+          A downloadable build of the prototype. Nothing needs installing: unzip it and run it.
+
+          | You are on | Download | How to run it |
+          | --- | --- | --- |
+          | Windows | `…-windows.zip` | Unzip **both files into the same folder**, run `HeroesOfTeloria.exe`. It is unsigned, so SmartScreen shows "Windows protected your PC" once — More info → Run anyway. |
+          | macOS | `…-macos.zip` | Unzip and **right-click the app → Open** (double-clicking is refused: the app is not signed or notarized). Intel and Apple Silicon both work. |
+          | Linux | `…-linux.zip` | Unzip both files into the same folder, `chmod +x HeroesOfTeloria.x86_64`, then run it. |
+
+          The `.pck` beside the executable is the game's data. Keep the two together.
+
+          Saves live outside the download — in your user data folder, listed at the bottom of the Saves screen — so replacing this build with a later one keeps your collection and decks.
+
+          Built by `.github/workflows/release.yml` from the tagged commit, with the full test suite passing first.
+          NOTES
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -eux
+          tag="${{ steps.package.outputs.tag }}"
+          if gh release view "${tag}" >/dev/null 2>&1; then
+            gh release upload "${tag}" dist/* --clobber
+          else
+            gh release create "${tag}" dist/* \
+              --title "Heroes of Teloria ${tag}" \
+              --notes-file notes.md
+          fi

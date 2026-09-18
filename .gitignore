@@ -2,7 +2,8 @@
 .godot/
 android/
 export.cfg
-export_presets.cfg
+# export_presets.cfg IS committed: a build anyone can download should be
+# reproducible from the repository rather than from one machine's editor.
 *.translation
 
 # Build output

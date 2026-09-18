@@ -22,6 +22,34 @@ establish no Teloria lore or final balance.
 | Interface | Home, Collection, Deck builder, Opponent selection, Battle, Results, Shop, Card creator, Card editor, Settings. Cards and attacks can be dragged onto their targets or anywhere into a zone, or played by clicking. |
 | Tests | 1279 assertions across six suites, all passing. |
 
+## Downloading and playing it
+
+The [Releases page](https://github.com/BlueSpinDash/Heroes-of-Teloria-2/releases)
+has a build for Windows, macOS and Linux. Nothing needs installing: unzip it and
+run it.
+
+| You are on | How to run it |
+| --- | --- |
+| Windows | Unzip **both files into the same folder** and run `HeroesOfTeloria.exe`. The build is unsigned, so SmartScreen says "Windows protected your PC" the first time — More info → Run anyway. |
+| macOS | Unzip and **right-click the app → Open**. Double-clicking is refused, because the app is not signed or notarized. |
+| Linux | Unzip both files into the same folder, `chmod +x HeroesOfTeloria.x86_64`, and run it. |
+
+The `.pck` file beside the executable is the game's data; keep the two together.
+Saves live in your user data folder rather than inside the download — the Saves
+screen prints the exact path — so replacing a build with a later one keeps your
+collection and decks.
+
+Builds are made by `.github/workflows/release.yml` from a tagged commit, with
+the full test suite passing first, so what you download is what the repository
+says it is. To make one yourself:
+
+```sh
+godot --headless --path . --export-release "Windows Desktop" build/windows/HeroesOfTeloria.exe
+```
+
+`export_presets.cfg` is committed for that reason. Godot needs its export
+templates installed for that version before it can export anything.
+
 ## Requirements
 
 * **Godot 4.4.1** (standard build, not .NET). Nothing else: no package manager,
@@ -32,7 +60,7 @@ Download Godot from <https://godotengine.org/download>. The engine version this
 project was developed and tested against is recorded in `project.godot`
 (`config/features = "4.4"`).
 
-## Running the game
+## Running it from source
 
 ```sh
 # From the repository root, with the Godot binary on your PATH:
@@ -377,10 +405,15 @@ docs/            Effect-schema guide and architecture notes
   bounded one-ply search: it commits an Action, lets the round play out on a
   sanitised clone, and scores the result with its Affinity's weights. It does
   not plan across rounds, and it will miss multi-card combinations.
-* **A web export has not been built or tested.** Godot can export this project
-  to HTML5, and the save layer is written with that target in mind, but no
-  export preset is committed and no browser run has been verified. Treat the
-  browser build as untested work, not a finished deliverable.
+* **A web export has not been built or tested.** The desktop exports are real
+  and are what the Releases page carries, but nothing has been built for a
+  browser. Godot can export this project to HTML5 and the save layer is written
+  with that target in mind; a 4.4 web build also needs its threading and
+  cross-origin headers settled before it will load from static hosting. Treat
+  the browser build as work not started, not a finished deliverable.
+* **The downloads are unsigned.** Windows SmartScreen warns once, and macOS
+  refuses a double-click until the app is opened from its context menu. Signing
+  needs paid developer certificates, which this prototype has not got.
 * **AI thinking is fast enough but not instant.** A decision takes roughly 10 to
   60 milliseconds depending on how crowded the board is. The battle screen
   spreads that work across frames so the interface stays responsive.
