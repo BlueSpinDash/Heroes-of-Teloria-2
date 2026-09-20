@@ -92,6 +92,9 @@ var _energy_gauges: Dictionary = {}
 ## The opponent's hand, drawn as the card backs it is made of.
 var _opp_hand_row: HBoxContainer
 var _opp_hand_strip: Control
+## Their hand is a hand, not a zone of the table: it keeps its own size when
+## the board is fitted to the window, exactly as yours does along the bottom.
+var _opp_hand_zone: Control
 ## The room kept at each end of a deck row for its gauge, so the plates
 ## between them stay centred on the board.
 const GAUGE_CELL_W := 148.0
@@ -257,8 +260,9 @@ func _build() -> void:
 func _make_opponent_hand() -> Control:
     var zone := PanelContainer.new()
     zone.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+    _opp_hand_zone = zone
     var box := BoardArt.back(zone, "panel_hand", UiTheme.GOLD_DIM, 2)
-    _opp_hand_row = UiTheme.hbox(4)
+    _opp_hand_row = UiTheme.hbox(6)
     _opp_hand_row.alignment = BoxContainer.ALIGNMENT_CENTER
     var scroll := UiTheme.scroll(_opp_hand_row, true)
     scroll.custom_minimum_size = Vector2(0, OPP_HAND_CARD_W * CardView.BASE_HEIGHT
@@ -530,11 +534,18 @@ func _fit_board() -> void:
     # them back at the fit they were last drawn at recovers what they would
     # want at full size.
     var measured := 0.0
+    var fixed := 0.0
     for row in _centre.get_children():
-        measured += (row as Control).get_combined_minimum_size().y
+        var row_height := (row as Control).get_combined_minimum_size().y
+        if row == _opp_hand_zone:
+            # The opponent's hand keeps its size whatever happens to the table,
+            # so it is taken off the top of the room rather than shrunk.
+            fixed += row_height
+        else:
+            measured += row_height
     measured += 2.0 * float(max(0, _centre.get_child_count() - 1))
     var want := measured / maxf(_fit, 0.05)
-    _fit = 1.0 if want <= 0.0 else clampf(have / want, 0.45, 1.0)
+    _fit = 1.0 if want <= 0.0 else clampf((have - fixed) / want, 0.45, 1.0)
 
     for strip in _companion_strips:
         (strip as Control).custom_minimum_size = Vector2(0, COMPANION_STRIP_H * _fit)
@@ -651,7 +662,10 @@ func _refresh_opp_hand() -> void:
     if held <= 0:
         _opp_hand_row.add_child(BoardArt.caption("your opponent holds no cards", 10))
         return
-    var width := OPP_HAND_CARD_W * _fit
+    # Their cards are the same size as the ones in your own hand. They are not
+    # scaled with the rest of the board, because a hand is not part of the
+    # table: yours along the bottom keeps its size too.
+    var width := OPP_HAND_CARD_W
     if _opp_hand_strip != null and is_instance_valid(_opp_hand_strip):
         _opp_hand_strip.custom_minimum_size = Vector2(0,
             width * CardView.BASE_HEIGHT / CardView.BASE_WIDTH)
