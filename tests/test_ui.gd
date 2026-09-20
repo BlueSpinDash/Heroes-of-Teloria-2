@@ -1058,6 +1058,42 @@ func _layout_editor_resizes_the_board(t: TestHarness) -> void:
 ## A card in the Hit, Exhaust or Wound Deck is face down, so a deck with
 ## anything in it shows the card back. A deck with nothing in it shows its
 ## painted plate alone: there is no card there to be face down.
+## Each deck stands in the middle of its own mat, rather than pushed to one end
+## of it.
+func _decks_stand_in_the_middle(t: TestHarness, screen: Control) -> void:
+    var chips: Dictionary = screen.get("_pile_chips")
+    var checked := 0
+    for key in chips.keys():
+        var chip := chips[key] as Control
+        if chip == null or chip.get_global_rect().size.x <= 0.0:
+            continue
+        var back := _first_card_back(chip)
+        if back == null:
+            continue  # an empty deck shows its mat alone
+        var mat := chip.get_global_rect()
+        var card := (back as Control).get_global_rect()
+        if card.size.x <= 0.0:
+            continue
+        t.ok(absf(card.get_center().x - mat.get_center().x) <= 2.0,
+            "the %s deck is centred on its mat (card at %s, mat at %s)" % [
+                String(key), str(card.get_center().x), str(mat.get_center().x)])
+        checked += 1
+    t.ge(float(checked), 1.0, "at least one deck was holding cards to check")
+
+
+## The card that a face-down texture belongs to, anywhere under a node.
+func _first_card_back(node: Node) -> Control:
+    if node is TextureRect:
+        var tex := (node as TextureRect).texture
+        if tex != null and tex.resource_path == CardView.BACK_PATH:
+            return (node as Control).get_parent() as Control
+    for child in node.get_children():
+        var found := _first_card_back(child)
+        if found != null:
+            return found
+    return null
+
+
 func _decks_show_their_backs(t: TestHarness, screen: Control) -> void:
     var st: GameState = app.match_state
     t.ok(ResourceLoader.exists(CardView.BACK_PATH),
@@ -1346,6 +1382,7 @@ func _assert_buttons_reachable(t: TestHarness, screen: Control) -> void:
 ## The board reads as two mirrored halves around a shared middle. Every zone
 ## has to be laid out and on screen, or part of the match is invisible.
 func _assert_board_zones_visible(t: TestHarness, screen: Control) -> void:
+    _decks_stand_in_the_middle(t, screen)
     var window := Rect2(Vector2.ZERO, Vector2(screen.get_viewport().get_visible_rect().size))
     var zones := {
         "your Companion Zone": screen.get("_own_companion_zone"),

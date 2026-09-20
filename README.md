@@ -20,7 +20,7 @@ establish no Teloria lore or final balance.
 | Persistence | Versioned save with atomic writes, backup rotation, export and import. |
 | Card creator | Make your own card: pick its type, Affinity, numbers and features, and the prices they add up to are its Energy cost and its rarity. |
 | Interface | Home, Collection, Deck builder, Opponent selection, Battle, Results, Shop, Card creator, Card editor, Settings. A match is played by dragging: a card onto its target or into a zone, a character onto what it attacks. |
-| Tests | 1329 assertions across six suites, all passing. |
+| Tests | 1332 assertions across six suites, all passing. |
 
 ## Downloading and playing it
 
@@ -149,9 +149,17 @@ most needs at a glance — what its statistics are now, what it is preventing,
 whether it has already acted — and the rest in its tooltip.
 
 Cards in a Hit, Exhaust or Wound Deck are face down, so those decks show the
-card back — `assets/cards/card_back.png` — standing on the plate painted for
-them, with how many are in the deck across its foot. A deck with nothing in it
-shows its plate alone: there is no card there to be face down.
+card back — `assets/cards/card_back.png` — with how many are in the deck across
+its foot. Each deck stands in the **middle of its own mat**, with its name
+written above it, and the three mats are the same size as each other. A deck
+with nothing in it shows its mat alone: there is no card there to be face down.
+
+The mats are plain colour rather than the board's painted deck plates. Those
+plates carry their name across the middle, which is exactly where a deck
+standing in the centre of its zone covers, and a name read through a deck of
+cards is worse than no name at all. The plates are still in `assets/board/` and
+`tools/slice_board.gd` still cuts them, so the decision is one function to
+reverse.
 
 Cards on the table are drawn small enough to fit it, which leaves their rules
 text too small to read, so resting the pointer on one brings the same card up
