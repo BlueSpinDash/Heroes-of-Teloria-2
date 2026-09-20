@@ -261,24 +261,29 @@ func _pv_decks(player: int) -> Control:
             row.add_child(_pv_card("hero", "deck_plate_h", true))
             continue
         var plate := PanelContainer.new()
-        var pv := BoardArt.back(plate, "deck_" + String(kind), UiTheme.GOLD_DIM, 1)
+        var pv := BoardArt.back(plate, "deck_mat_" + String(kind),
+            Color(0, 0, 0, 0), 0, BoardArt.DECK_MAT_TINT)
         plate.custom_minimum_size = Vector2(
-            h * 1.95, h)  # the deck mats, all of one size
+            h * BoardArt.DECK_MAT_ASPECT, h)  # the deck mats, all of one size
         plate.size_flags_vertical = Control.SIZE_SHRINK_CENTER
         _follows("deck_plate_h", plate, "plate")
-        # A deck with cards in it shows the top one face down, so the preview
-        # shows that rather than a bare plate.
+        # The battle screen writes the deck's name above the cards, because the
+        # mat no longer carries one. The preview has to spend that line too, or
+        # it would show a deck taller than the board ever draws.
+        var caption := BoardArt.caption(String(kind).capitalize() + " Deck", 10)
+        caption.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+        pv.add_child(caption)
+        # A deck with cards in it shows the top one face down, standing in the
+        # middle of its mat, so the preview shows that rather than a bare mat.
         var stack := UiTheme.hbox(4)
+        stack.alignment = BoxContainer.ALIGNMENT_CENTER
         stack.size_flags_vertical = Control.SIZE_EXPAND_FILL
+        stack.size_flags_horizontal = Control.SIZE_EXPAND_FILL
         var back := CardView.face_down(
-            (h - 12.0) * CardView.BASE_WIDTH / CardView.BASE_HEIGHT, 40)
+            (h - 25.0) * CardView.BASE_WIDTH / CardView.BASE_HEIGHT, 40)
         if back != null:
             _follows("deck_plate_h", back, "back_in_plate")
             stack.add_child(back)
-        var gap := Control.new()
-        gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-        gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
-        stack.add_child(gap)
         pv.add_child(stack)
         row.add_child(plate)
     return row

@@ -87,7 +87,9 @@ The board reads as two mirrored halves around a shared middle.
 The screen is built from one painted board, sliced into plates by
 `tools/slice_board.gd`. Each zone is one of those plates, scaled to cover its
 place on screen and clipped rather than squashed, so the artwork and the
-caption painted onto it stay true at any size.
+caption painted onto it stay true at any size. The three deck plates are then
+passed through `tools/prepare_deck_mats.gd`, which takes their painted captions
+off so a deck can stand in the middle of one.
 
 Each player has their own Hero, their three decks (Hit, Exhaust and Wound) and
 their own Companion Zone. The Action Sequence and the Location sit once in the
@@ -154,12 +156,20 @@ its foot. Each deck stands in the **middle of its own mat**, with its name
 written above it, and the three mats are the same size as each other. A deck
 with nothing in it shows its mat alone: there is no card there to be face down.
 
-The mats are plain colour rather than the board's painted deck plates. Those
-plates carry their name across the middle, which is exactly where a deck
-standing in the centre of its zone covers, and a name read through a deck of
-cards is worse than no name at all. The plates are still in `assets/board/` and
-`tools/slice_board.gd` still cuts them, so the decision is one function to
-reverse.
+The mats are the board's own painted deck plates, with the name and icon
+painted across the middle of each one taken off by
+`tools/prepare_deck_mats.gd`. That middle is exactly what a deck standing in
+the centre of its zone covers, so paint there could only ever be read through
+the cards; the gold frame around it is untouched, and the screen writes the
+name above the cards where nothing covers it. The tool also redraws each plate
+at the shape the screen wants it, copying the frame's corners rather than
+stretching them, so the mats are never squashed to fit.
+
+A deck is drawn at close to the size of a card standing on the table, rather
+than as a token standing in for one, which is what the deck rows are as tall as
+they are for. Everything else on the board is fitted around that: the board
+gives up a little of its own scale so the decks and each player's Hero are read
+as cards.
 
 Cards on the table are drawn small enough to fit it, which leaves their rules
 text too small to read, so resting the pointer on one brings the same card up

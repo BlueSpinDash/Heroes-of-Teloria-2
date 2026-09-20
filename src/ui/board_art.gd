@@ -11,9 +11,22 @@ extends RefCounted
 
 const DIR := "res://assets/board/"
 
-## Each deck plate's own proportions, so it is never stretched out of shape
-## whatever height its row ends up.
-const PILE_ASPECT := {"hit": 330.0 / 162.0, "exhaust": 253.0 / 162.0, "wound": 253.0 / 162.0}
+## The mat a deck stands on: its plate with the painted name and icon across
+## the middle drawn out, cut by `tools/prepare_deck_mats.gd`.
+##
+## A deck standing in the centre of its zone covers that middle, so paint there
+## could only ever be read through the cards. The gold frame stays, and the
+## screen writes the name above the cards where nothing covers it.
+const DECK_MAT := {"hit": "deck_mat_hit", "exhaust": "deck_mat_exhaust",
+	"wound": "deck_mat_wound"}
+## How wide a mat is against its height. The mats are cut to this shape; this
+## number and `MAT_ASPECT` in the tool are two halves of one decision, and the
+## artwork is stretched if they disagree.
+const DECK_MAT_ASPECT := 1.15
+## The mats say nothing of their own any more, so they are dimmed less than the
+## plates behind the zones: it is the deck standing on one that is read, and a
+## mat too dark to see is a deck floating in the middle of the row.
+const DECK_MAT_TINT := 0.92
 
 ## How far each plate is dimmed so text drawn over it stays readable.
 const PLATE_TINT := 0.72
