@@ -38,6 +38,7 @@ xvfb-run -a godot --path . --resolution 1440x900 --script tools/ui_drive.gd
 | `33_phase_banner.png` | The Action Sequence resolving, a card at a time, each step announced by name |
 | `34_energy.png` | Both players' Energy on the board, each on their own side of the field |
 | `35_both_hands.png` | Both hands on the board: yours face up, your opponent's as card backs |
+| `36_piles.png` | Each deck standing in the middle of its own mat, with its name above it |
 
 The battle screen's own artwork lives in `assets/board/`. `board_full.png` is
 the painted board; `tools/slice_board.gd` cuts the plates the screen uses out

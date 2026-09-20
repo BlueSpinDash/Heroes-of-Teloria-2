@@ -263,7 +263,7 @@ func _pv_decks(player: int) -> Control:
         var plate := PanelContainer.new()
         var pv := BoardArt.back(plate, "deck_" + String(kind), UiTheme.GOLD_DIM, 1)
         plate.custom_minimum_size = Vector2(
-            h * float(BoardArt.PILE_ASPECT.get(String(kind), 2.0)), h)
+            h * 1.95, h)  # the deck mats, all of one size
         plate.size_flags_vertical = Control.SIZE_SHRINK_CENTER
         _follows("deck_plate_h", plate, "plate")
         # A deck with cards in it shows the top one face down, so the preview
