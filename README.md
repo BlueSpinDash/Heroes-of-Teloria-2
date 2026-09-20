@@ -20,7 +20,7 @@ establish no Teloria lore or final balance.
 | Persistence | Versioned save with atomic writes, backup rotation, export and import. |
 | Card creator | Make your own card: pick its type, Affinity, numbers and features, and the prices they add up to are its Energy cost and its rarity. |
 | Interface | Home, Collection, Deck builder, Opponent selection, Battle, Results, Shop, Card creator, Card editor, Settings. A match is played by dragging: a card onto its target or into a zone, a character onto what it attacks. |
-| Tests | 1326 assertions across six suites, all passing. |
+| Tests | 1329 assertions across six suites, all passing. |
 
 ## Downloading and playing it
 
@@ -164,7 +164,13 @@ no input and never touches match state.
 **Your opponent holds a hand, and you can see it.** Their cards are face down,
 because only how many they hold is public — but how many they hold matters
 constantly, so it is a row of card backs on their own plate at the top of the
-board, mirroring your hand at the bottom, rather than a number in a bar. The
+board, mirroring your hand at the bottom, rather than a number in a bar. Their
+backs are drawn at exactly the size of the cards in your own hand: the same
+cards, held the other way up. Neither hand is scaled when the board is fitted
+to the window, because a hand is not part of the table — which means two full
+hands take a real bite out of the height, and the cards on the table are drawn
+smaller to pay for it. `opp_hand_card_w` in the Layout screen's Board tab is
+the one number that buys that room back. The
 bar at the top no longer repeats either that or the Energy: both are on the
 board itself, and a number said in two places is a number that ends up
 disagreeing with itself.

@@ -512,6 +512,27 @@ func _the_opponent_has_a_hand(t: TestHarness) -> void:
     t.ok(_has_card_back(row as Control),
         "drawn face down, because only how many they hold is public")
 
+    # Their cards are the same size as the ones in your own hand: the same
+    # cards, held the other way up.
+    var mine_card := _first_draggable_card(screen)
+    if mine_card == null:
+        for c in (screen.get("_hand_row") as Control).get_children():
+            if c is CardView:
+                mine_card = c as Control
+                break
+    var theirs_card: Control = null
+    for c2 in (row as Control).get_children():
+        if c2 is Control:
+            theirs_card = c2 as Control
+            break
+    if t.ne(mine_card, null, "there is a card in your own hand to compare with") \
+            and t.ne(theirs_card, null, "and one in theirs"):
+        var mine_w := maxf(mine_card.size.x, mine_card.custom_minimum_size.x)
+        var theirs_w := maxf(theirs_card.size.x, theirs_card.custom_minimum_size.x)
+        t.ok(absf(mine_w - theirs_w) <= 1.0,
+            "a card back in their hand is the same width as a card in yours (%s and %s)"
+                % [str(mine_w), str(theirs_w)])
+
     # Nothing in their hand can be read: it is backs and nothing else.
     var readable: Array = []
     for iid in st.player(1).hand:
