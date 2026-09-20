@@ -29,6 +29,15 @@ var counters: Dictionary = {}        # id-minting counters
 ## The shared Action Sequence for the current round, left to right.
 var sequence: Array = []             # Array[ActionSlot]
 var current_step: int = -1
+## Whether `advance` hands control back after each Resolve step instead of
+## resolving the whole Sequence in one call.
+##
+## It changes nothing about what happens or in what order — only where the
+## engine stops — so that a player can watch one card resolve at a time. It is
+## deliberately not part of a saved match and not copied into a search clone:
+## the interface turns it on for the match it is showing, and the AI's
+## thousands of rollouts always run straight through.
+var watch_resolve: bool = false
 ## Resolved-slot records kept for chain inspection after cards leave the
 ## physical Sequence. One entry per round.
 var round_history: Array = []

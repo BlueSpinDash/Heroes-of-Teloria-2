@@ -152,17 +152,21 @@ const DEFAULT_NUMBERS = {
         "meta_size": [10.0, 6.0, 24.0, "The attack line above the rules text."],
         "small_size": [9.0, 5.0, 20.0, "The Affinity banner and the two footer lines."],
     },
+    # The board is sized so that every zone holds a whole card and nothing has
+    # to be scrolled to be seen. The numbers below add up to the window rather
+    # than being chosen one at a time: making one bigger takes the room from
+    # something else, which is what the Board tab of the Layout screen is for.
     "battle_board": {
-        "hand_card_w": [108.0, 60.0, 260.0, "Width of a card in the hand strip."],
-        "hand_strip_h": [196.0, 120.0, 420.0, "Height of the pinned hand strip."],
-        "board_card_w": [62.0, 40.0, 200.0,
+        "hand_card_w": [118.0, 60.0, 260.0, "Width of a card in the hand strip."],
+        "hand_strip_h": [168.0, 120.0, 420.0, "Height of the pinned hand strip."],
+        "board_card_w": [72.0, 40.0, 200.0,
             "How wide a card standing on the board is drawn"],
-        "seq_card_w": [56.0, 36.0, 180.0,
+        "seq_card_w": [74.0, 36.0, 180.0,
             "How wide a card in the Action Sequence is drawn"],
-        "companion_strip_h": [97.0, 50.0, 260.0, "Height of the row inside a Companion Zone."],
-        "deck_plate_h": [78.0, 50.0, 160.0, "Height of the deck plates."],
-        "middle_h": [110.0, 70.0, 300.0, "Height of the Action Sequence and Location row."],
-        "location_w": [206.0, 120.0, 400.0, "Width of the Location plate."],
+        "companion_strip_h": [102.0, 50.0, 260.0, "Height of the row inside a Companion Zone."],
+        "deck_plate_h": [76.0, 50.0, 160.0, "Height of the deck plates."],
+        "middle_h": [136.0, 70.0, 300.0, "Height of the Action Sequence and Location row."],
+        "location_w": [150.0, 120.0, 400.0, "Width of the Location plate."],
     },
 }
 

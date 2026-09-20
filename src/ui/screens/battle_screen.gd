@@ -41,7 +41,12 @@ var _ai_pause: float = 0.0
 ## skipped past. Your own input is never held: this only paces the opponent.
 var _replay_hold: float = 0.0
 ## However much happens at once, the opponent is never held longer than this.
-const MAX_REPLAY_HOLD := 3.5
+const MAX_REPLAY_HOLD := 6.0
+## The beat between one card of the Action Sequence resolving and the next, on
+## top of whatever its own animation takes. The Sequence is the heart of a
+## round, so it is watched a card at a time rather than happening all at once.
+const RESOLVE_STEP_PAUSE := 0.45
+var _resolve_pause: float = 0.0
 
 # Layout metrics, budgeted against the window rather than left to grow. The
 # board is painted art, so each zone is sized to the plate behind it. These are
@@ -57,6 +62,9 @@ var MIDDLE_H: float = Layout.num("battle_board", "middle_h")
 var BOARD_CARD_W: float = Layout.num("battle_board", "board_card_w")
 var SEQ_CARD_W: float = Layout.num("battle_board", "seq_card_w")
 var LOCATION_W: float = Layout.num("battle_board", "location_w")
+## What a plated zone costs around the strip inside it: its border, its inset
+## and the caption line it shows while it is empty.
+const ZONE_CHROME := 24.0
 
 # Layout handles.
 var _top: HBoxContainer
@@ -76,6 +84,16 @@ var _opp_piles: HBoxContainer
 var _own_piles: HBoxContainer
 var _own_companion_zone: BattleDropTarget
 var _opp_companion_zone: BattleDropTarget
+## The strips whose height has to give way when the window cannot hold the
+## board at the size the layout asks for.
+var _companion_strips: Array = []
+var _deck_rows: Array = []
+var _middle_row: Control = null
+var _hand_zone: Control = null
+var _board_clip: Control = null
+var _centre: VBoxContainer = null
+## How much of its asked-for size the board actually gets, 0.45 to 1.0.
+var _fit: float = 1.0
 
 ## Board chips by instance id, so effects know where things are on screen.
 var _chips: Dictionary = {}
@@ -91,6 +109,9 @@ var _zoom: CardZoom
 ## The zone boundaries, banded over the board while a card is being dragged.
 var _zone_bounds: ZoneBounds
 
+## Announces each phase, and each step of the Resolve Phase.
+var _banner: PhaseBanner
+
 
 func setup(application: App, _args: Dictionary = {}) -> void:
     app = application
@@ -104,6 +125,12 @@ func setup(application: App, _args: Dictionary = {}) -> void:
         add_child(v)
         return
     st = app.match_state
+    # The Action Sequence resolves a card at a time while this screen is
+    # showing it. The engine does exactly what it did before and in the same
+    # order; it just hands control back between steps so each one can be
+    # watched. Nothing else in the game sets this, so the AI's rollouts still
+    # run straight through.
+    st.watch_resolve = true
     # Everything already in the log happened before this screen opened, so it
     # is not replayed as animation.
     _events_seen = st.events.size()
@@ -132,15 +159,24 @@ func _build() -> void:
     cols.size_flags_vertical = Control.SIZE_EXPAND_FILL
     root.add_child(cols)
 
+    # The board does not scroll. Every zone is sized to hold a whole card, so
+    # nothing on the table is ever half a card with the rest below the fold —
+    # a card you have to scroll to see is a card you cannot play from.
+    #
+    # It sits inside a plain Control rather than directly in the row, so the
+    # board's own height is not allowed to push anything: the hand keeps the
+    # room it needs and the board is fitted to what is left over.
+    var board_clip := Control.new()
+    board_clip.clip_contents = true
+    board_clip.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    board_clip.size_flags_vertical = Control.SIZE_EXPAND_FILL
+    cols.add_child(board_clip)
+
     var centre := UiTheme.vbox(2)
-    centre.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-    var centre_scroll := ScrollContainer.new()
-    centre_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-    centre_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-    centre_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-    centre_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-    centre_scroll.add_child(centre)
-    cols.add_child(centre_scroll)
+    centre.set_anchors_preset(Control.PRESET_FULL_RECT)
+    board_clip.add_child(centre)
+    _board_clip = board_clip
+    _centre = centre
 
     # Two mirrored halves. The rules give the two players one Action Sequence
     # and one Location between them, not one apiece, so those sit once in the
@@ -157,28 +193,36 @@ func _build() -> void:
     log_panel.add_child(UiTheme.scroll(_log_box))
     cols.add_child(log_panel)
 
-    # The prompt, the controls and the hand are pinned below the scrolling
-    # board. However tall the board grows, they stay on screen, so the cards
-    # you can play are always reachable.
-    var action_panel := UiTheme.panel(UiTheme.BG_PANEL.darkened(0.35), UiTheme.GOLD_DIM, 1, 4)
-    var action_bar := UiTheme.hbox(10)
-    _controls = UiTheme.hbox(8)
-    action_bar.add_child(_controls)
-    _prompt = UiTheme.wrapped("", 12, UiTheme.GOLD)
-    _prompt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-    _prompt.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-    action_bar.add_child(_prompt)
-    action_panel.add_child(action_bar)
-    root.add_child(action_panel)
-
+    # The hand is pinned along the bottom, and what the game is asking of you
+    # is written directly above it: the prompt and its buttons belong with the
+    # cards they are talking about, and a strip of their own would be a strip
+    # taken off the board.
     _hand_row = UiTheme.hbox(6)
     var hand_zone := PanelContainer.new()
     var hand_box := BoardArt.back(hand_zone, "panel_hand", UiTheme.GOLD, 2)
+
+    var action_bar := UiTheme.hbox(10)
+    # One line, always. A prompt that wraps to two lines would take that line
+    # off the hand below it, and the hand is the part that has to be right.
+    # The whole text is in the line's tooltip when it is too long to fit.
+    action_bar.custom_minimum_size = Vector2(0, 32)
+    _controls = UiTheme.hbox(8)
+    action_bar.add_child(_controls)
+    _prompt = UiTheme.label("", 12, UiTheme.GOLD)
+    _prompt.autowrap_mode = TextServer.AUTOWRAP_OFF
+    _prompt.clip_text = true
+    _prompt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    _prompt.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+    action_bar.add_child(_prompt)
+    hand_box.add_child(action_bar)
+
     var hand_scroll := UiTheme.scroll(_hand_row, true)
     hand_scroll.custom_minimum_size = Vector2(0, HAND_STRIP_H)
+    hand_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
     hand_scroll.size_flags_vertical = Control.SIZE_FILL
     hand_box.add_child(hand_scroll)
     hand_zone.size_flags_vertical = Control.SIZE_SHRINK_END
+    _hand_zone = hand_zone
     root.add_child(hand_zone)
 
     # Added last so they draw over the board. None of them takes input.
@@ -186,6 +230,8 @@ func _build() -> void:
     add_child(_zone_bounds)
     _effects = BoardEffects.new()
     add_child(_effects)
+    _banner = PhaseBanner.new()
+    add_child(_banner)
     _zoom = CardZoom.new()
     add_child(_zoom)
 
@@ -195,6 +241,8 @@ func _build() -> void:
 func _make_middle() -> Control:
     var row := UiTheme.hbox(6)
     row.custom_minimum_size = Vector2(0, MIDDLE_H)
+    row.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+    _middle_row = row
     var seq := _make_sequence_zone()
     seq.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     row.add_child(seq)
@@ -210,6 +258,8 @@ func _make_deck_row(player: int) -> Control:
     var row := UiTheme.hbox(6)
     row.alignment = BoxContainer.ALIGNMENT_CENTER
     row.custom_minimum_size = Vector2(0, DECK_PLATE_H + 4.0)
+    row.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+    _deck_rows.append(row)
     if player == 0:
         _own_piles = row
     else:
@@ -225,16 +275,24 @@ var _zone_captions: Dictionary = {}
 
 func _make_companion_zone(player: int) -> Control:
     var target := BattleDropTarget.new()
+    # A zone is exactly as tall as the cards standing in it. Left to expand, an
+    # empty zone would take the room the hand needs and the cards you can play
+    # would be the thing that falls off the screen.
+    target.size_flags_vertical = Control.SIZE_SHRINK_CENTER
     var v := BoardArt.back(target, "panel_companion", UiTheme.GOLD, 2)
     var caption := BoardArt.caption(
         "Your Companion Zone" if player == 0 else "Opponent's Companion Zone", 10)
     _zone_captions[player] = caption
     v.add_child(caption)
-    var row := UiTheme.hbox(6)
+    var row := UiTheme.hbox(8)
     row.alignment = BoxContainer.ALIGNMENT_CENTER
+    # It scrolls sideways when a player fields more Companions than the zone is
+    # wide, and never vertically: the strip is as tall as a whole card.
     var row_scroll := UiTheme.scroll(row, true)
     row_scroll.custom_minimum_size = Vector2(0, COMPANION_STRIP_H)
+    row_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
     row_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+    _companion_strips.append(row_scroll)
     v.add_child(row_scroll)
     if player == 0:
         _own_board = row
@@ -270,14 +328,17 @@ func _make_sequence_zone() -> Control:
     _sequence_zone.drop_hint = "Commit to the Action Sequence"
     _sequence_zone.accepts_check = func(payload): return _accepts_on_sequence(payload)
     _sequence_zone.dropped.connect(func(payload): _drop_on_sequence(payload))
+    # No caption: the plate behind this zone has ACTION SEQUENCE painted across
+    # it in letters a foot high. Repeating it in a caption would cost the zone a
+    # line of height, and height here is a card's worth of legibility.
     var head := UiTheme.hbox(8)
     head.alignment = BoxContainer.ALIGNMENT_CENTER
-    head.add_child(BoardArt.caption("Action Sequence — resolves left to right", 10))
     _chain_label = UiTheme.label("", 10, UiTheme.GOLD)
     head.add_child(_chain_label)
     v.add_child(head)
-    _sequence_row = UiTheme.hbox(6)
+    _sequence_row = UiTheme.hbox(8)
     var seq_scroll := UiTheme.scroll(_sequence_row, true)
+    seq_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
     seq_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
     v.add_child(seq_scroll)
     return _sequence_zone
@@ -287,12 +348,24 @@ func _process(delta: float) -> void:
     _update_drag_state()
     if st == null or st.result != null:
         return
+    # Whatever just happened finishes being shown before anything else starts.
+    # Only the match is held: your own cards stay live throughout, because
+    # input does not come through here.
+    if _replay_hold > 0.0:
+        _replay_hold -= delta
+        return
+    # The Action Sequence resolves one card at a time, with a beat between, so
+    # a round can be followed rather than reconstructed from the log.
+    if st.phase == "resolve" and st.pending == null:
+        _resolve_pause -= delta
+        if _resolve_pause <= 0.0:
+            _resolve_pause = RESOLVE_STEP_PAUSE
+            GameEngine.advance(st)
+            _after_command()
+        return
     var actor := MatchRunner._actor(st)
     if actor != 1:
         _thinker = null
-        return
-    if _replay_hold > 0.0:
-        _replay_hold -= delta
         return
     if _thinker == null:
         _thinker = AiThinker.new(st, 1)
@@ -368,9 +441,59 @@ func _after_command() -> void:
 
 # ------------------------------------------------------------------ refresh ---
 
+## Make the board fit the room it has.
+##
+## The layout numbers say how big each zone would like to be. When the window
+## cannot hold all of them — a small screen, or the Layout screen having been
+## told to make them bigger — every card on the table is drawn proportionally
+## smaller instead, so the hand below always stays on screen. A hand you cannot
+## reach is a game you cannot play, and twice now a taller board has pushed it
+## off the bottom.
+func _fit_board() -> void:
+    if _board_clip == null or _centre == null:
+        return
+    var have := _board_clip.size.y
+    if have <= 0.0:
+        # First pass, before the screen has been laid out. The design height
+        # less the chrome around the board is the best guess available.
+        have = 833.0 - 46.0 - 210.0
+    # What the board is asking for is measured rather than estimated: the zones
+    # know their own minimums, including the chrome around them, and reading
+    # them back at the fit they were last drawn at recovers what they would
+    # want at full size.
+    var measured := 0.0
+    for row in _centre.get_children():
+        measured += (row as Control).get_combined_minimum_size().y
+    measured += 2.0 * float(max(0, _centre.get_child_count() - 1))
+    var want := measured / maxf(_fit, 0.05)
+    _fit = 1.0 if want <= 0.0 else clampf(have / want, 0.45, 1.0)
+
+    for strip in _companion_strips:
+        (strip as Control).custom_minimum_size = Vector2(0, COMPANION_STRIP_H * _fit)
+    for row in _deck_rows:
+        (row as Control).custom_minimum_size = Vector2(0, (DECK_PLATE_H + 4.0) * _fit)
+    if _middle_row != null:
+        _middle_row.custom_minimum_size = Vector2(0, MIDDLE_H * _fit)
+
+
+## What a card standing on the board is actually drawn at, once the board has
+## been fitted to the window.
+func _board_card_w() -> float:
+    return BOARD_CARD_W * _fit
+
+
+func _seq_card_w() -> float:
+    return SEQ_CARD_W * _fit
+
+
+func _deck_plate_h() -> float:
+    return DECK_PLATE_H * _fit
+
+
 func _refresh() -> void:
     if st == null:
         return
+    _fit_board()
     # Chips are rebuilt every refresh, so the lookups that depend on them are
     # rebuilt first.
     _chips = {}
@@ -475,7 +598,7 @@ func _pile_chip(player: int, kind: String) -> Control:
     var chip := PanelContainer.new()
     var v := BoardArt.back(chip, "deck_" + kind, UiTheme.GOLD_DIM, 1)
     chip.custom_minimum_size = Vector2(
-        DECK_PLATE_H * float(BoardArt.PILE_ASPECT.get(kind, 2.0)), DECK_PLATE_H)
+        _deck_plate_h() * float(BoardArt.PILE_ASPECT.get(kind, 2.0)), _deck_plate_h())
     chip.size_flags_vertical = Control.SIZE_SHRINK_CENTER
     var key := "%d_%s" % [player, kind]
     chip.set_meta("pile", key)
@@ -514,7 +637,7 @@ func _pile_chip(player: int, kind: String) -> Control:
 ## How wide a face-down card on a deck plate is: as tall as the plate's inside
 ## allows, so the deck reads as cards rather than as a picture on a picture.
 func _deck_back_w() -> float:
-    return (DECK_PLATE_H - 16.0) * CardView.BASE_WIDTH / CardView.BASE_HEIGHT
+    return (_deck_plate_h() - 16.0) * CardView.BASE_WIDTH / CardView.BASE_HEIGHT
 
 
 func _refresh_boards() -> void:
@@ -541,7 +664,7 @@ func _refresh_location() -> void:
     # The Location in play is a card, so it is drawn as one, with only whose it
     # is written under it.
     var lv := UiTheme.vbox(2)
-    var face := CardView.create(d, BOARD_CARD_W)
+    var face := CardView.create(d, _board_card_w())
     face.mouse_filter = Control.MOUSE_FILTER_IGNORE
     face.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
     lv.add_child(face)
@@ -600,12 +723,12 @@ func _character_chip(iid: String, player: int, is_hero: bool) -> Control:
             and st.player(0).energy_current >= d.attack_cost:
         p.drag_payload = {"kind": "attack", "attacker": iid,
             "label": "%s attacks" % d.name}
-        p.tooltip_text = "Drag onto a target to attack, or use the button."
+        p.tooltip_text = "Drag onto the character it should attack."
     _drop_targets.append(p)
 
-    var width := BOARD_CARD_W
+    var width := _board_card_w()
     if is_hero:
-        width = minf(width, DECK_PLATE_H * CardView.BASE_WIDTH / CardView.BASE_HEIGHT)
+        width = minf(width, _deck_plate_h() * CardView.BASE_WIDTH / CardView.BASE_HEIGHT)
     var face := CardView.create(d, width)
     face.mouse_filter = Control.MOUSE_FILTER_IGNORE
     face.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -648,19 +771,15 @@ func _character_chip(iid: String, player: int, is_hero: bool) -> Control:
         p.tooltip_text = "%s\n%s%s" % [d.name, "\n".join(notes),
             "\n" + hint if hint != "" else ""]
 
-    # Action affordances.
+    # Attacking is a drag: pick the character up and drop it on what it should
+    # hit. The only buttons left on the board are the ones that answer a
+    # question the game asked, such as choosing a target for a card that is
+    # already mid-flight.
     if _mode == "pick_attack_target" and player == 1:
         v.add_child(_target_button(iid))
     elif _mode == "pick_card_target" \
             and Targeting.legal_targets(st, _target_kind, 0, _target_filter).has(iid):
         v.add_child(_target_button(iid))
-    elif _mode == "idle" and player == 0 and _can_act() \
-            and GameEngine._attack_candidates(st, 0).has(iid):
-        var b := UiTheme.small_button("Attack",
-            "Costs %d Energy. You can also drag this character onto a target." % d.attack_cost)
-        b.disabled = st.player(0).energy_current < d.attack_cost
-        b.pressed.connect(func(): _begin_attack(iid))
-        v.add_child(b)
     p.claim_mouse()
     _readable(p, d)
     return p
@@ -696,18 +815,17 @@ func _refresh_sequence() -> void:
         if slot.controller != 0:
             tint = tint.darkened(0.25)
         var p := UiTheme.panel(tint, border, 2 if is_current else 1, 4)
+        # Nothing is written above or below the card: the row reads left to
+        # right, the panel is tinted for whose step it is, and the card itself
+        # prints its own Affinity. Every line here is height the card loses.
         var v := UiTheme.vbox(1)
-        v.add_child(UiTheme.label("%d. %s" % [i + 1, "you" if slot.controller == 0
-            else "them"], 9,
-            UiTheme.TEXT_DIM if slot.resolved else UiTheme.GOLD,
-            HORIZONTAL_ALIGNMENT_CENTER))
         # A step stands for the card that was committed, or for the character
         # that is attacking. Either way it is a card, so it is drawn as one and
         # the step says only what the step is.
         var source := slot.card_iid if slot.kind == "card" else slot.attacker_iid
         var sd := st.def_of(source) if source != "" else null
         if sd != null:
-            var face := CardView.create(sd, SEQ_CARD_W)
+            var face := CardView.create(sd, _seq_card_w())
             face.mouse_filter = Control.MOUSE_FILTER_IGNORE
             face.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
             if slot.kind == "attack":
@@ -718,16 +836,6 @@ func _refresh_sequence() -> void:
         else:
             v.add_child(UiTheme.wrapped(GameEngine.describe_slot(st, slot), 10,
                 UiTheme.TEXT_DIM))
-        if slot.affinities.is_empty():
-            v.add_child(UiTheme.label("no Affinity", 9, UiTheme.TEXT_DIM,
-                HORIZONTAL_ALIGNMENT_CENTER))
-        else:
-            var bits: Array = []
-            for a in slot.affinities:
-                bits.append(String(UiTheme.AFFINITY_GLYPH.get(String(a), "◇")))
-            v.add_child(UiTheme.label(" ".join(bits), 10,
-                UiTheme.affinity_color(String(slot.affinities[0])),
-                HORIZONTAL_ALIGNMENT_CENTER))
         var extra: Array = [GameEngine.describe_slot(st, slot)]
         if slot.affinities.is_empty():
             extra.append("No Affinity — this step breaks the chain.")
@@ -739,8 +847,7 @@ func _refresh_sequence() -> void:
             extra.append("Reaction (%s): %s%s" % [
                 String((r as Dictionary).get("window", "before")), who_r,
                 "" if not bool((r as Dictionary).get("resolved", false)) else " ✓"])
-            v.add_child(UiTheme.label("+ Reaction", 9, UiTheme.GOLD,
-                HORIZONTAL_ALIGNMENT_CENTER))
+
         p.add_child(v)
         p.tooltip_text = "\n".join(extra)
         if sd != null:
@@ -791,24 +898,14 @@ func _refresh_hand() -> void:
             view.add_badge("Eligible", UiTheme.GOOD)
             view.drag_payload = {"kind": "card", "iid": card_iid,
                 "as_reaction": reaction_window, "label": d.name}
-            view.tooltip_text = "Drag %s onto where it should go, or click it." % d.name
-            view.pressed.connect(func(_id): _begin_play(card_iid, reaction_window))
-            var b := UiTheme.primary_button("Play as Reaction" if reaction_window else "Commit")
-            b.pressed.connect(func(): _begin_play(card_iid, reaction_window))
-            # The button sits above the card so it is always the first thing in
-            # the hand strip, never pushed below the visible area.
-            var holder := UiTheme.vbox(2)
-            holder.add_child(b)
-            holder.add_child(view)
-            _hand_row.add_child(holder)
+            view.tooltip_text = ("Drag %s onto its target, or into the Action Sequence "
+                + "if it needs none.") % d.name
+            _hand_row.add_child(view)
         else:
             view.add_badge(why if why != "" else "Not playable now", UiTheme.TEXT_DIM)
             view.tooltip_text = why
             view.modulate = Color(1, 1, 1, 0.6)
-            var holder2 := UiTheme.vbox(2)
-            holder2.add_child(UiTheme.spacer(34))
-            holder2.add_child(view)
-            _hand_row.add_child(holder2)
+            _hand_row.add_child(view)
 
 
 func _refresh_controls() -> void:
@@ -856,9 +953,10 @@ func _refresh_controls() -> void:
                 _after_command())
             _controls.add_child(pass_btn)
     elif st.phase == "resolve":
-        _prompt.text = "Resolving the Action Sequence."
+        _prompt.text = "Resolving the Action Sequence, one card at a time."
     else:
         _prompt.text = "%s Phase." % st.phase.capitalize()
+    _prompt.tooltip_text = _prompt.text
 
 
 func _build_choice_controls(p: Dictionary) -> void:
@@ -960,8 +1058,9 @@ func _mode_prompt() -> String:
             var a := st.def_of(_pending_attacker)
             return "Choose what %s attacks: the opposing Hero or one of its Companions." % [
                 a.name if a != null else "your character"]
-    return ("Drag a card onto its target, or onto the Action Sequence if it needs none. "
-        + "Clicking works too: use a card's Commit button, or Attack with this.")
+    return ("Drag a card from your hand onto its target, or anywhere into the Action "
+        + "Sequence if it needs none. Drag your Hero or a Companion onto the character "
+        + "it should attack.")
 
 
 func _refresh_log() -> void:
@@ -1210,8 +1309,6 @@ func _zone_pos(zone: Control) -> Vector2:
 
 
 ## Show what the engine just did. Purely cosmetic: the state is already final
-## by the time any of this is drawn, and play never waits for it.
-## Show what the engine just did. Purely cosmetic: the state is already final
 ## by the time any of this is drawn, and play never waits for it — but the
 ## opponent does, so a round's worth of movement is not skipped past before it
 ## has been seen.
@@ -1223,12 +1320,31 @@ func _play_new_events() -> void:
         return
     _events_seen = st.events.size()
     var delay := 0.0
+    ## Announcements queue rather than overwrite each other: a Draw Phase that
+    ## runs straight into an Action Phase has to say both, in order.
+    var banner_at := 0.0
     var shown := 0
     while i < st.events.size() and shown < 24:
         var e: Dictionary = st.events[i]
         i += 1
         var kind := String(e.get("kind", ""))
         match kind:
+            "phase":
+                if _banner != null and is_instance_valid(_banner):
+                    _banner.phase(String(e.get("phase", "")), st.round_number, banner_at)
+                    banner_at += PhaseBanner.length()
+                    shown += 1
+            "step_begin":
+                # Which card is about to happen, said before it happens.
+                var step_no := int(e.get("slot", 0)) + 1
+                var what := String(e.get("message", ""))
+                var colon := what.find(": ")
+                if colon >= 0:
+                    what = what.substr(colon + 2)
+                if _banner != null and is_instance_valid(_banner):
+                    _banner.step(step_no, st.sequence.size(), what, banner_at)
+                    banner_at += PhaseBanner.length()
+                    shown += 1
             "hero_damaged":
                 var pi := int(e.get("player", 0))
                 var amount := int(e.get("amount", 0))
@@ -1364,7 +1480,8 @@ func _play_new_events() -> void:
                 delay += 0.28
                 shown += 1
     if shown > 0:
-        _replay_hold = minf(delay + BoardEffects.fly_length(), MAX_REPLAY_HOLD)
+        var run := maxf(delay + BoardEffects.fly_length(), banner_at)
+        _replay_hold = minf(run, MAX_REPLAY_HOLD)
 
 
 func _can_act() -> bool:
@@ -1388,21 +1505,6 @@ func _cancel() -> void:
     _pending_targets = []
     _targets_prechosen = false
     _refresh()
-
-
-func _begin_play(iid: String, as_reaction: bool) -> void:
-    var d := st.def_of(iid)
-    if d == null:
-        return
-    _pending_card = iid
-    _as_reaction = as_reaction
-    _pending_targets = []
-    _targets_prechosen = false
-    _pending_x = d.x_min() if d.cost_kind() == "x" else 0
-    if d.cost_kind() == "x":
-        _ask_for_x(d)
-        return
-    _continue_play(d)
 
 
 func _ask_for_x(d: CardDef) -> void:
@@ -1429,6 +1531,10 @@ func _ask_for_x(d: CardDef) -> void:
     _controls.add_child(cancel)
 
 
+## The rest of playing a card once its X cost has been settled. A card dropped
+## on its target arrives here with that target already chosen; the branch below
+## is for one played without a drop having picked anything, which the X prompt
+## is the only remaining way to reach.
 func _continue_play(d: CardDef) -> void:
     if d.target_spec is Dictionary:
         _target_kind = String((d.target_spec as Dictionary).get("kind", ""))
@@ -1437,12 +1543,6 @@ func _continue_play(d: CardDef) -> void:
         _refresh()
         return
     _submit_card([])
-
-
-func _begin_attack(attacker_iid: String) -> void:
-    _pending_attacker = attacker_iid
-    _mode = "pick_attack_target"
-    _refresh()
 
 
 func _choose_target(iid: String) -> void:

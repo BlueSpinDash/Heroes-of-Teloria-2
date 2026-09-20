@@ -49,6 +49,7 @@ func run(t: TestHarness) -> void:
     _play_a_starter(t)
     await _play_cards_from_hand(t)
     await _drag_and_drop(t)
+    await _the_round_announces_itself(t)
     _finish_and_reward(t)
     _buy_and_reveal(t)
     _add_card_to_deck(t)
@@ -283,7 +284,9 @@ func _play_cards_from_hand(t: TestHarness) -> void:
     await _card_zoom_reads_cards(t, screen)
     var energy_before := st.player(0).energy_current
     var slots_before := st.sequence.size()
-    t.ok(_press_first_play_button(screen), "the hand offered a play button")
+    # Dragging is the only way to play a card now, so it is what the test does.
+    var dropped := _drag_card_onto(screen, screen.get("_sequence_zone"))
+    t.ok(not dropped.is_empty(), "a card with no target can be dropped on the Sequence")
     await _frames(t, 2)
     t.eq(st.sequence.size(), slots_before + 1, "a card with no target committed straight away")
     t.eq(st.player(0).energy_current, energy_before - 1, "and its cost was paid")
@@ -295,19 +298,30 @@ func _play_cards_from_hand(t: TestHarness) -> void:
     await _frames(t, 2)
     _assert_buttons_reachable(t, screen)
     slots_before = st.sequence.size()
-    t.ok(_press_first_play_button(screen), "the targeted card offered a play button")
-    await _frames(t, 2)
-    t.eq(String(screen.get("_mode")), "pick_card_target",
-        "pressing it asks for a target rather than committing blindly")
-    t.eq(st.sequence.size(), slots_before, "nothing is committed until a target is chosen")
-    var kind := String(screen.get("_target_kind"))
-    var options := Targeting.legal_targets(st, kind, 0)
-    t.ge(float(options.size()), 1.0, "there is a legal target to choose")
-    if options.size() > 0:
-        screen.call("_choose_target", String(options[0]))
-        await _frames(t, 2)
-        t.eq(st.sequence.size(), slots_before + 1, "choosing a target committed the card")
-        t.eq(String(screen.get("_mode")), "idle", "and the screen returned to normal")
+    # A card that needs a target is refused by the Sequence and taken by the
+    # character it targets: where you drop it is how you choose.
+    var card2 := _first_draggable_card(screen)
+    if t.ne(card2, null, "the targeted card can be picked up"):
+        var payload2 = card2.call("_get_drag_data", Vector2.ZERO)
+        var seq_zone: Control = screen.get("_sequence_zone")
+        t.ok(not seq_zone.call("_can_drop_data", Vector2.ZERO, payload2),
+            "a card that needs a target is refused by the Action Sequence")
+        var kind := String((st.def_of(String(payload2["iid"])).target_spec as Dictionary)
+            .get("kind", ""))
+        var options := Targeting.legal_targets(st, kind, 0)
+        t.ge(float(options.size()), 1.0, "there is a legal target to drop it on")
+        if options.size() > 0:
+            var chip := _chip_for(screen, String(options[0]))
+            if t.ne(chip, null, "that target is on the board to drop onto"):
+                t.ok(chip.call("_can_drop_data", Vector2.ZERO, payload2),
+                    "and it takes the card")
+                chip.call("_drop_data", Vector2.ZERO, payload2)
+                await _frames(t, 2)
+                t.eq(st.sequence.size(), slots_before + 1,
+                    "dropping it on a legal target committed it")
+                if st.sequence.size() > slots_before:
+                    t.eq((st.sequence[st.sequence.size() - 1] as ActionSlot).targets,
+                        [String(options[0])], "against the character it was dropped on")
 
     # --- a card with an X cost --------------------------------------------
     st.action_priority = 0
@@ -316,7 +330,8 @@ func _play_cards_from_hand(t: TestHarness) -> void:
     screen.call("_refresh")
     await _frames(t, 2)
     slots_before = st.sequence.size()
-    t.ok(_press_first_play_button(screen), "the X-cost card offered a play button")
+    t.ok(not _drag_card_onto(screen, screen.get("_sequence_zone")).is_empty(),
+        "the X-cost card can be dropped on the Sequence")
     await _frames(t, 2)
     t.eq(st.sequence.size(), slots_before, "an X cost is asked for before committing")
     var spin = screen.get("_x_spin")
@@ -329,6 +344,100 @@ func _play_cards_from_hand(t: TestHarness) -> void:
             t.eq((st.sequence[st.sequence.size() - 1] as ActionSlot).x_paid, 3,
                 "with the X the player actually chose")
         t.eq(st.player(0).energy_current, 1, "and three Energy was spent")
+
+
+## Every phase says its own name, the Sequence resolves a card at a time, and
+## nothing is played by pressing a button any more.
+func _the_round_announces_itself(t: TestHarness) -> void:
+    t.begin("the round announces itself and resolves one card at a time")
+    var deck := _starter_deck()
+    app.end_match()
+    if not t.eq(app.start_match(String(deck.get("deck_id", "")), "silence"), "",
+            "a match started for the pacing check"):
+        return
+    var st: GameState = app.match_state
+    app.goto("battle")
+    await _frames(t, 3)
+    var screen := _screen()
+    if not t.ne(screen, null, "the battle screen built"):
+        return
+
+    t.ok(st.watch_resolve, "the screen asks the engine to resolve one card at a time")
+    var banner = screen.get("_banner")
+    if not t.ne(banner, null, "the screen has a banner to announce phases with"):
+        return
+
+    # The phases that have already happened are announced when they are replayed.
+    screen.set("_events_seen", 0)
+    screen.call("_play_new_events")
+    await _frames(t, 2)
+    t.ok(banner.call("showing"), "a phase announced itself on the board")
+
+    # Nothing in the hand or on the board is played by pressing it.
+    st.first_player = 0
+    st.action_priority = 0
+    st.player(0).passed_actions = false
+    st.pending = null
+    st.phase = "action"
+    st.player(0).energy_current = 6
+    _force_hand(st, 0, ["PAS_SKILL_01", "PAS_SKILL_01"])
+    screen.call("_refresh")
+    await _frames(t, 2)
+    var play_buttons: Array = []
+    for b in _buttons_in(screen.get("_hand_row")):
+        play_buttons.append((b as Button).text)
+    for iid in [st.player(0).hero_iid]:
+        for b in _buttons_in(_chip_for(screen, String(iid))):
+            play_buttons.append((b as Button).text)
+    t.empty(play_buttons,
+        "a card is played by dragging it, so nothing offers a button to press instead")
+
+    # Commit two Actions, pass, and watch them resolve one at a time.
+    var seq_zone: Control = screen.get("_sequence_zone")
+    for i in 2:
+        # Priority passes to the opponent on every commitment, so it is handed
+        # back and the hand redrawn before the next card is picked up.
+        st.action_priority = 0
+        st.player(0).energy_current = 6
+        screen.call("_refresh")
+        await _frames(t, 2)
+        var payload := _drag_card_onto(screen, seq_zone)
+        if payload.is_empty():
+            break
+        await _frames(t, 2)
+    if not t.eq(st.sequence.size(), 2, "two Actions are committed"):
+        return
+    st.action_priority = 0
+    GameEngine.submit(st, {"cmd": "pass_actions", "player": 0})
+    GameEngine.submit(st, {"cmd": "pass_actions", "player": 1})
+    screen.call("_refresh")
+    t.eq(st.phase, "resolve", "the Resolve Phase began")
+    t.eq(st.current_step, 1, "and stopped with only the first card resolved")
+
+    # The screen drives the rest, a card per beat: first it waits out whatever
+    # was just shown, then it moves the Sequence on. A large delta stands in
+    # for the time a player spends watching.
+    var before_step := st.current_step
+    var beats := 0
+    while beats < 6 and st.phase == "resolve" and st.current_step == before_step:
+        beats += 1
+        screen.call("_process", 10.0)
+    t.ok(st.current_step > before_step or st.phase != "resolve",
+        "the screen moved the Sequence on by one card")
+    t.le(float(st.current_step), float(before_step + 1),
+        "and by one card only, rather than running the whole Sequence at once")
+
+
+## Every Button anywhere under a node, so a test can check that none are left.
+func _buttons_in(node) -> Array:
+    var out: Array = []
+    if node == null or not (node is Node):
+        return out
+    for child in (node as Node).get_children():
+        if child is Button:
+            out.append(child)
+        out.append_array(_buttons_in(child))
+    return out
 
 
 ## Cards and characters can be dragged onto where they belong.
@@ -996,11 +1105,33 @@ func _first_draggable_card(screen: Control) -> Control:
     var row = screen.get("_hand_row")
     if row == null:
         return null
-    for child in (row as Control).get_children():
-        for sub in (child as Control).get_children():
-            if sub is CardView and (sub as CardView).drag_payload != null:
-                return sub as Control
+    return _find_draggable(row as Control)
+
+
+func _find_draggable(node: Node) -> Control:
+    for child in node.get_children():
+        if child is CardView and (child as CardView).drag_payload != null:
+            return child as Control
+        var found := _find_draggable(child)
+        if found != null:
+            return found
     return null
+
+
+## Play a hand card the way a player does now: pick it up and drop it where it
+## should go. Returns the payload, or an empty dictionary when the card could
+## not be picked up at all.
+func _drag_card_onto(screen: Control, target: Control) -> Dictionary:
+    var card := _first_draggable_card(screen)
+    if card == null or target == null:
+        return {}
+    var payload = card.call("_get_drag_data", Vector2.ZERO)
+    if not (payload is Dictionary):
+        return {}
+    if not target.call("_can_drop_data", Vector2.ZERO, payload):
+        return {}
+    target.call("_drop_data", Vector2.ZERO, payload)
+    return payload as Dictionary
 
 
 ## The board keeps a lookup of every chip by instance id, which is also what
@@ -1026,26 +1157,6 @@ func _force_hand(st: GameState, player: int, def_ids: Array) -> void:
                 break
 
 
-func _hand_buttons(screen: Control) -> Array:
-    var out: Array = []
-    var row = screen.get("_hand_row")
-    if row == null:
-        return out
-    for child in (row as Control).get_children():
-        for sub in (child as Control).get_children():
-            if sub is Button:
-                out.append(sub)
-    return out
-
-
-func _press_first_play_button(screen: Control) -> bool:
-    var buttons := _hand_buttons(screen)
-    if buttons.is_empty():
-        return false
-    (buttons[0] as Button).emit_signal("pressed")
-    return true
-
-
 func _press_button_labelled(container, label: String) -> bool:
     if container == null:
         return false
@@ -1068,13 +1179,17 @@ func _assert_buttons_reachable(t: TestHarness, screen: Control) -> void:
     var visible := strip.get_global_rect()
     if visible.size.y <= 0.0:
         return  # not laid out in this environment; the geometry check needs a frame
-    var unreachable: Array = []
-    for b in _hand_buttons(screen):
-        var r: Rect2 = (b as Button).get_global_rect()
-        if not visible.encloses(r):
-            unreachable.append("%s at %s outside the hand strip %s" % [
-                (b as Button).text, str(r), str(visible)])
-    t.empty(unreachable, "every play button is inside the visible hand strip")
+    # A card you can only see half of is a card you cannot read, and the whole
+    # point of the hand strip is that it holds whole cards.
+    var cut_off: Array = []
+    for c in (row as Control).get_children():
+        if not (c is CardView):
+            continue
+        var r: Rect2 = (c as Control).get_global_rect()
+        if r.size.y > 0.0 and not visible.grow(1.0).encloses(r):
+            cut_off.append("a hand card at %s is outside the strip %s" % [
+                str(r), str(visible)])
+    t.empty(cut_off, "every card in the hand is drawn whole inside the strip")
 
     # The strip itself has to be on screen. Twice now a taller board has pushed
     # the hand below the window, which makes the whole hand unplayable even

@@ -30,9 +30,79 @@ func run(t: TestHarness) -> void:
     test_fevered_tempo_counts_skills_before_it(t)
     test_battle_wraps_arms_its_host(t)
     test_supplied_cards_play_as_printed(t)
+    test_the_sequence_can_be_watched_one_card_at_a_time(t)
     test_chain_rules(t)
     test_x_is_locked(t)
     test_instance_integrity(t)
+
+
+## The Resolve Phase can hand control back after each card.
+##
+## This changes nothing about what happens or in what order — the same steps,
+## the same results — only where the engine stops, so that the interface can
+## show one card resolving before the next one starts. Anything that is not
+## watching a match, the AI's rollouts most of all, still resolves the whole
+## Sequence in one call.
+func test_the_sequence_can_be_watched_one_card_at_a_time(t: TestHarness) -> void:
+    t.begin("the Action Sequence can be resolved one card at a time")
+
+    var watched := _three_card_sequence()
+    if not t.eq(watched.sequence.size(), 3, "three Actions are committed"):
+        return
+    watched.watch_resolve = true
+
+    # Both players pass, which begins the Resolve Phase. With someone watching,
+    # the engine stops as soon as the first card has resolved.
+    GameEngine.submit(watched, {"cmd": "pass_actions", "player": watched.action_priority})
+    GameEngine.submit(watched, {"cmd": "pass_actions", "player": watched.action_priority})
+    t.eq(watched.phase, "resolve", "the Resolve Phase began")
+    t.eq(watched.current_step, 1, "and stopped after the first card resolved")
+    t.ok((watched.sequence[0] as ActionSlot).resolved, "the first card has resolved")
+    t.ok(not (watched.sequence[1] as ActionSlot).resolved, "the second has not")
+
+    # One call, one card, in order.
+    GameEngine.advance(watched)
+    t.eq(watched.current_step, 2, "the next call resolved exactly one more")
+    t.ok((watched.sequence[1] as ActionSlot).resolved, "the second card has now resolved")
+    t.ok(not (watched.sequence[2] as ActionSlot).resolved, "and the third has not")
+    GameEngine.advance(watched)
+    t.ok((watched.sequence[2] as ActionSlot).resolved, "the third resolves on the call after")
+
+    # Left to run, it finishes the round like any other.
+    var guard := 0
+    while watched.phase == "resolve" and guard < 20:
+        guard += 1
+        GameEngine.advance(watched)
+    t.ne(watched.phase, "resolve", "and the round moves on when it is done")
+
+    # Nobody watching: the whole Sequence resolves in one call, as it always did.
+    var unwatched := _three_card_sequence()
+    t.ok(not unwatched.watch_resolve, "a match is not watched unless something says so")
+    GameEngine.submit(unwatched, {"cmd": "pass_actions", "player": unwatched.action_priority})
+    GameEngine.submit(unwatched, {"cmd": "pass_actions", "player": unwatched.action_priority})
+    t.ne(unwatched.phase, "resolve", "the Sequence resolved without stopping")
+    for i in unwatched.sequence.size():
+        t.ok((unwatched.sequence[i] as ActionSlot).resolved,
+            "step %d resolved in the same pass" % (i + 1))
+
+    # A search clone is never watched, however the match it came from was set
+    # up: the AI would stall on the first card of every rollout.
+    var clone := watched.clone_for_search()
+    t.ok(not clone.watch_resolve, "a clone the AI searches resolves straight through")
+
+
+## A board with three of this player's Actions committed, ready to resolve.
+func _three_card_sequence() -> GameState:
+    var st := _fresh()
+    st.player(0).energy_current = 9
+    for i in 3:
+        st.action_priority = 0
+        var iid := F.to_hand(st, 0, "FIX_BURN")
+        if iid == "":
+            break
+        GameEngine.submit(st, {"cmd": "commit_card", "player": 0, "card_iid": iid})
+    st.action_priority = 0
+    return st
 
 
 # ------------------------------------------------------------------ helpers ---

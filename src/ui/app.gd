@@ -153,10 +153,10 @@ func _build_chrome() -> void:
     root.add_child(UiTheme.separator())
 
     var body_holder := MarginContainer.new()
-    body_holder.add_theme_constant_override("margin_left", 16)
-    body_holder.add_theme_constant_override("margin_right", 16)
-    body_holder.add_theme_constant_override("margin_top", 10)
-    body_holder.add_theme_constant_override("margin_bottom", 8)
+    body_holder.add_theme_constant_override("margin_left", 12)
+    body_holder.add_theme_constant_override("margin_right", 12)
+    body_holder.add_theme_constant_override("margin_top", 6)
+    body_holder.add_theme_constant_override("margin_bottom", 4)
     body_holder.size_flags_vertical = Control.SIZE_EXPAND_FILL
     root.add_child(body_holder)
 
@@ -165,8 +165,12 @@ func _build_chrome() -> void:
     _body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     body_holder.add_child(_body)
 
+    # The toast is a line that is blank most of the time, and a blank line at
+    # the bottom of every screen is a line the screen above it does not get.
+    # It appears when there is something to say and takes no room otherwise.
     _toast = UiTheme.label("", 13, UiTheme.GOLD)
     _toast.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    _toast.visible = false
     root.add_child(_toast)
 
 
@@ -221,6 +225,7 @@ func _refresh_header() -> void:
 
 func toast(message: String, is_error: bool = false) -> void:
     _toast.text = message
+    _toast.visible = message != ""
     _toast.add_theme_color_override("font_color", UiTheme.DANGER if is_error else UiTheme.GOOD)
     _toast_timer = 6.0
 
@@ -230,6 +235,7 @@ func _process(delta: float) -> void:
         _toast_timer -= delta
         if _toast_timer <= 0.0:
             _toast.text = ""
+            _toast.visible = false
 
 
 # --------------------------------------------------------------- navigation ---
