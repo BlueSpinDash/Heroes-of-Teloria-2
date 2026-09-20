@@ -62,6 +62,9 @@ var MIDDLE_H: float = Layout.num("battle_board", "middle_h")
 var BOARD_CARD_W: float = Layout.num("battle_board", "board_card_w")
 var SEQ_CARD_W: float = Layout.num("battle_board", "seq_card_w")
 var LOCATION_W: float = Layout.num("battle_board", "location_w")
+## The opponent's hand is face down, so its cards are drawn smaller than yours:
+## there is nothing on them to read, only how many there are.
+var OPP_HAND_CARD_W: float = Layout.num("battle_board", "opp_hand_card_w")
 ## What a plated zone costs around the strip inside it: its border, its inset
 ## and the caption line it shows while it is empty.
 const ZONE_CHROME := 24.0
@@ -86,6 +89,9 @@ var _own_companion_zone: BattleDropTarget
 var _opp_companion_zone: BattleDropTarget
 ## How much Energy each player has, on their own side of the field.
 var _energy_gauges: Dictionary = {}
+## The opponent's hand, drawn as the card backs it is made of.
+var _opp_hand_row: HBoxContainer
+var _opp_hand_strip: Control
 ## The room kept at each end of a deck row for its gauge, so the plates
 ## between them stay centred on the board.
 const GAUGE_CELL_W := 148.0
@@ -186,6 +192,7 @@ func _build() -> void:
     # Two mirrored halves. The rules give the two players one Action Sequence
     # and one Location between them, not one apiece, so those sit once in the
     # shared middle rather than being mirrored with everything else.
+    centre.add_child(_make_opponent_hand())
     centre.add_child(_make_companion_zone(1))
     centre.add_child(_make_deck_row(1))
     centre.add_child(_make_middle())
@@ -239,6 +246,28 @@ func _build() -> void:
     add_child(_banner)
     _zoom = CardZoom.new()
     add_child(_zoom)
+
+
+## The opponent's hand, at the top of the board, mirroring yours at the bottom.
+##
+## Their cards are face down, because only how many they hold is public — but
+## how many they hold matters constantly, and a row of card backs says it at a
+## glance in a way a number never did. It is the same plate as your own hand,
+## the other way up.
+func _make_opponent_hand() -> Control:
+    var zone := PanelContainer.new()
+    zone.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+    var box := BoardArt.back(zone, "panel_hand", UiTheme.GOLD_DIM, 2)
+    _opp_hand_row = UiTheme.hbox(4)
+    _opp_hand_row.alignment = BoxContainer.ALIGNMENT_CENTER
+    var scroll := UiTheme.scroll(_opp_hand_row, true)
+    scroll.custom_minimum_size = Vector2(0, OPP_HAND_CARD_W * CardView.BASE_HEIGHT
+        / CardView.BASE_WIDTH)
+    scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+    scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+    box.add_child(scroll)
+    _opp_hand_strip = scroll
+    return zone
 
 
 ## The shared middle: the Action Sequence, with the Location plate beside it,
@@ -548,6 +577,7 @@ func _refresh() -> void:
             _drop_zones.append(zone)
 
     _refresh_top()
+    _refresh_opp_hand()
     _refresh_piles()
     _refresh_boards()
     _refresh_location()
@@ -578,21 +608,13 @@ func _refresh_top() -> void:
         var hero := st.def_of(p.hero_iid)
         var panel := UiTheme.panel(UiTheme.BG_PANEL,
             UiTheme.GOLD if i == 0 else UiTheme.GOLD_DIM, 1, 5)
+        # Neither Energy nor hand size is written here any more. Both are on
+        # the board itself: Energy in the gem on each player's side of the
+        # field, and a hand as the cards it is actually made of.
         var row := UiTheme.hbox(6)
         row.add_child(UiTheme.label("You" if i == 0 else "Opponent", 13,
             UiTheme.GOLD if i == 0 else UiTheme.TEXT))
         row.add_child(UiTheme.label(hero.name if hero != null else "?", 12, UiTheme.TEXT_DIM))
-        row.add_child(UiTheme.label("Energy %d/%d" % [p.energy_current, st.energy_max(i)],
-            12, UiTheme.ENERGY.lightened(0.4)))
-        row.add_child(UiTheme.label("Hand %d" % p.hand.size(), 11, UiTheme.TEXT_DIM))
-        if i == 1:
-            # The opponent's hand is face down: only its size is public, so it
-            # is drawn as that many card backs and nothing else.
-            for _b in min(p.hand.size(), 10):
-                var back := CardView.face_down(15.0)
-                if back == null:
-                    break
-                row.add_child(back)
         if p.passed_actions:
             row.add_child(UiTheme.label("passed", 11, UiTheme.GOLD))
         panel.add_child(row)
@@ -614,6 +636,33 @@ func _refresh_piles() -> void:
     _fill_piles(_own_piles, 0, ["hit", "hero", "exhaust", "wound"])
     _fill_piles(_opp_piles, 1, ["wound", "exhaust", "hero", "hit"])
     _refresh_energy()
+
+
+## The opponent's hand: one card back per card they hold, and the plate alone
+## when they hold none. Nothing here reads their cards — the backs are all the
+## screen is ever given.
+func _refresh_opp_hand() -> void:
+    if _opp_hand_row == null or not is_instance_valid(_opp_hand_row):
+        return
+    for c in _opp_hand_row.get_children():
+        _opp_hand_row.remove_child(c)
+        c.queue_free()
+    var held := st.player(1).hand.size()
+    if held <= 0:
+        _opp_hand_row.add_child(BoardArt.caption("your opponent holds no cards", 10))
+        return
+    var width := OPP_HAND_CARD_W * _fit
+    if _opp_hand_strip != null and is_instance_valid(_opp_hand_strip):
+        _opp_hand_strip.custom_minimum_size = Vector2(0,
+            width * CardView.BASE_HEIGHT / CardView.BASE_WIDTH)
+    for i in held:
+        var back := CardView.face_down(width)
+        if back == null:
+            break
+        back.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        back.tooltip_text = "Your opponent holds %d card%s." % [held,
+            "" if held == 1 else "s"]
+        _opp_hand_row.add_child(back)
 
 
 ## Each player's Energy, on their own side of the field. Both are always shown:

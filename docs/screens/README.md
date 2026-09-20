@@ -37,6 +37,7 @@ xvfb-run -a godot --path . --resolution 1440x900 --script tools/ui_drive.gd
 | `31_card_creator.png` | The card creator: a Companion being made, with the price of every choice |
 | `33_phase_banner.png` | The Action Sequence resolving, a card at a time, each step announced by name |
 | `34_energy.png` | Both players' Energy on the board, each on their own side of the field |
+| `35_both_hands.png` | Both hands on the board: yours face up, your opponent's as card backs |
 
 The battle screen's own artwork lives in `assets/board/`. `board_full.png` is
 the painted board; `tools/slice_board.gd` cuts the plates the screen uses out

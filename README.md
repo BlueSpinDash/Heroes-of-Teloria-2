@@ -20,7 +20,7 @@ establish no Teloria lore or final balance.
 | Persistence | Versioned save with atomic writes, backup rotation, export and import. |
 | Card creator | Make your own card: pick its type, Affinity, numbers and features, and the prices they add up to are its Energy cost and its rarity. |
 | Interface | Home, Collection, Deck builder, Opponent selection, Battle, Results, Shop, Card creator, Card editor, Settings. A match is played by dragging: a card onto its target or into a zone, a character onto what it attacks. |
-| Tests | 1317 assertions across six suites, all passing. |
+| Tests | 1326 assertions across six suites, all passing. |
 
 ## Downloading and playing it
 
@@ -160,6 +160,14 @@ card in hand, a Hero or Companion in play, a step in the Action Sequence, the
 Location. Over the hand the reader appears above the row, so it never covers
 the cards next to the one being read. It is a reader, not a control — it takes
 no input and never touches match state.
+
+**Your opponent holds a hand, and you can see it.** Their cards are face down,
+because only how many they hold is public — but how many they hold matters
+constantly, so it is a row of card backs on their own plate at the top of the
+board, mirroring your hand at the bottom, rather than a number in a bar. The
+bar at the top no longer repeats either that or the Energy: both are on the
+board itself, and a number said in two places is a number that ends up
+disagreeing with itself.
 
 **Each player's Energy stands on their own side of the field.** Energy is spent
 on nearly every decision in a round, so it is not left to a line of small text:

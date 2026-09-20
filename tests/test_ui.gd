@@ -51,6 +51,7 @@ func run(t: TestHarness) -> void:
     await _drag_and_drop(t)
     await _the_round_announces_itself(t)
     await _energy_is_shown_on_both_sides(t)
+    await _the_opponent_has_a_hand(t)
     _finish_and_reward(t)
     _buy_and_reveal(t)
     _add_card_to_deck(t)
@@ -482,6 +483,71 @@ func _energy_is_shown_on_both_sides(t: TestHarness) -> void:
     # It is the card game's own Energy symbol, not a new one invented here.
     t.ok(FileAccess.file_exists(EnergyGauge.GEM_PATH),
         "the gauge uses the Energy gem cut from the card templates")
+
+
+## The opponent holds a hand of cards on the board, face down, and the bar at
+## the top no longer repeats what the board says.
+func _the_opponent_has_a_hand(t: TestHarness) -> void:
+    t.begin("the opponent holds a hand of card backs, and the top bar repeats nothing")
+    var deck := _starter_deck()
+    app.end_match()
+    if not t.eq(app.start_match(String(deck.get("deck_id", "")), "silence"), "",
+            "a match started for the hand check"):
+        return
+    var st: GameState = app.match_state
+    app.goto("battle")
+    await _frames(t, 3)
+    var screen := _screen()
+    if not t.ne(screen, null, "the battle screen built"):
+        return
+
+    var row = screen.get("_opp_hand_row")
+    if not t.ne(row, null, "the opponent has a hand on the board"):
+        return
+    var held := st.player(1).hand.size()
+    if not t.ge(float(held), 1.0, "and is holding cards"):
+        return
+    t.eq((row as Control).get_child_count(), held,
+        "one card for each card the opponent holds")
+    t.ok(_has_card_back(row as Control),
+        "drawn face down, because only how many they hold is public")
+
+    # Nothing in their hand can be read: it is backs and nothing else.
+    var readable: Array = []
+    for iid in st.player(1).hand:
+        var d := st.def_of(String(iid))
+        if d != null and _text_appears(row as Control, d.name):
+            readable.append(d.name)
+    t.empty(readable, "and none of their cards can be read off the board")
+
+    # Drawing a card adds one to the row.
+    var before := (row as Control).get_child_count()
+    Mechanics.draw_one(st, 1)
+    screen.call("_refresh")
+    await _frames(t, 2)
+    t.eq((row as Control).get_child_count(), before + 1,
+        "a card they draw joins the hand on the board")
+
+    # The top bar says neither Energy nor hand size any more: both are on the
+    # board, and saying them twice is how they end up disagreeing.
+    var repeated: Array = []
+    for l in _labels_in(screen.get("_top")):
+        var text := (l as Label).text
+        if text.contains("Energy") or text.begins_with("Hand "):
+            repeated.append(text)
+    t.empty(repeated, "the top bar no longer repeats the board's own numbers")
+
+
+## Every Label anywhere under a node.
+func _labels_in(node) -> Array:
+    var out: Array = []
+    if node == null or not (node is Node):
+        return out
+    for child in (node as Node).get_children():
+        if child is Label:
+            out.append(child)
+        out.append_array(_labels_in(child))
+    return out
 
 
 ## Every Button anywhere under a node, so a test can check that none are left.
