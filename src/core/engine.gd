@@ -106,8 +106,16 @@ static func advance(st: GameState) -> void:
                     _set_action_priority(st)
                     return  # waiting for the player on priority
             "resolve":
+                var step_before := st.current_step
                 if not _resolve_tick(st):
                     return  # a Reaction window is open
+                # One card at a time, when someone is watching. The step has
+                # already happened and everything it did is in the event log;
+                # this only hands control back so the interface can show it
+                # before the next one starts.
+                if st.watch_resolve and st.current_step > step_before \
+                        and st.phase == "resolve":
+                    return
             "round_end":
                 _do_round_end(st)
             "ended":

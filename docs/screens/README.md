@@ -30,11 +30,12 @@ xvfb-run -a godot --path . --resolution 1440x900 --script tools/ui_drive.gd
 | `23_printed_faces.png` | Three cards drawn from the faces they were supplied as, beside one the game builds |
 | `25_supplied_cards.png` | Every card supplied as a finished face, drawn from that face |
 | `26_frames.png` | The Companion, Equipment and Ta'ahma frames, with a proxy's values on them |
-| `27_board_cards.png` | A match in progress: every card drawn as a card, and the decks face down |
+| `27_board_cards.png` | A match in progress: every zone holding whole cards, nothing scrolled |
 | `28_layout_board.png` | The Layout screen laying out the board, with a bar on every edge a number controls |
 | `29_layout_card.png` | The Layout screen laying out a card, with its slots and stacking order |
 | `30_zone_bounds.png` | Battle, mid-drag: every zone that would take the card banded from edge to edge |
 | `31_card_creator.png` | The card creator: a Companion being made, with the price of every choice |
+| `33_phase_banner.png` | The Action Sequence resolving, a card at a time, each step announced by name |
 
 The battle screen's own artwork lives in `assets/board/`. `board_full.png` is
 the painted board; `tools/slice_board.gd` cuts the plates the screen uses out

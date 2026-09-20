@@ -19,8 +19,8 @@ establish no Teloria lore or final balance.
 | Progression | Gold, boosters, duplicate conversion, idempotent rewards, durable pack transactions. |
 | Persistence | Versioned save with atomic writes, backup rotation, export and import. |
 | Card creator | Make your own card: pick its type, Affinity, numbers and features, and the prices they add up to are its Energy cost and its rarity. |
-| Interface | Home, Collection, Deck builder, Opponent selection, Battle, Results, Shop, Card creator, Card editor, Settings. Cards and attacks can be dragged onto their targets or anywhere into a zone, or played by clicking. |
-| Tests | 1279 assertions across six suites, all passing. |
+| Interface | Home, Collection, Deck builder, Opponent selection, Battle, Results, Shop, Card creator, Card editor, Settings. A match is played by dragging: a card onto its target or into a zone, a character onto what it attacks. |
+| Tests | 1304 assertions across six suites, all passing. |
 
 ## Downloading and playing it
 
@@ -160,6 +160,26 @@ card in hand, a Hero or Companion in play, a step in the Action Sequence, the
 Location. Over the hand the reader appears above the row, so it never covers
 the cards next to the one being read. It is a reader, not a control — it takes
 no input and never touches match state.
+
+**Every phase announces itself.** A banner crosses the board naming the phase
+and the round — Draw, Action, Resolve, Round End — so what the game is doing is
+never something you have to infer from your cards going grey.
+
+**The Action Sequence resolves one card at a time.** The engine can hand control
+back after each step, and the battle screen uses that: each step is announced by
+name, its effects play out, there is a beat, and then the next one starts. It
+changes nothing about what happens or in what order — the same steps, the same
+results, only where the engine stops. Nothing that is not watching a match
+resolves this way; the AI's rollouts run straight through, which is why
+`GameState.watch_resolve` is set by the screen and never copied into a search
+clone.
+
+**The board fits the window.** Every zone is tall enough to hold a whole card,
+and nothing on the table has to be scrolled to be seen. When the window cannot
+hold the board at the size the layout asks for — a smaller screen, or the Layout
+screen having been told to make the zones bigger — every card on the table is
+drawn proportionally smaller instead, so the hand along the bottom is always
+reachable. A hand you cannot reach is a game you cannot play.
 
 Resolution is not silent. When something takes damage the number floats off it,
 and the cards it loses fly from the deck they leave into the Wound Deck, so the
@@ -420,10 +440,13 @@ docs/            Effect-schema guide and architecture notes
 * **The card editor edits data, not mechanics.** Any effect outside the
   vocabulary in `docs/EFFECT_SCHEMA.md` needs the engine extended first, and the
   editor will refuse to save a definition the interpreter cannot run.
-* **Dragging is an addition, not a replacement.** Every action in a match can
-  be taken by clicking, so the game stays usable on a trackpad or a
-  touchscreen. The drag system is tested through the same entry points Godot's
-  own input calls, and with a simulated mouse drag, but it has not been tried
-  on a touchscreen.
+* **A match is played by dragging, and only by dragging.** The Commit and
+  Attack buttons are gone: a card is played by dropping it where it should go
+  and a character attacks by being dropped on what it attacks. Buttons are left
+  only for answering a question the game asked — passing, choosing cards for an
+  effect, or setting an X cost. That is what was asked for, and it reads far
+  better, but it does mean a player who cannot drag cannot play. The drag
+  system is tested through the same entry points Godot's own input calls, and
+  with a simulated mouse drag, but it has not been tried on a touchscreen.
 * **No multiplayer.** The blueprint's first release is single-player against AI,
   and that is what this is.
