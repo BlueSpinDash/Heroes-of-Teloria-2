@@ -84,6 +84,11 @@ var _opp_piles: HBoxContainer
 var _own_piles: HBoxContainer
 var _own_companion_zone: BattleDropTarget
 var _opp_companion_zone: BattleDropTarget
+## How much Energy each player has, on their own side of the field.
+var _energy_gauges: Dictionary = {}
+## The room kept at each end of a deck row for its gauge, so the plates
+## between them stay centred on the board.
+const GAUGE_CELL_W := 148.0
 ## The strips whose height has to give way when the window cannot hold the
 ## board at the size the layout asks for.
 var _companion_strips: Array = []
@@ -257,14 +262,48 @@ func _make_middle() -> Control:
 func _make_deck_row(player: int) -> Control:
     var row := UiTheme.hbox(6)
     row.alignment = BoxContainer.ALIGNMENT_CENTER
-    row.custom_minimum_size = Vector2(0, DECK_PLATE_H + 4.0)
-    row.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-    _deck_rows.append(row)
+    row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     if player == 0:
         _own_piles = row
     else:
         _opp_piles = row
-    return row
+
+    # Each player's Energy stands at the outer edge of their own deck row, on
+    # their own half of the field: yours on the left, your opponent's on the
+    # right, so the two are never mistaken for each other. The plates stay
+    # centred because the far side of the row is padded to match.
+    var gauge := EnergyGauge.create(_gauge_gem_w(),
+        "Your Energy" if player == 0 else "Opponent's Energy")
+    _energy_gauges[player] = gauge
+    var gauge_cell := UiTheme.hbox(0)
+    gauge_cell.custom_minimum_size = Vector2(GAUGE_CELL_W, 0)
+    gauge_cell.alignment = BoxContainer.ALIGNMENT_BEGIN if player == 0 \
+        else BoxContainer.ALIGNMENT_END
+    gauge.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+    gauge_cell.add_child(gauge)
+    var pad := Control.new()
+    pad.custom_minimum_size = Vector2(GAUGE_CELL_W, 0)
+    pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+    var outer := UiTheme.hbox(6)
+    outer.custom_minimum_size = Vector2(0, DECK_PLATE_H + 4.0)
+    outer.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+    if player == 0:
+        outer.add_child(gauge_cell)
+        outer.add_child(row)
+        outer.add_child(pad)
+    else:
+        outer.add_child(pad)
+        outer.add_child(row)
+        outer.add_child(gauge_cell)
+    _deck_rows.append(outer)
+    return outer
+
+
+## How wide the Energy gem is drawn: as tall as the deck plates beside it will
+## allow, so the gauge reads as part of that row rather than sitting over it.
+func _gauge_gem_w() -> float:
+    return (DECK_PLATE_H * _fit - 6.0) / EnergyGauge.GEM_RATIO
 
 
 ## The caption over each Companion Zone, kept so it can step aside once there
@@ -574,6 +613,19 @@ func _refresh_piles() -> void:
     # opponent's reads the same order from their side of the board.
     _fill_piles(_own_piles, 0, ["hit", "hero", "exhaust", "wound"])
     _fill_piles(_opp_piles, 1, ["wound", "exhaust", "hero", "hit"])
+    _refresh_energy()
+
+
+## Each player's Energy, on their own side of the field. Both are always shown:
+## what your opponent can still afford decides what you can safely do.
+func _refresh_energy() -> void:
+    for player in [0, 1]:
+        var gauge = _energy_gauges.get(player, null)
+        if gauge == null or not is_instance_valid(gauge):
+            continue
+        (gauge as EnergyGauge).set_gem_width(_gauge_gem_w())
+        (gauge as EnergyGauge).set_energy(st.player(player).energy_current,
+            st.energy_max(player))
 
 
 func _fill_piles(row: HBoxContainer, player: int, order: Array) -> void:

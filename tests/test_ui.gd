@@ -50,6 +50,7 @@ func run(t: TestHarness) -> void:
     await _play_cards_from_hand(t)
     await _drag_and_drop(t)
     await _the_round_announces_itself(t)
+    await _energy_is_shown_on_both_sides(t)
     _finish_and_reward(t)
     _buy_and_reveal(t)
     _add_card_to_deck(t)
@@ -426,6 +427,61 @@ func _the_round_announces_itself(t: TestHarness) -> void:
         "the screen moved the Sequence on by one card")
     t.le(float(st.current_step), float(before_step + 1),
         "and by one card only, rather than running the whole Sequence at once")
+
+
+## Both players' Energy is on the board, on their own side of the field, in the
+## same gem the cards use.
+func _energy_is_shown_on_both_sides(t: TestHarness) -> void:
+    t.begin("each player's Energy is shown on their own side of the field")
+    var deck := _starter_deck()
+    app.end_match()
+    if not t.eq(app.start_match(String(deck.get("deck_id", "")), "silence"), "",
+            "a match started for the Energy check"):
+        return
+    var st: GameState = app.match_state
+    app.goto("battle")
+    await _frames(t, 3)
+    var screen := _screen()
+    if not t.ne(screen, null, "the battle screen built"):
+        return
+
+    var gauges: Dictionary = screen.get("_energy_gauges")
+    if not t.eq(gauges.size(), 2, "there is one gauge for each player"):
+        return
+    var mine := gauges[0] as EnergyGauge
+    var theirs := gauges[1] as EnergyGauge
+    t.ne(mine, null, "yours is on the board")
+    t.ne(theirs, null, "and your opponent's is too")
+
+    # Whatever the match says, the gauges say.
+    st.player(0).energy_current = 3
+    st.player(1).energy_current = 5
+    screen.call("_refresh")
+    await _frames(t, 2)
+    t.eq(mine.shown_value(), 3, "yours shows the Energy you have")
+    t.eq(theirs.shown_value(), 5, "and your opponent's shows theirs")
+    t.ok(mine.tooltip_text.contains("of a maximum of %d" % st.energy_max(0)),
+        "with your maximum beside it: %s" % mine.tooltip_text)
+
+    # Spending is reflected the moment the board is redrawn.
+    st.player(0).energy_current = 1
+    screen.call("_refresh")
+    await _frames(t, 2)
+    t.eq(mine.shown_value(), 1, "spending Energy changes what the gauge says")
+
+    # They are on opposite halves of the board, and both on screen.
+    var mine_rect := (mine as Control).get_global_rect()
+    var theirs_rect := (theirs as Control).get_global_rect()
+    var window := Rect2(Vector2.ZERO, Vector2(screen.get_viewport().get_visible_rect().size))
+    if mine_rect.size.y > 0.0:
+        t.ok(window.grow(1.0).encloses(mine_rect), "your gauge is on screen")
+        t.ok(window.grow(1.0).encloses(theirs_rect), "your opponent's gauge is on screen")
+        t.ok(theirs_rect.get_center().y < mine_rect.get_center().y,
+            "your opponent's is on their half of the field and yours is on yours")
+
+    # It is the card game's own Energy symbol, not a new one invented here.
+    t.ok(FileAccess.file_exists(EnergyGauge.GEM_PATH),
+        "the gauge uses the Energy gem cut from the card templates")
 
 
 ## Every Button anywhere under a node, so a test can check that none are left.

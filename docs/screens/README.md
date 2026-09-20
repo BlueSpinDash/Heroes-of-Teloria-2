@@ -36,6 +36,7 @@ xvfb-run -a godot --path . --resolution 1440x900 --script tools/ui_drive.gd
 | `30_zone_bounds.png` | Battle, mid-drag: every zone that would take the card banded from edge to edge |
 | `31_card_creator.png` | The card creator: a Companion being made, with the price of every choice |
 | `33_phase_banner.png` | The Action Sequence resolving, a card at a time, each step announced by name |
+| `34_energy.png` | Both players' Energy on the board, each on their own side of the field |
 
 The battle screen's own artwork lives in `assets/board/`. `board_full.png` is
 the painted board; `tools/slice_board.gd` cuts the plates the screen uses out
