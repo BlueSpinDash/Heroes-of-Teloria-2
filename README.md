@@ -166,11 +166,15 @@ because only how many they hold is public — but how many they hold matters
 constantly, so it is a row of card backs on their own plate at the top of the
 board, mirroring your hand at the bottom, rather than a number in a bar. Their
 backs are drawn at exactly the size of the cards in your own hand: the same
-cards, held the other way up. Neither hand is scaled when the board is fitted
-to the window, because a hand is not part of the table — which means two full
-hands take a real bite out of the height, and the cards on the table are drawn
-smaller to pay for it. `opp_hand_card_w` in the Layout screen's Board tab is
-the one number that buys that room back. The
+cards, held the other way up.
+
+Neither hand is scaled when the board is fitted to the window, because a hand
+is not part of the table. That makes the two hands the one real claim on the
+screen's height, and `hand_card_w` — which both of them use — the number that
+decides how the height is split between a hand you can read and a table you can
+read. It is set where the two are about even; the Layout screen's Board tab
+moves it, and `opp_hand_card_w` narrows the opponent's alone if you would
+rather spend the room on the table. The
 bar at the top no longer repeats either that or the Energy: both are on the
 board itself, and a number said in two places is a number that ends up
 disagreeing with itself.

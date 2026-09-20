@@ -157,12 +157,16 @@ const DEFAULT_NUMBERS = {
     # than being chosen one at a time: making one bigger takes the room from
     # something else, which is what the Board tab of the Layout screen is for.
     "battle_board": {
-        "hand_card_w": [118.0, 60.0, 260.0, "Width of a card in the hand strip."],
-        "hand_strip_h": [168.0, 120.0, 420.0, "Height of the pinned hand strip."],
+        # Both hands are drawn at this width. A hand is not scaled when the
+        # board is fitted to the window, so every point of height here is a
+        # point the table does not get: this is the balance between a hand you
+        # can read and a table you can read.
+        "hand_card_w": [100.0, 60.0, 260.0, "Width of a card in the hand strip."],
+        "hand_strip_h": [146.0, 120.0, 420.0, "Height of the pinned hand strip."],
         # The same width as your own hand: their cards are the same cards, held
         # the other way up. Narrowing this is how the table is given back room
         # when a window cannot hold both hands at full size.
-        "opp_hand_card_w": [118.0, 30.0, 260.0,
+        "opp_hand_card_w": [100.0, 30.0, 260.0,
             "Width of a card back in the opponent's hand."],
         "board_card_w": [72.0, 40.0, 200.0,
             "How wide a card standing on the board is drawn"],
