@@ -20,7 +20,7 @@ establish no Teloria lore or final balance.
 | Persistence | Versioned save with atomic writes, backup rotation, export and import. |
 | Card creator | Make your own card: pick its type, Affinity, numbers and features, and the prices they add up to are its Energy cost and its rarity. |
 | Interface | Home, Collection, Deck builder, Opponent selection, Battle, Results, Shop, Card creator, Card editor, Settings. A match is played by dragging: a card onto its target or into a zone, a character onto what it attacks. |
-| Tests | 1304 assertions across six suites, all passing. |
+| Tests | 1317 assertions across six suites, all passing. |
 
 ## Downloading and playing it
 
@@ -160,6 +160,16 @@ card in hand, a Hero or Companion in play, a step in the Action Sequence, the
 Location. Over the hand the reader appears above the row, so it never covers
 the cards next to the one being read. It is a reader, not a control — it takes
 no input and never touches match state.
+
+**Each player's Energy stands on their own side of the field.** Energy is spent
+on nearly every decision in a round, so it is not left to a line of small text:
+each half of the board carries the same Energy gem the cards do — the one
+`tools/prepare_card_frames.gd` lifts off the card templates — with that player's
+current Energy on the stone and their maximum beside it. Yours is at the left of
+your deck row, your opponent's at the right of theirs, and the gem swells
+briefly whenever the number changes, so Energy being spent or refreshed is seen
+rather than noticed later. A player reading 3 here and a card asking for 3 are
+looking at the same symbol.
 
 **Every phase announces itself.** A banner crosses the board naming the phase
 and the round — Draw, Action, Resolve, Round End — so what the game is doing is
