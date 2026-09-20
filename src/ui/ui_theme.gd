@@ -24,13 +24,11 @@ const ENERGY := Color("#2a5aa8")
 const ATTACK := Color("#8e2b28")
 const DEFENSE := Color("#25508c")
 
-## Board zone colours, following the supplied board art.
+## Board zone colours, following the supplied board art. The decks no longer
+## take a colour from here: each one stands on its own piece of the painted
+## board, cut by `tools/slice_board.gd` and `tools/prepare_deck_mats.gd`.
 const ZONE_BG := Color("#2a1116")
 const ZONE_BORDER := Color("#8a7434")
-const PILE_HIT := Color("#16233f")
-const PILE_HERO := Color("#5a4a1e")
-const PILE_EXHAUST := Color("#3a2148")
-const PILE_WOUND := Color("#4a1414")
 const DAMAGE_TEXT := Color("#ff6b5a")
 const HEAL_TEXT := Color("#6fd08c")
 const ENERGY_TEXT := Color("#6fa8ff")

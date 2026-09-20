@@ -336,7 +336,7 @@ func _make_deck_row(player: int) -> Control:
 ## How wide the Energy gem is drawn: as tall as the deck plates beside it will
 ## allow, so the gauge reads as part of that row rather than sitting over it.
 func _gauge_gem_w() -> float:
-    return (DECK_PLATE_H * _fit - 6.0) / EnergyGauge.GEM_RATIO
+    return (DECK_PLATE_H * _fit - 12.0) / EnergyGauge.GEM_RATIO
 
 
 ## The caption over each Companion Zone, kept so it can step aside once there
@@ -703,64 +703,68 @@ func _fill_piles(row: HBoxContainer, player: int, order: Array) -> void:
 
 
 const PILE_LABEL := {"hit": "Hit Deck", "exhaust": "Exhaust Deck", "wound": "Wound Deck"}
-## The mat each deck stands on, in that deck's own colour.
-##
-## The board's painted deck plates carry their name across the middle of the
-## plate, which is exactly where a deck standing in the centre of its zone
-## covers. Rather than read a name through the cards, a deck gets a plain mat
-## and the name is written above the cards where nothing covers it. The painted
-## plates are still in `assets/board/`; `tools/slice_board.gd` still cuts them.
-const DECK_MAT := {
-    "hit": UiTheme.PILE_HIT, "exhaust": UiTheme.PILE_EXHAUST, "wound": UiTheme.PILE_WOUND,
-}
-## Wide enough for the longest of the three names above a deck.
-const DECK_MAT_ASPECT := 1.95
+## What a mat spends on itself: the margin `BoardArt.back` keeps between a
+## plate's frame and what stands inside it, plus the gap above the cards.
+const DECK_MAT_INSET := 10.0
 
 
 ## A deck, standing in the middle of its own mat with its name above it.
 func _pile_chip(player: int, kind: String) -> Control:
     var p := st.player(player)
     var count := p.pile(kind).size()
-    var mat: Color = DECK_MAT.get(kind, UiTheme.BG_PANEL)
-    var chip := UiTheme.panel(mat.darkened(0.15), mat.lightened(0.35), 2, 5)
-    var v := UiTheme.vbox(1)
-    chip.add_child(v)
-    # All three mats are the same size. They used to differ because the painted
-    # plates they replaced were cut at different widths; as plain mats holding
-    # the same thing, three equal rectangles read as one row.
-    chip.custom_minimum_size = Vector2(_deck_plate_h() * DECK_MAT_ASPECT, _deck_plate_h())
+    var chip := PanelContainer.new()
+    var v := BoardArt.back(chip, String(BoardArt.DECK_MAT.get(kind, "deck_mat_hit")),
+        Color(0, 0, 0, 0), 0, BoardArt.DECK_MAT_TINT)
+    # All three mats are the same size. The plates they are cut from were
+    # painted at different widths, but three decks standing side by side on
+    # three differently sized mats read as three different kinds of thing.
+    chip.custom_minimum_size = Vector2(_deck_plate_h() * BoardArt.DECK_MAT_ASPECT,
+        _deck_plate_h())
     chip.size_flags_vertical = Control.SIZE_SHRINK_CENTER
     var key := "%d_%s" % [player, kind]
     chip.set_meta("pile", key)
     _pile_chips[key] = chip
     # A deck with cards in it shows the top one, face down, standing on its
-    # painted plate. An empty deck shows the plate alone: there is no card
-    # there to be face down.
+    # mat. An empty deck shows the mat alone: there is no card there to be
+    # face down.
     var ink: Color = UiTheme.DANGER.lightened(0.35) if kind == "wound" \
         else UiTheme.PARCHMENT
     var name_line := BoardArt.caption(String(PILE_LABEL.get(kind, kind)),
         int(maxf(8.0, 10.0 * _fit)))
-    name_line.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-    v.add_child(name_line)
+    name_line.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+    name_line.set_anchors_preset(Control.PRESET_FULL_RECT)
+    # The name is given a line of a size this screen decides, rather than one
+    # the font decides. A mat that has to grow to hold what is written on it
+    # makes its row taller, and the board fits itself to its rows, so a name a
+    # few pixels taller than expected would shrink the whole table — and by a
+    # different amount on a different machine.
+    var name_holder := Control.new()
+    name_holder.custom_minimum_size = Vector2(0, _deck_caption_h())
+    name_holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    name_holder.clip_contents = true
+    name_holder.add_child(name_line)
+    v.add_child(name_holder)
+    var back_w := _deck_back_w()
 
-    # The deck stands in the middle of its own plate, the way a deck sits in
+    # The deck stands in the middle of its own mat, the way a deck sits in
     # the middle of its space on a table.
     var row := UiTheme.hbox(4)
     row.alignment = BoxContainer.ALIGNMENT_CENTER
     row.size_flags_vertical = Control.SIZE_EXPAND_FILL
     row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-    var back := CardView.face_down(_deck_back_w(), count, ink) if count > 0 else null
+    var back := CardView.face_down(back_w, count, ink) if count > 0 else null
     if back != null:
+        back.size_flags_vertical = Control.SIZE_SHRINK_CENTER
         row.add_child(back)
     else:
-        # Nothing in the deck: the plate's own caption is all there is to see,
-        # so the count goes where the cards would have been.
+        # Nothing in the deck: an empty mat says nothing on its own, so the
+        # count goes where the cards would have been.
         var empty := UiTheme.label("0", 22, ink.darkened(0.25),
             HORIZONTAL_ALIGNMENT_CENTER)
         empty.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.95))
         empty.add_theme_constant_override("shadow_offset_x", 1)
         empty.add_theme_constant_override("shadow_offset_y", 1)
-        empty.custom_minimum_size = Vector2(_deck_back_w(), 0)
+        empty.custom_minimum_size = Vector2(back_w, 0)
         empty.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
         row.add_child(empty)
     v.add_child(row)
@@ -769,18 +773,20 @@ func _pile_chip(player: int, kind: String) -> Control:
     return chip
 
 
-## How wide a face-down card on a deck plate is: as tall as the plate's inside
-## allows, so the deck reads as cards rather than as a picture on a picture.
+## How wide a face-down card on a deck mat is: as tall as the mat's inside
+## allows, so a deck is read as cards the size of the cards on the table rather
+## than as a token standing in for them.
 func _deck_back_w() -> float:
-    # The plate has to hold the deck's name above the cards as well as the
-    # cards, so the name's line is taken off the height the deck is drawn at.
-    return (_deck_plate_h() - 16.0 - _deck_caption_h()) \
+    # The mat has to hold the deck's name above the cards as well as the cards,
+    # so the name's line, and the inset the mat keeps between its frame and
+    # what stands inside it, are taken off the height the deck is drawn at.
+    return maxf(12.0, _deck_plate_h() - DECK_MAT_INSET - _deck_caption_h()) \
         * CardView.BASE_WIDTH / CardView.BASE_HEIGHT
 
 
-## The line the deck's name is written on, inside its plate.
+## The line the deck's name is written on, above the cards on its mat.
 func _deck_caption_h() -> float:
-    return maxf(11.0, 14.0 * _fit)
+    return maxf(13.0, 15.0 * _fit)
 
 
 func _refresh_boards() -> void:

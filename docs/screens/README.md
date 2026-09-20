@@ -39,11 +39,15 @@ xvfb-run -a godot --path . --resolution 1440x900 --script tools/ui_drive.gd
 | `34_energy.png` | Both players' Energy on the board, each on their own side of the field |
 | `35_both_hands.png` | Both hands on the board: yours face up, your opponent's as card backs |
 | `36_piles.png` | Each deck standing in the middle of its own mat, with its name above it |
+| `37_deck_mats.png` | Each deck on its own painted plate, drawn at the size of a card on the table |
 
 The battle screen's own artwork lives in `assets/board/`. `board_full.png` is
 the painted board; `tools/slice_board.gd` cuts the plates the screen uses out
-of it. Re-run it after replacing the painting:
+of it, and `tools/prepare_deck_mats.gd` then takes the painted name and icon
+off the three deck plates, so a deck standing in the middle of one covers
+nothing. Re-run both after replacing the painting:
 
 ```sh
 godot --headless --path . --script tools/slice_board.gd
+godot --headless --path . --script tools/prepare_deck_mats.gd
 ```

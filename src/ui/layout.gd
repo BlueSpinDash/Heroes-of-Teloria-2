@@ -173,7 +173,7 @@ const DEFAULT_NUMBERS = {
         "seq_card_w": [74.0, 36.0, 180.0,
             "How wide a card in the Action Sequence is drawn"],
         "companion_strip_h": [102.0, 50.0, 260.0, "Height of the row inside a Companion Zone."],
-        "deck_plate_h": [76.0, 50.0, 160.0, "Height of the deck plates."],
+        "deck_plate_h": [110.0, 50.0, 190.0, "Height of the deck plates."],
         "middle_h": [136.0, 70.0, 300.0, "Height of the Action Sequence and Location row."],
         "location_w": [150.0, 120.0, 400.0, "Width of the Location plate."],
     },

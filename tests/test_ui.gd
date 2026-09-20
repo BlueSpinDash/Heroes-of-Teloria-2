@@ -1077,8 +1077,28 @@ func _decks_stand_in_the_middle(t: TestHarness, screen: Control) -> void:
         t.ok(absf(card.get_center().x - mat.get_center().x) <= 2.0,
             "the %s deck is centred on its mat (card at %s, mat at %s)" % [
                 String(key), str(card.get_center().x), str(mat.get_center().x)])
+        # A deck standing over the edge of its mat means the mat had to grow to
+        # hold it, and the board fits itself to its rows, so a deck drawn too
+        # big shrinks the whole table on the next refresh.
+        t.ok(card.position.y >= mat.position.y - 1.0
+                and card.end.y <= mat.end.y + 1.0,
+            "the %s deck stands inside its mat (card %s..%s, mat %s..%s)" % [
+                String(key), str(card.position.y), str(card.end.y),
+                str(mat.position.y), str(mat.end.y)])
+        # And it is drawn at something like the size of a card on the table,
+        # rather than as a token standing in for one.
+        var table_card: float = screen.call("_board_card_w")
+        t.ge(card.size.x, table_card * 0.55,
+            "the %s deck is drawn near the size of a card on the table (%s of %s)"
+                % [String(key), str(card.size.x), str(table_card)])
         checked += 1
     t.ge(float(checked), 1.0, "at least one deck was holding cards to check")
+    # The mats are the board's own painted plates with the name and icon across
+    # the middle taken off, so a deck standing there covers nothing.
+    for kind in BoardArt.DECK_MAT:
+        var path: String = "%s%s.png" % [BoardArt.DIR, String(BoardArt.DECK_MAT[kind])]
+        t.ok(ResourceLoader.exists(path), "the %s deck has a mat to stand on: %s"
+            % [String(kind), path])
 
 
 ## The card that a face-down texture belongs to, anywhere under a node.
